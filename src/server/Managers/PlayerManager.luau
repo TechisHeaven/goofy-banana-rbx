@@ -20,6 +20,7 @@ function PlayerManager:RegisterPlayer(player: Player)
 	
 	player:SetAttribute("Team", Enums.Team.Runner)
 	player:SetAttribute("State", Enums.PlayerState.Alive)
+	player:SetAttribute("LobbyState", Enums.PlayerLobbyState.InLobby)
 	
 	print(string.format("PlayerManager: Registered %s", player.Name))
 end
@@ -68,7 +69,7 @@ function PlayerManager:GetState(player: Player): string?
 	return data and data.State
 end
 
--- Resets player state and team to default values
+-- Resets player state and team to default valus
 function PlayerManager:ResetPlayer(player: Player)
 	local data = playersData[player]
 	if data then
@@ -76,7 +77,8 @@ function PlayerManager:ResetPlayer(player: Player)
 		data.State = Enums.PlayerState.Alive
 		player:SetAttribute("Team", Enums.Team.Runner)
 		player:SetAttribute("State", Enums.PlayerState.Alive)
-		print(string.format("PlayerManager: Reset %s to Runner / Alive", player.Name))
+		player:SetAttribute("LobbyState", Enums.PlayerLobbyState.InLobby)
+		print(string.format("PlayerManager: Reset %s to Runner / Alive / InLobby", player.Name))
 	else
 		-- If they aren't registered for some reason, register them
 		self:RegisterPlayer(player)

@@ -19,4 +19,10 @@ Enums.Team = {
     Runner = "Runner",
 }
 
+Enums.PlayerLobbyState = {
+    InLobby = "InLobby",
+    Queued  = "Queued",
+    InMatch = "InMatch",
+}
+
 return Enums

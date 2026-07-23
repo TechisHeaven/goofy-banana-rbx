@@ -93,18 +93,29 @@ function SpawnManager:TeleportPlayers(activePlayers: {Player}, hunter: Player)
 	end
 end
 
--- Teleports everyone back to the lobby
+-- Teleports everyone back to the lobby.
+-- Priority: Workspace.Lobby.LobbySpawn → root SpawnLocation → (0, 10, 0) fallback.
 function SpawnManager:TeleportToLobby(players: {Player})
-	-- Find SpawnLocation at the Workspace level (Lobby spawn)
-	local lobbySpawn = Workspace:FindFirstChild("SpawnLocation") or Workspace:FindFirstChildOfClass("SpawnLocation")
+	local lobbyCFrame: CFrame
 
-	local lobbyCFrame
+	-- 1. Prefer the dedicated lobby spawn part the designer placed
+	local lobbyFolder = Workspace:FindFirstChild("Lobby")
+	local lobbySpawn  = lobbyFolder and lobbyFolder:FindFirstChild("LobbySpawn")
+
 	if lobbySpawn and lobbySpawn:IsA("BasePart") then
 		lobbyCFrame = lobbySpawn.CFrame
-		print(string.format("SpawnManager: Teleporting players to lobby spawn location (%s)", lobbySpawn.Name))
+		print(string.format("SpawnManager: Teleporting players to Lobby.LobbySpawn (%s)", lobbySpawn.Name))
 	else
-		lobbyCFrame = CFrame.new(0, 10, 0)
-		warn("SpawnManager: SpawnLocation or default lobby spawn not found. Teleporting to default coordinates (0, 10, 0)")
+		-- 2. Fall back to root SpawnLocation
+		local fallback = Workspace:FindFirstChildOfClass("SpawnLocation")
+		if fallback and fallback:IsA("BasePart") then
+			lobbyCFrame = fallback.CFrame
+			print(string.format("SpawnManager: Lobby.LobbySpawn not found, using root SpawnLocation (%s)", fallback.Name))
+		else
+			-- 3. Hard fallback
+			lobbyCFrame = CFrame.new(0, 10, 0)
+			warn("SpawnManager: No lobby spawn found — teleporting to (0, 10, 0)")
+		end
 	end
 
 	for _, player in ipairs(players) do
