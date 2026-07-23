@@ -1,7 +1,7 @@
 return {
 
     Round = {
-        MinimumPlayers = 2,
+        MinimumPlayers = 1,
         IntermissionTime = 10,
         RoundTime = 60,
         EndTime = 5,

@@ -19,12 +19,9 @@ local playButton    : TextButton
 local cancelButton  : TextButton
 local queueLabel    : TextLabel
 local statusLabel   : TextLabel
-local waitingBanner : Frame
-local waitingLabel  : TextLabel
+local currentQueueFrame : Frame
 local winnerFrame   : Frame
 local winnerLabel   : TextLabel
-local countdownLabel: TextLabel
-local roundInfoLabel: TextLabel
 local rewardFrame   : Frame
 local rewardLabel   : TextLabel
 local notificationFrame : Frame
@@ -56,310 +53,61 @@ local function tweenTransparency(object: GuiObject, alpha: number, duration: num
 	):Play()
 end
 
--- Build -------------------------------------------------------------------
 
-function LobbyUI:Build()
-	-- Destroy old GUI if rebuilding
-	local existing = PlayerGui:FindFirstChild("LobbyGui")
-	if existing then existing:Destroy() end
+-- Imports -------------------------------------------------------------
 
-	-- Root ScreenGui
-	screenGui           = Instance.new("ScreenGui")
-	screenGui.Name      = "LobbyGui"
-	screenGui.ResetOnSpawn = false
-	screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-	screenGui.Parent    = PlayerGui
+local screenGui = PlayerGui:WaitForChild("LobbyGui")
+local currentQueueFrame = screenGui.Bottom.Right.QueueStatus
 
-	-- Semi-transparent dark panel anchored bottom-center
-	mainFrame                          = Instance.new("Frame")
-	mainFrame.Name                     = "LobbyPanel"
-	mainFrame.Size                     = UDim2.new(0, 280, 0, 180)
-	mainFrame.Position                 = UDim2.new(0, 24, 1, -200)
-	mainFrame.BackgroundColor3         = Color3.fromRGB(18, 18, 28)
-	mainFrame.BackgroundTransparency   = 0.1
-	mainFrame.BorderSizePixel          = 0
-	mainFrame.Parent                   = screenGui
+local playButton = screenGui.Bottom.Right.PlayButton
+local cancelButton = screenGui.Bottom.Right.CancelButton
 
-	local corner = Instance.new("UICorner")
-	corner.CornerRadius = UDim.new(0, 18)
-	corner.Parent = mainFrame
+local statusLabel = screenGui.Bottom.Right.StatusLabel
+local queueLabel = screenGui.Bottom.Right.QueueStatus.Value
 
-	local stroke = Instance.new("UIStroke")
-	stroke.Color     = Color3.fromRGB(120, 80, 255)
-	stroke.Thickness = 2
-	stroke.Transparency = 0.3
-	stroke.Parent = mainFrame
+-- Initialization ---------------------------------------------------------
+function LobbyUI:Init()
 
-	-- Title label
-	local titleLabel                    = Instance.new("TextLabel")
-	titleLabel.Name                     = "TitleLabel"
-	titleLabel.Size                     = UDim2.new(1, 0, 0, 40)
-	titleLabel.Position                 = UDim2.new(0, 0, 0, 12)
-	titleLabel.BackgroundTransparency   = 1
-	titleLabel.Font                     = Enum.Font.GothamBold
-	titleLabel.Text                     = "🍌  GOOFY BANANAS"
-	titleLabel.TextColor3               = Color3.fromRGB(255, 210, 60)
-	titleLabel.TextSize                 = 22
-	titleLabel.Parent                   = mainFrame
+    local gui = PlayerGui:WaitForChild("LobbyGui")
 
-	-- Match status label
-	statusLabel                         = Instance.new("TextLabel")
-	statusLabel.Name                    = "StatusLabel"
-	statusLabel.Size                    = UDim2.new(1, -24, 0, 30)
-	statusLabel.Position                = UDim2.new(0, 12, 0, 56)
-	statusLabel.BackgroundTransparency  = 1
-	statusLabel.Font                    = Enum.Font.Gotham
-	statusLabel.Text                    = "Waiting for players..."
-	statusLabel.TextColor3              = Color3.fromRGB(180, 180, 210)
-	statusLabel.TextSize                = 15
-	statusLabel.TextXAlignment          = Enum.TextXAlignment.Center
-	statusLabel.Parent                  = mainFrame
+    playButton = gui.Bottom.Right.PlayButton
+    cancelButton = gui.Bottom.Right.CancelButton
 
-	-- Queue count label
-	queueLabel                          = Instance.new("TextLabel")
-	queueLabel.Name                     = "QueueLabel"
-	queueLabel.Size                     = UDim2.new(1, -24, 0, 24)
-	queueLabel.Position                 = UDim2.new(0, 12, 0, 90)
-	queueLabel.BackgroundTransparency   = 1
-	queueLabel.Font                     = Enum.Font.Gotham
-	queueLabel.Text                     = ""
-	queueLabel.TextColor3              = Color3.fromRGB(140, 255, 180)
-	queueLabel.TextSize                 = 14
-	queueLabel.TextXAlignment           = Enum.TextXAlignment.Center
-	queueLabel.Parent                   = mainFrame
+    queueLabel = gui.Bottom.Right.QueueStatus.Value
+    statusLabel = gui.Bottom.Right.StatusLabel
 
-	-- Countdown label (shown during intermission)
-	countdownLabel                      = Instance.new("TextLabel")
-	countdownLabel.Name                 = "CountdownLabel"
-	countdownLabel.Size                 = UDim2.new(1, 0, 0, 38)
-	countdownLabel.Position             = UDim2.new(0, 0, 0, 118)
-	countdownLabel.BackgroundTransparency = 1
-	countdownLabel.Font                 = Enum.Font.GothamBold
-	countdownLabel.Text                 = ""
-	countdownLabel.TextColor3           = Color3.fromRGB(255, 180, 60)
-	countdownLabel.TextSize             = 28
-	countdownLabel.TextXAlignment       = Enum.TextXAlignment.Center
-	countdownLabel.Visible              = false
-	countdownLabel.Parent               = mainFrame
+    playButton.Activated:Connect(function()
 
-	-- Round information label (hunter + runner counts)
-	roundInfoLabel                      = Instance.new("TextLabel")
-	roundInfoLabel.Name                 = "RoundInfoLabel"
-	roundInfoLabel.Size                 = UDim2.new(1, -24, 0, 44)
-	roundInfoLabel.Position             = UDim2.new(0, 12, 0, 128)
-	roundInfoLabel.BackgroundTransparency = 1
-	roundInfoLabel.Font                 = Enum.Font.Gotham
-	roundInfoLabel.Text                 = "Hunter: Waiting\nAlive: 0 • Frozen: 0"
-	roundInfoLabel.TextColor3           = Color3.fromRGB(255, 220, 120)
-	roundInfoLabel.TextSize             = 13
-	roundInfoLabel.TextWrapped          = true
-	roundInfoLabel.TextXAlignment       = Enum.TextXAlignment.Center
-	roundInfoLabel.Parent               = mainFrame
+        if self.OnPlayPressed then
+            self.OnPlayPressed()
+        end
 
-	-- Play button
-	playButton                          = Instance.new("TextButton")
-	playButton.Name                     = "PlayButton"
-	playButton.Size                     = UDim2.new(0, 140, 0, 44)
-	playButton.Position                 = UDim2.new(0.5, -70, 1, -58)
-	playButton.BackgroundColor3         = Color3.fromRGB(90, 60, 220)
-	playButton.Font                     = Enum.Font.GothamBold
-	playButton.Text                     = "▶  PLAY"
-	playButton.TextColor3               = Color3.fromRGB(255, 255, 255)
-	playButton.TextSize                 = 18
-	playButton.BorderSizePixel          = 0
-	playButton.AutoButtonColor          = false
-	playButton.Parent                   = mainFrame
+    end)
 
-	local playCorner = Instance.new("UICorner")
-	playCorner.CornerRadius = UDim.new(0, 12)
-	playCorner.Parent = playButton
+    cancelButton.Activated:Connect(function()
 
-	-- Play button hover glow effect
-	playButton.MouseEnter:Connect(function()
-		TweenService:Create(playButton, TweenInfo.new(0.15), {
-			BackgroundColor3 = Color3.fromRGB(110, 80, 255)
-		}):Play()
-	end)
-	playButton.MouseLeave:Connect(function()
-		TweenService:Create(playButton, TweenInfo.new(0.15), {
-			BackgroundColor3 = Color3.fromRGB(90, 60, 220)
-		}):Play()
-	end)
-	playButton.MouseButton1Click:Connect(function()
-		if LobbyUI.OnPlayPressed then
-			LobbyUI.OnPlayPressed()
-		end
-	end)
+        if self.OnCancelPressed then
+            self.OnCancelPressed()
+        end
 
-	-- Leave queue button (hidden until queued)
-	cancelButton                        = Instance.new("TextButton")
-	cancelButton.Name                   = "CancelButton"
-	cancelButton.Size                   = UDim2.new(0, 140, 0, 38)
-	cancelButton.Position               = UDim2.new(0.5, -70, 1, -18)
-	cancelButton.BackgroundColor3       = Color3.fromRGB(60, 20, 20)
-	cancelButton.Font                   = Enum.Font.GothamBold
-	cancelButton.Text                   = "✕  Leave Queue"
-	cancelButton.TextColor3             = Color3.fromRGB(255, 120, 120)
-	cancelButton.TextSize               = 14
-	cancelButton.BorderSizePixel        = 0
-	cancelButton.AutoButtonColor        = false
-	cancelButton.Visible                = false
-	cancelButton.Parent                 = mainFrame
+    end)
 
-	local cancelCorner = Instance.new("UICorner")
-	cancelCorner.CornerRadius = UDim.new(0, 8)
-	cancelCorner.Parent = cancelButton
-
-	cancelButton.MouseEnter:Connect(function()
-		TweenService:Create(cancelButton, TweenInfo.new(0.12), {
-			BackgroundColor3 = Color3.fromRGB(90, 30, 30)
-		}):Play()
-	end)
-	cancelButton.MouseLeave:Connect(function()
-		TweenService:Create(cancelButton, TweenInfo.new(0.12), {
-			BackgroundColor3 = Color3.fromRGB(60, 20, 20)
-		}):Play()
-	end)
-	cancelButton.MouseButton1Click:Connect(function()
-		if LobbyUI.OnCancelPressed then
-			LobbyUI.OnCancelPressed()
-		end
-	end)
-
-	-- "Waiting" banner (shown when queued but a round is in progress)
-	waitingBanner                          = Instance.new("Frame")
-	waitingBanner.Name                     = "WaitingBanner"
-	waitingBanner.Size                     = UDim2.new(1, -24, 0, 36)
-	waitingBanner.Position                 = UDim2.new(0, 12, 0, 160)
-	waitingBanner.BackgroundColor3         = Color3.fromRGB(40, 100, 60)
-	waitingBanner.BackgroundTransparency   = 0.3
-	waitingBanner.BorderSizePixel          = 0
-	waitingBanner.Visible                  = false
-	waitingBanner.Parent                   = mainFrame
-
-	local bannerCorner = Instance.new("UICorner")
-	bannerCorner.CornerRadius = UDim.new(0, 8)
-	bannerCorner.Parent = waitingBanner
-
-	waitingLabel                         = Instance.new("TextLabel")
-	waitingLabel.Size                    = UDim2.new(1, 0, 1, 0)
-	waitingLabel.BackgroundTransparency  = 1
-	waitingLabel.Font                    = Enum.Font.Gotham
-	waitingLabel.Text                    = "⏳  You'll join the next round"
-	waitingLabel.TextColor3              = Color3.fromRGB(160, 255, 180)
-	waitingLabel.TextSize                = 14
-	waitingLabel.Parent                  = waitingBanner
-
-	-- Reward preview / end-of-round screen (compact popup)
-	rewardFrame                          = Instance.new("Frame")
-	rewardFrame.Name                     = "RewardFrame"
-	rewardFrame.Size                     = UDim2.new(0, 320, 0, 160)
-	rewardFrame.Position                 = UDim2.new(0.5, -160, 0.5, -80)
-	rewardFrame.AnchorPoint              = Vector2.new(0.5, 0.5)
-	rewardFrame.BackgroundColor3         = Color3.fromRGB(20, 18, 34)
-	rewardFrame.BackgroundTransparency   = 0.05
-	rewardFrame.BorderSizePixel          = 0
-	rewardFrame.Visible                  = false
-	rewardFrame.ZIndex                   = 12
-	rewardFrame.Parent                   = screenGui
-
-	local rewardCorner = Instance.new("UICorner")
-	rewardCorner.CornerRadius = UDim.new(0, 18)
-	rewardCorner.Parent = rewardFrame
-
-	local rewardStroke = Instance.new("UIStroke")
-	rewardStroke.Color      = Color3.fromRGB(130, 90, 255)
-	rewardStroke.Thickness  = 2
-	rewardStroke.Parent     = rewardFrame
-
-	rewardLabel                          = Instance.new("TextLabel")
-	rewardLabel.Name                     = "RewardLabel"
-	rewardLabel.Size                     = UDim2.new(1, -24, 1, -24)
-	rewardLabel.Position                 = UDim2.new(0, 12, 0, 12)
-	rewardLabel.BackgroundTransparency   = 1
-	rewardLabel.Font                     = Enum.Font.GothamBold
-	rewardLabel.Text                     = ""
-	rewardLabel.TextColor3              = Color3.fromRGB(255, 220, 100)
-	rewardLabel.TextSize                 = 22
-	rewardLabel.TextWrapped              = true
-	rewardLabel.Parent                   = rewardFrame
-
-	-- Winner / end-of-round screen (compact popup)
-	winnerFrame                          = Instance.new("Frame")
-	winnerFrame.Name                     = "WinnerFrame"
-	winnerFrame.Size                     = UDim2.new(0, 300, 0, 150)
-	winnerFrame.Position                 = UDim2.new(0.5, -150, 0.5, -75)
-	winnerFrame.AnchorPoint              = Vector2.new(0.5, 0.5)
-	winnerFrame.BackgroundColor3         = Color3.fromRGB(12, 12, 24)
-	winnerFrame.BackgroundTransparency   = 0.05
-	winnerFrame.BorderSizePixel          = 0
-	winnerFrame.Visible                  = false
-	winnerFrame.ZIndex                   = 10
-	winnerFrame.Parent                   = screenGui
-
-	local winCorner = Instance.new("UICorner")
-	winCorner.CornerRadius = UDim.new(0, 20)
-	winCorner.Parent = winnerFrame
-
-	local winStroke = Instance.new("UIStroke")
-	winStroke.Color      = Color3.fromRGB(255, 210, 60)
-	winStroke.Thickness  = 2
-	winStroke.Parent     = winnerFrame
-
-	winnerLabel                          = Instance.new("TextLabel")
-	winnerLabel.Name                     = "WinnerLabel"
-	winnerLabel.Size                     = UDim2.new(1, 0, 1, 0)
-	winnerLabel.BackgroundTransparency   = 1
-	winnerLabel.Font                     = Enum.Font.GothamBold
-	winnerLabel.Text                     = ""
-	winnerLabel.TextColor3              = Color3.fromRGB(255, 220, 80)
-	winnerLabel.TextSize                 = 32
-	winnerLabel.TextWrapped              = true
-	winnerLabel.Parent                   = winnerFrame
-
-	-- Notification toast
-	notificationFrame                    = Instance.new("Frame")
-	notificationFrame.Name               = "NotificationFrame"
-	notificationFrame.Size               = UDim2.new(0, 280, 0, 60)
-	notificationFrame.Position           = UDim2.new(1, -300, 0, 24)
-	notificationFrame.BackgroundColor3   = Color3.fromRGB(24, 24, 36)
-	notificationFrame.BackgroundTransparency = 0.08
-	notificationFrame.BorderSizePixel    = 0
-	notificationFrame.Visible            = false
-	notificationFrame.ZIndex             = 15
-	notificationFrame.Parent             = screenGui
-
-	local notificationCorner = Instance.new("UICorner")
-	notificationCorner.CornerRadius = UDim.new(0, 12)
-	notificationCorner.Parent = notificationFrame
-
-	notificationLabel                    = Instance.new("TextLabel")
-	notificationLabel.Name               = "NotificationLabel"
-	notificationLabel.Size               = UDim2.new(1, -16, 1, -16)
-	notificationLabel.Position           = UDim2.new(0, 8, 0, 8)
-	notificationLabel.BackgroundTransparency = 1
-	notificationLabel.Font               = Enum.Font.Gotham
-	notificationLabel.Text               = ""
-	notificationLabel.TextColor3         = Color3.fromRGB(240, 240, 255)
-	notificationLabel.TextSize           = 14
-	notificationLabel.TextWrapped        = true
-	notificationLabel.Parent             = notificationFrame
 end
 
 -- Public API ---------------------------------------------------------------
 
 --- Show the lobby panel (animated slide-in from bottom).
-function LobbyUI:Show()
-	if not mainFrame then return end
-	mainFrame.Visible   = true
-	mainFrame.Position  = UDim2.new(0, 24, 1, 20)
-	tweenSize(mainFrame, mainFrame.Size)
-	TweenService:Create(
-		mainFrame,
-		TweenInfo.new(0.35, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
-		{ Position = UDim2.new(0, 24, 1, -200) }
-	):Play()
-end
+-- function LobbyUI:Show()
+-- 	if not mainFrame then return end
+-- 	mainFrame.Visible   = true
+-- 	mainFrame.Position  = UDim2.new(0, 24, 1, 20)
+-- 	tweenSize(mainFrame, mainFrame.Size)
+-- 	TweenService:Create(
+-- 		mainFrame,
+-- 		TweenInfo.new(0.35, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+-- 		{ Position = UDim2.new(0, 24, 1, -200) }
+-- 	):Play()
+-- end
 
 --- Hide the lobby panel (slide out downward).
 function LobbyUI:Hide()
@@ -374,20 +122,27 @@ function LobbyUI:Hide()
 	end)
 end
 
---- Switch between idle and queued button states.
+-- --- Switch between idle and queued button states.
+
 function LobbyUI:SetQueued(queued: boolean)
 	isQueued = queued
-	if not playButton or not cancelButton then return end
+
+	if not playButton or not cancelButton then
+		return
+	end
+
 	if queued then
-		playButton.Text              = "✔  Queued!"
-		playButton.BackgroundColor3  = Color3.fromRGB(40, 160, 80)
-		playButton.Active            = false
-		cancelButton.Visible         = true
+		playButton.Visible = false
+		playButton.Active = false
+
+		cancelButton.Visible = true
+		cancelButton.Active = true
 	else
-		playButton.Text              = "▶  PLAY"
-		playButton.BackgroundColor3  = Color3.fromRGB(90, 60, 220)
-		playButton.Active            = true
-		cancelButton.Visible         = false
+		cancelButton.Visible = false
+		cancelButton.Active = false
+
+		playButton.Visible = true
+		playButton.Active = true
 	end
 end
 
@@ -401,28 +156,47 @@ function LobbyUI:UpdateStatus(payload: { state: string, playerCount: number, que
 	local timeLeft   = payload.timeLeft or 0
 
 	if state == "Waiting" then
-		statusLabel.Text    = "Waiting for players to queue…"
-		countdownLabel.Visible = false
-	elseif state == "Intermission" then
-		statusLabel.Text    = "Match starting soon!"
-		countdownLabel.Text    = string.format("Round in %ds", timeLeft)
-		countdownLabel.Visible = true
-	elseif state == "Playing" then
-		statusLabel.Text    = string.format("Round in progress — %ds remaining", timeLeft)
-		countdownLabel.Visible = false
-	elseif state == "Ending" then
-		statusLabel.Text    = "Round ending…"
-		countdownLabel.Visible = false
+	if isQueued then
+		statusLabel.Text = "Waiting for players..."
 	else
-		statusLabel.Text    = state
-		countdownLabel.Visible = false
+		statusLabel.Text = "Click Play to start playing!"
+	end
+
+	playButton.Active = true
+	playButton.AutoButtonColor = true
+
+	elseif state == "Intermission" then
+		statusLabel.Text = string.format("Match starting in %ds...", timeLeft)
+
+		playButton.Active = false
+		playButton.AutoButtonColor = false
+
+	elseif state == "Playing" then
+		statusLabel.Text = string.format("Match ends in %ds...", timeLeft)
+
+		playButton.Active = false
+		playButton.AutoButtonColor = false
+
+	elseif state == "Ending" then
+		statusLabel.Text = "Match ending..."
+
+		playButton.Active = false
+		playButton.AutoButtonColor = false
+
+	else
+		statusLabel.Text = state
+
+		playButton.Active = true
+		playButton.AutoButtonColor = true
 	end
 
 	if queueLabel then
 		if queueCount > 0 then
-			queueLabel.Text = string.format("%d player%s in queue", queueCount, queueCount == 1 and "" or "s")
+			queueLabel.Text = string.format("%02d/10", queueCount)
+			currentQueueFrame.Visible = true
 		else
 			queueLabel.Text = ""
+			currentQueueFrame.Visible = false
 		end
 	end
 
@@ -443,9 +217,9 @@ end
 
 --- Show the intermission countdown overlay on queued clients.
 function LobbyUI:ShowCountdown(seconds: number)
-	if not countdownLabel then return end
-	countdownLabel.Visible = true
-	countdownLabel.Text    = string.format("Round starts in %ds!", seconds)
+	if statusLabel then
+		statusLabel.Text = string.format("Match starting in %ds...", seconds)
+	end
 end
 
 --- Show the winner screen overlay, then auto-hide after `duration` seconds.
@@ -516,12 +290,8 @@ function LobbyUI:Destroy()
 		cancelButton = nil
 		queueLabel   = nil
 		statusLabel  = nil
-		waitingBanner = nil
-		waitingLabel  = nil
 		winnerFrame  = nil
 		winnerLabel  = nil
-		countdownLabel = nil
-		roundInfoLabel = nil
 		rewardFrame = nil
 		rewardLabel = nil
 		notificationFrame = nil

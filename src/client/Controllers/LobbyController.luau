@@ -11,6 +11,7 @@ local Shared             = ReplicatedStorage:WaitForChild("Shared")
 local RemoteIndex        = require(Shared.Remotes.RemoteIndex)
 
 local LobbyUI            = require(script.Parent.Parent.UI.LobbyUI)
+local UIManager          = require(script.Parent.Parent.manager.UImanager)
 
 local LobbyController    = {}
 
@@ -81,7 +82,7 @@ local function onTeleportToArena(hunterName: string)
 	isInMatch = true
 	isQueued  = false
 	LobbyUI:SetQueued(false)
-	LobbyUI:Show()
+	UIManager:ShowGame()
 	-- TODO: enable arena HUD when it is implemented
 end
 
@@ -91,7 +92,7 @@ local function onReturnToLobby()
 	isInMatch = false
 	setQueued(false)
 	LobbyUI:SetQueued(false)
-	LobbyUI:Show()
+	UIManager:ShowLobby()
 end
 
 --- ShowWinnerScreen — show winner + rewards overlay
@@ -117,11 +118,11 @@ end
 function LobbyController:Init()
 	print("LobbyController Initializing...")
 
-	-- Build and show the lobby GUI
-	LobbyUI:Build()
+	-- Init Lobby
+	LobbyUI:Init()
+	UIManager:ShowLobby()
 	LobbyUI.OnPlayPressed   = onPlayPressed
 	LobbyUI.OnCancelPressed = onCancelPressed
-	LobbyUI:Show()
 
 	-- Wire up server → client remotes
 	getRemote(RemoteIndex.UpdateLobbyStatus).OnClientEvent:Connect(onUpdateLobbyStatus)
@@ -138,7 +139,7 @@ function LobbyController:Init()
 		-- Rare edge-case: player somehow has InMatch on join (shouldn't happen)
 		isInMatch = true
 		LobbyUI:SetQueued(false)
-		LobbyUI:Show()
+		UIManager:ShowLobby()
 	else
 		syncLobbyStateFromServer()
 	end

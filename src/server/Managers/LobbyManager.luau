@@ -222,6 +222,19 @@ function LobbyManager:BroadcastStatus()
 	re:FireAllClients(buildStatusPayload())
 end
 
+function LobbyManager:FireTeleportToArena(players: {Player}, hunterName: string)
+	local re = getRemote(RemoteIndex.TeleportToArena)
+	if not re then
+		return
+	end
+
+	for _, player in ipairs(players) do
+		if player and player.Parent then
+			re:FireClient(player, hunterName)
+		end
+	end
+end
+
 -- ─── Internal lifecycle ───────────────────────────────────────────────────────
 
 local function onPlayerAdded(player: Player)

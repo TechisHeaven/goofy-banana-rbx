@@ -37,7 +37,6 @@ function RoundManager:StartGameLoop()
 			local intermissionTime = GameConfig.Round.IntermissionTime
 			for i = intermissionTime, 1, -1 do
 				LobbyManager:UpdateMatchStatus(Enums.RoundState.Intermission, i)
-				print("Round starting in:", i)
 				task.wait(1)
 			end
 
@@ -78,7 +77,7 @@ function RoundManager:StartGameLoop()
 			-- Teleport everyone to the arena
 			SpawnManager:TeleportPlayers(roundPlayers, hunter)
 			FreezeManager:ApplyHunterCooldown(hunter, (GameConfig.Hunter and GameConfig.Hunter.CooldownTime) or 4)
-
+			LobbyManager:FireTeleportToArena(roundPlayers, hunterName)
 			-- ── 3. PLAYING — run the round timer ───────────────────────────────
 			RoundManager.CurrentState = Enums.RoundState.Playing
 			RoundManager.LastWinner   = nil
