@@ -1,10 +1,12 @@
 return {
 
     Round = {
-        MinimumPlayers = 1,
+        MinimumPlayers = 2,
         IntermissionTime = 10,
         RoundTime = 60,
         EndTime = 5,
+        AllowLateJoin = true,
+        LateJoinCutoff = 30,
     },
 
     Rescue = {
@@ -21,5 +23,9 @@ return {
         AutoRequeueDelay     = 2,   -- seconds after returning before auto-re-queuing
         StatusUpdateRate     = 1,   -- how often match status is broadcast (seconds)
     },
+
+    Game = {
+        NotificationDuration = 10,      -- how long to show notifications (seconds)
+    }
 
 }

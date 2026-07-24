@@ -37,6 +37,8 @@ local matchStatus = {
 	timeLeft = 0,
 }
 
+LobbyManager.OnJoinRequest = nil
+
 -- ─── Helpers ─────────────────────────────────────────────────────────────────
 
 local function getRemote(name: string): RemoteEvent?
@@ -222,18 +224,38 @@ function LobbyManager:BroadcastStatus()
 	re:FireAllClients(buildStatusPayload())
 end
 
-function LobbyManager:FireTeleportToArena(players: {Player}, hunterName: string)
+function LobbyManager:FireTeleportToArena(players: {Player}, hunter: Player)
 	local re = getRemote(RemoteIndex.TeleportToArena)
 	if not re then
 		return
 	end
 
 	for _, player in ipairs(players) do
-		if player and player.Parent then
-			re:FireClient(player, hunterName)
-		end
+		local role = player == hunter and "Hunter" or "Runner"
+
+		re:FireClient(player, {
+			role = role,
+			hunterName = hunter.Name,
+			roundTime = GameConfig.Round.RoundTime,
+		})
 	end
 end
+
+function LobbyManager:SetPlayerInMatch(player: Player)
+
+	inMatchSet[player] = true
+
+	lobbyStates[player] = Enums.PlayerLobbyState.InMatch
+
+	player:SetAttribute(
+		"LobbyState",
+		Enums.PlayerLobbyState.InMatch
+	)
+
+	self:BroadcastStatus()
+
+end
+
 
 -- ─── Internal lifecycle ───────────────────────────────────────────────────────
 
@@ -281,15 +303,65 @@ function LobbyManager:Init()
 	end
 
 	-- Client → server: player pressed Play
-	remotes[RemoteIndex.RequestJoinQueue].OnServerEvent:Connect(function(player)
-		print(string.format("LobbyManager: RequestJoinQueue from %s", player.Name))
-		self:AddToQueue(player)
-	end)
+	-- remotes[RemoteIndex.RequestJoinQueue].OnServerEvent:Connect(function(player)
+	-- 	print(string.format("LobbyManager: RequestJoinQueue from %s", player.Name))
+	-- 	-- self:AddToQueue(player)
+	-- 	if RoundManager:CanLateJoin() then
 
-	-- Client → server: player cancelled queue
+	-- 		RoundManager:AddLateJoiner(player)
+
+	-- 	else
+
+	-- 		self:AddToQueue(player)
+
+	-- 	end
+	-- end)
+
+	remotes[RemoteIndex.RequestJoinQueue].OnServerEvent:Connect(function(player)
+
+		print(string.format("LobbyManager: RequestJoinQueue from %s", player.Name))
+
+		if LobbyManager.OnJoinRequest then
+			print("Using custom join request")
+			LobbyManager.OnJoinRequest(player)
+		else
+			print("Default queue")
+			self:AddToQueue(player)
+		end
+
+	end)
+		-- Client → server: player cancelled queue
+	-- remotes[RemoteIndex.RequestLeaveQueue].OnServerEvent:Connect(function(player)
+	-- 	print(string.format("LobbyManager: RequestLeaveQueue from %s", player.Name))
+	-- 	self:RemoveFromQueue(player)
+	-- end)
 	remotes[RemoteIndex.RequestLeaveQueue].OnServerEvent:Connect(function(player)
+
 		print(string.format("LobbyManager: RequestLeaveQueue from %s", player.Name))
-		self:RemoveFromQueue(player)
+
+		-- Player is queued
+		if self:IsQueued(player) then
+			self:RemoveFromQueue(player)
+			return
+		end
+
+		-- Player joined late and is already in the match
+		if inMatchSet[player] then
+
+			-- Leave the match
+			inMatchSet[player] = nil
+
+			PlayerManager:ResetPlayer(player)
+
+			lobbyStates[player] = Enums.PlayerLobbyState.InLobby
+			player:SetAttribute("LobbyState", Enums.PlayerLobbyState.InLobby)
+
+			SpawnManager:TeleportToLobby({player})
+
+			self:BroadcastStatus()
+
+		end
+
 	end)
 
 	-- Player lifecycle

@@ -13,6 +13,8 @@ local RemoteIndex        = require(Shared.Remotes.RemoteIndex)
 local LobbyUI            = require(script.Parent.Parent.UI.LobbyUI)
 local UIManager          = require(script.Parent.Parent.manager.UImanager)
 
+local GameConfig  	     = require(Shared.GameConfig)
+
 local LobbyController    = {}
 
 -- Internal state -----------------------------------------------------------
@@ -44,11 +46,30 @@ end
 
 -- Queue actions ------------------------------------------------------------
 
+-- local function onPlayPressed()
+-- 	if isQueued or isInMatch then return end
+-- 	print("LobbyController: Requesting join queue")
+-- 	getRemote(RemoteIndex.RequestJoinQueue):FireServer()
+-- 	setQueued(true)
+-- end
+
 local function onPlayPressed()
-	if isQueued or isInMatch then return end
-	print("LobbyController: Requesting join queue")
+
+	print("Play pressed")
+	print("isQueued =", isQueued)
+	print("isInMatch =", isInMatch)
+
+	if isQueued or isInMatch then
+		print("Blocked from joining")
+		return
+	end
+
+	print("Firing RequestJoinQueue")
+
 	getRemote(RemoteIndex.RequestJoinQueue):FireServer()
+
 	setQueued(true)
+
 end
 
 local function onCancelPressed()
@@ -67,6 +88,22 @@ local function onUpdateLobbyStatus(payload)
 		syncLobbyStateFromServer()
 	end
 	LobbyUI:UpdateStatus(payload)
+
+	-- Update the in-game timer
+	if payload.state == "Playing" then
+	-- 	UIManager:SetTimer(payload.timeLeft)
+	-- 	UIManager:SetFrozenPlayers(
+	-- 	payload.frozenRunners,
+	-- 	payload.remainingRunners
+	-- )
+		UIManager:UpdateRoundInfo(payload)
+	end
+
+	-- if payload.hunterName then
+	-- 	UIManager:SetHunterName(payload.hunterName)
+	-- end
+
+	-- UIManager:SetRunnerCount(payload.aliveRunners)
 end
 
 --- RoundStarting — intermission has begun for queued players
@@ -77,13 +114,24 @@ local function onRoundStarting(seconds: number)
 end
 
 --- TeleportToArena — round has officially started, switch to arena HUD
-local function onTeleportToArena(hunterName: string)
-	print("LobbyController: Match started. Switching to arena HUD.")
+-- local function onTeleportToArena(hunterName: string)
+-- 	print("LobbyController: Match started. Switching to arena HUD.")
+-- 	isInMatch = true
+-- 	isQueued  = false
+-- 	LobbyUI:SetQueued(false)
+-- 	UIManager:ShowGame()
+-- 	-- TODO: enable arena HUD when it is implemented
+-- end
+
+local function onTeleportToArena(data)
 	isInMatch = true
 	isQueued  = false
 	LobbyUI:SetQueued(false)
 	UIManager:ShowGame()
-	-- TODO: enable arena HUD when it is implemented
+	print(data)
+	UIManager:SetRole(data.role)
+	UIManager:SetTimer(data.roundTime)
+
 end
 
 --- ReturnToLobby — round over, restore lobby UI
@@ -110,7 +158,7 @@ end
 
 local function onNotifyPlayer(message)
 	if not message then return end
-	LobbyUI:ShowNotification(message)
+	UIManager:ShowNotification(message, GameConfig.Game.NotificationDuration)
 end
 
 -- Init ---------------------------------------------------------------------

@@ -14,6 +14,8 @@ local RoundManager = {}
 
 RoundManager.CurrentState = Enums.RoundState.Waiting
 RoundManager.LastWinner   = nil  -- "Hunter" | "Runners" | nil (set before Ending)
+RoundManager.TimeRemaining = 0
+RoundManager.CurrentHunter = nil
 
 -- ─── Game Loop ───────────────────────────────────────────────────────────────
 
@@ -77,7 +79,7 @@ function RoundManager:StartGameLoop()
 			-- Teleport everyone to the arena
 			SpawnManager:TeleportPlayers(roundPlayers, hunter)
 			FreezeManager:ApplyHunterCooldown(hunter, (GameConfig.Hunter and GameConfig.Hunter.CooldownTime) or 4)
-			LobbyManager:FireTeleportToArena(roundPlayers, hunterName)
+			LobbyManager:FireTeleportToArena(roundPlayers, hunter)
 			-- ── 3. PLAYING — run the round timer ───────────────────────────────
 			RoundManager.CurrentState = Enums.RoundState.Playing
 			RoundManager.LastWinner   = nil
@@ -85,10 +87,15 @@ function RoundManager:StartGameLoop()
 
 			local roundTime = GameConfig.Round.RoundTime
 			local elapsed   = 0
+			
+			-- for later joiners logic
+			RoundManager.CurrentHunter = hunter
+			RoundManager.TimeRemaining = roundTime
 
 			while elapsed < roundTime and RoundManager.CurrentState == Enums.RoundState.Playing do
 				task.wait(1)
 				elapsed = elapsed + 1
+				RoundManager.TimeRemaining = roundTime - elapsed
 				LobbyManager:UpdateMatchStatus(Enums.RoundState.Playing, roundTime - elapsed)
 			end
 
@@ -101,6 +108,8 @@ function RoundManager:StartGameLoop()
 			-- ── 4. ENDING ──────────────────────────────────────────────────────
 			RoundManager.CurrentState = Enums.RoundState.Ending
 			LobbyManager:UpdateMatchStatus(Enums.RoundState.Ending, 0)
+			RoundManager.CurrentHunter = nil
+			RoundManager.TimeRemaining = 0
 			print("Round Ended — winner:", RoundManager.LastWinner or "Unknown")
 
 			-- Unfreeze everyone in the match
@@ -167,10 +176,42 @@ function RoundManager:EndRoundEarly()
 	end
 end
 
+function RoundManager:CanLateJoin()
+
+	if not GameConfig.Round.AllowLateJoin then
+		return false
+	end
+
+	if self.CurrentState ~= Enums.RoundState.Playing then
+		return false
+	end
+
+	return self.TimeRemaining > GameConfig.Round.LateJoinCutoff
+end
+
+function RoundManager:AddLateJoiner(player)
+	PlayerManager:SetTeam(player, Enums.Team.Runner)
+	PlayerManager:ResetPlayer(player)
+	LobbyManager:SetPlayerInMatch(player)
+	SpawnManager:SpawnRunner(player)
+	LobbyManager:FireTeleportToArena({player}, self.CurrentHunter)
+
+end
+
 -- ─── Init ─────────────────────────────────────────────────────────────────────
 
 function RoundManager:Init()
 	print("RoundManager Initializing...")
+
+	LobbyManager.OnJoinRequest = function(player)
+
+		if RoundManager:CanLateJoin() then
+			RoundManager:AddLateJoiner(player)
+		else
+			LobbyManager:AddToQueue(player)
+		end
+
+	end
 
 	-- Re-check win condition whenever a player leaves
 	Players.PlayerRemoving:Connect(function(_player)

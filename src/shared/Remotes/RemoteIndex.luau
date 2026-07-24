@@ -15,5 +15,5 @@ RemoteIndex.TeleportToArena   = "TeleportToArena"    -- round started, go to are
 RemoteIndex.ReturnToLobby     = "ReturnToLobby"      -- round over, back to lobby
 RemoteIndex.ShowWinnerScreen  = "ShowWinnerScreen"   -- winner + rewards info
 RemoteIndex.NotifyPlayer      = "NotifyPlayer"       -- toast-style in-game notification
-
+RemoteIndex.OnJoinRequest = "OnJoinRequest"       -- server → host: player requested to join
 return RemoteIndex

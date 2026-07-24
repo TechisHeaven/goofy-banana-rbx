@@ -196,7 +196,7 @@ function FreezeManager:FreezePlayer(player: Player, freezer: Player?)
 				if PlayerManager:GetState(rescuer) ~= Enums.PlayerState.Alive then return end
 
 				print(string.format("FreezeManager: %s was rescued by %s!", player.Name, rescuer.Name))
-				FreezeManager:UnfreezePlayer(player)
+				FreezeManager:UnfreezePlayer(player, rescuer)
 				if rescuer and rescuer.Parent then
 					local re = getRemote(RemoteIndex.NotifyPlayer)
 					if re then
@@ -219,11 +219,18 @@ function FreezeManager:FreezePlayer(player: Player, freezer: Player?)
 end
 
 -- Unfreeze a player and restore movement/appearance
-function FreezeManager:UnfreezePlayer(player: Player)
+function FreezeManager:UnfreezePlayer(player: Player, rescuer: Player?)
 	-- Set state back to Alive
 	PlayerManager:SetState(player, Enums.PlayerState.Alive)
-	print(string.format("FreezeManager: %s has been unfrozen/rescued!", player.Name))
 
+	local re = getRemote(RemoteIndex.NotifyPlayer)
+	if re then
+		if rescuer and rescuer.Parent then
+			re:FireAllClients(string.format("%s rescued %s!", rescuer.Name, player.Name))
+		-- else
+		-- 	re:FireAllClients(string.format("%s was rescued!", player.Name))
+		end
+	end
 	-- Clean up ProximityPrompt
 	local prompt = activePrompts[player]
 	if prompt then

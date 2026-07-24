@@ -65,6 +65,7 @@ local cancelButton = screenGui.Bottom.Right.CancelButton
 local statusLabel = screenGui.Bottom.Right.StatusLabel
 local queueLabel = screenGui.Bottom.Right.QueueStatus.Value
 
+
 -- Initialization ---------------------------------------------------------
 function LobbyUI:Init()
 
@@ -174,8 +175,8 @@ function LobbyUI:UpdateStatus(payload: { state: string, playerCount: number, que
 	elseif state == "Playing" then
 		statusLabel.Text = string.format("Match ends in %ds...", timeLeft)
 
-		playButton.Active = false
-		playButton.AutoButtonColor = false
+		playButton.Active = not isQueued
+		playButton.AutoButtonColor = not isQueued
 
 	elseif state == "Ending" then
 		statusLabel.Text = "Match ending..."

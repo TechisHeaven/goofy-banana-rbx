@@ -93,6 +93,26 @@ function SpawnManager:TeleportPlayers(activePlayers: {Player}, hunter: Player)
 	end
 end
 
+function SpawnManager:SpawnRunner(player)
+
+	local _, runnerFolder = getMapSpawns()
+
+	local spawns = {}
+
+	for _,spawn in ipairs(runnerFolder:GetChildren()) do
+
+		if spawn:IsA("BasePart") then
+			table.insert(spawns,spawn)
+		end
+
+	end
+
+	local randomSpawn = spawns[math.random(#spawns)]
+
+	teleportPlayer(player,randomSpawn.CFrame)
+
+end
+
 -- Teleports everyone back to the lobby.
 -- Priority: Workspace.Lobby.LobbySpawn → root SpawnLocation → (0, 10, 0) fallback.
 function SpawnManager:TeleportToLobby(players: {Player})
