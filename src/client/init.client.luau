@@ -11,10 +11,13 @@ local RoundController = require(script.Controllers.RoundController)
 local CursorController = require(
 	ReplicatedStorage.Shared.Modules.CursorModule
 )
+local FreezeController = require(script.Controllers.FreezeController)
+
 
 CursorController:Init()
 LobbyController:Init()
 RoundController:Init()
+FreezeController:Init()
 -- Wait for attributes to replicate
 if not LocalPlayer:GetAttribute("Team") then
 	LocalPlayer:GetAttributeChangedSignal("Team"):Wait()

@@ -9,6 +9,8 @@ local GameConfig = require(Shared.GameConfig)
 local RemoteIndex = require(Shared.Remotes.RemoteIndex)
 
 local PlayerManager = require(script.Parent.PlayerManager)
+local FreezeEventManager = require(script.Parent.FreezeEventManager)
+
 
 -- Lazy-required to avoid circular dependency
 local RoundManager = nil
@@ -131,7 +133,7 @@ end
 -- Freeze a runner
 function FreezeManager:FreezePlayer(player: Player, freezer: Player?)
 	PlayerManager:SetState(player, Enums.PlayerState.Frozen)
-	print(string.format("FreezeManager: %s has been frozen!", player.Name))
+	FreezeEventManager:FirePlayerFrozen(player, freezer)
 
 	local re = getRemote(RemoteIndex.NotifyPlayer)
 	if re then

@@ -18,4 +18,6 @@ RemoteIndex.NotifyPlayer      = "NotifyPlayer"       -- toast-style in-game noti
 RemoteIndex.OnJoinRequest = "OnJoinRequest"       -- server → host: player requested to join
 RemoteIndex.RoundStarted = "RoundStarted"        -- server -> client: round has started
 RemoteIndex.RoundEnded = "RoundEnded"          -- server -> client: round has ended
+RemoteIndex.PlayerFrozen = "PlayerFrozen"
+
 return RemoteIndex

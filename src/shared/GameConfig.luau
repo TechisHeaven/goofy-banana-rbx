@@ -3,7 +3,7 @@ return {
     Round = {
         MinimumPlayers = 2,
         IntermissionTime = 10,
-        RoundTime = 30,
+        RoundTime = 40,
         EndTime = 10,
         AllowLateJoin = true,
         LateJoinCutoff = 30,
@@ -27,6 +27,7 @@ return {
     Game = {
         ResultScreenDuration = 10,      -- how long to show the result screen (seconds)
         NotificationDuration = 10,      -- how long to show notifications (seconds)
+        FreezeDuration = 5,              -- how long a player is frozen (seconds)
     }
 
 }

@@ -21,9 +21,9 @@ local UIManager = require(script.Parent.Parent.manager.UImanager)
 -- end)
 
 ------------------------------------------------
-Remotes:WaitForChild(RemoteIndex.RoundEnded).OnClientEvent:Connect(function(data)
-    UIManager:ShowRoundResult(data)
-end)
+-- Remotes:WaitForChild(RemoteIndex.RoundEnded).OnClientEvent:Connect(function(data)
+--     UIManager:ShowRoundResult(data)
+-- end)
 
 
 local RoundController = {}
