@@ -16,4 +16,6 @@ RemoteIndex.ReturnToLobby     = "ReturnToLobby"      -- round over, back to lobb
 RemoteIndex.ShowWinnerScreen  = "ShowWinnerScreen"   -- winner + rewards info
 RemoteIndex.NotifyPlayer      = "NotifyPlayer"       -- toast-style in-game notification
 RemoteIndex.OnJoinRequest = "OnJoinRequest"       -- server → host: player requested to join
+RemoteIndex.RoundStarted = "RoundStarted"        -- server -> client: round has started
+RemoteIndex.RoundEnded = "RoundEnded"          -- server -> client: round has ended
 return RemoteIndex

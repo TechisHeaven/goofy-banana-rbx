@@ -3,8 +3,8 @@ return {
     Round = {
         MinimumPlayers = 2,
         IntermissionTime = 10,
-        RoundTime = 60,
-        EndTime = 5,
+        RoundTime = 30,
+        EndTime = 10,
         AllowLateJoin = true,
         LateJoinCutoff = 30,
     },
@@ -15,7 +15,7 @@ return {
 
     Hunter = {
         Count = 1,
-        CooldownTime = 4,
+        CooldownTime = 2,
     },
 
     Lobby = {
@@ -25,6 +25,7 @@ return {
     },
 
     Game = {
+        ResultScreenDuration = 10,      -- how long to show the result screen (seconds)
         NotificationDuration = 10,      -- how long to show notifications (seconds)
     }
 

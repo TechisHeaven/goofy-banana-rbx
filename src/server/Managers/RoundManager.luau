@@ -9,6 +9,7 @@ local PlayerManager = require(script.Parent.PlayerManager)
 local SpawnManager  = require(script.Parent.SpawnManager)
 local FreezeManager = require(script.Parent.FreezeManager)
 local LobbyManager  = require(script.Parent.LobbyManager)
+local RoundEventManager = require(script.Parent.RoundEventManager)
 
 local RoundManager = {}
 
@@ -16,6 +17,7 @@ RoundManager.CurrentState = Enums.RoundState.Waiting
 RoundManager.LastWinner   = nil  -- "Hunter" | "Runners" | nil (set before Ending)
 RoundManager.TimeRemaining = 0
 RoundManager.CurrentHunter = nil
+
 
 -- ─── Game Loop ───────────────────────────────────────────────────────────────
 
@@ -80,6 +82,7 @@ function RoundManager:StartGameLoop()
 			SpawnManager:TeleportPlayers(roundPlayers, hunter)
 			FreezeManager:ApplyHunterCooldown(hunter, (GameConfig.Hunter and GameConfig.Hunter.CooldownTime) or 4)
 			LobbyManager:FireTeleportToArena(roundPlayers, hunter)
+			
 			-- ── 3. PLAYING — run the round timer ───────────────────────────────
 			RoundManager.CurrentState = Enums.RoundState.Playing
 			RoundManager.LastWinner   = nil
@@ -114,20 +117,53 @@ function RoundManager:StartGameLoop()
 
 			-- Unfreeze everyone in the match
 			FreezeManager:UnfreezeAll()
+			
+			-- Collect in-match players before returning them
+			local inMatchPlayers = LobbyManager:GetInMatchPlayers()
 
 			-- Show winner screen to in-match players
 			local rewardPreview = RoundManager.LastWinner == "Hunter"
 				and "XP +15\nCoins +8"
 				or "XP +20\nCoins +12"
-			LobbyManager:FireWinnerScreen(RoundManager.LastWinner or "Unknown", hunterName, rewardPreview)
+			
+			RoundEventManager:FireRoundEnded(
+					inMatchPlayers,
+					{
+						winner = RoundManager.LastWinner,
+						hunter = hunter.Name,
+						reward = {
+							xp = 25,
+							coins = 10,
+						},
+						stats = {
+							survivalTime = 58,
+							rescues = 2,
+							frozenPlayers = 4,
+						}
+					}
+			)	
+			-- LobbyManager:FireWinnerScreen({
+			-- 	winner = RoundManager.LastWinner,
+			-- 	hunterName = hunterName,
+			-- 	rewardPreview = rewardPreview,
+			-- 	reward = {
+			-- 		xp = 25,
+			-- 		coins = 10,
+			-- 	},
+			-- 	stats = {
+			-- 		survivalTime = 58,
+			-- 		rescues = 2,
+			-- 		frozenPlayers = 4,
+			-- 	}
+			-- })
+			-- ResultGui:ShowWin()
+			-- LobbyManager:FireWinnerScreen(RoundManager.LastWinner or "Unknown", hunterName, rewardPreview)
 
 			-- Wait for the end screen to display
 			local endTime = GameConfig.Round.EndTime or 5
 			task.wait(endTime)
 
-			-- Collect in-match players before returning them
-			local inMatchPlayers = LobbyManager:GetInMatchPlayers()
-
+		
 			-- Return all in-match players to lobby (resets state, teleports, fires remote)
 			LobbyManager:ReturnAllToLobby(inMatchPlayers)
 

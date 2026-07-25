@@ -5,8 +5,9 @@ local LocalPlayer = Players.LocalPlayer
 
 -- Bootstrap lobby UI & queue controller
 local LobbyController = require(script.Controllers.LobbyController)
+local RoundController = require(script.Controllers.RoundController)
 LobbyController:Init()
-
+RoundController:Init()
 -- Wait for attributes to replicate
 if not LocalPlayer:GetAttribute("Team") then
 	LocalPlayer:GetAttributeChangedSignal("Team"):Wait()

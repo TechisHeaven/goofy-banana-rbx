@@ -6,6 +6,9 @@ local UIManager = {}
 
 local LobbyGui = PlayerGui:WaitForChild("LobbyGui")
 local GameGui = PlayerGui:WaitForChild("GameGui")
+
+local ResultUI = require(script.Parent.Parent.UI.ResultUI)
+
 local TweenService = game:GetService("TweenService")
 
 
@@ -14,6 +17,7 @@ local RoleLabel = GameGui.Center.Role.RoleLabel
 local NotificationLabel = GameGui.Right.Notification
 local NotificationsContainer = GameGui.Right.Notifications
 local FrozenCounter = GameGui.Right.Frozen.Title
+
 
 function UIManager:ShowLobby()
 	LobbyGui.Enabled = true
@@ -113,11 +117,26 @@ function UIManager:ShowNotification(text, duration)
 	end)
 end
 
+
 function UIManager:HideNotification()
 	NotificationsContainer.Visible = false
 end
 
 
+
+-- Round Handling ---------------------------------------------------------------
+function UIManager:ShowWin(data)
+    ResultUI:ShowWin(data)
+end
+
+function UIManager:ShowLose(data)
+    ResultUI:ShowLose(data)
+
+end
+
+function UIManager:ShowRoundResult(data)
+    ResultUI:Show(data)
+end
 
 
 return UIManager

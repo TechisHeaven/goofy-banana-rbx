@@ -194,19 +194,42 @@ function LobbyManager:AutoRequeue(players: {Player})
 end
 
 --- Fires ShowWinnerScreen to all in-match players.
-function LobbyManager:FireWinnerScreen(winner: string, hunterName: string?, rewardPreview: string?)
-	local re = getRemote(RemoteIndex.ShowWinnerScreen)
-	if not re then return end
-	local data = {
-		winnerTeam = winner,
-		hunterName = hunterName or "Unknown",
-		winner = winner,
-		rewardPreview = rewardPreview or "XP +15\nCoins +8",
-	}
-	for player, _ in pairs(inMatchSet) do
-		if player and player.Parent then
-			re:FireClient(player, data)
-		end
+-- function LobbyManager:FireWinnerScreen(winner: string, hunterName: string?, rewardPreview: string?)
+-- 	local re = getRemote(RemoteIndex.ShowWinnerScreen)
+-- 	if not re then return end
+-- 	local data = {
+-- 		winnerTeam = winner,
+-- 		hunterName = hunterName or "Unknown",
+-- 		winner = winner,
+-- 		rewardPreview = rewardPreview or "XP +15\nCoins +8",
+-- 	}
+-- 	for player, _ in pairs(inMatchSet) do
+-- 		if player and player.Parent then
+-- 			re:FireClient(player, data)
+-- 		end
+-- 	end
+-- end
+function LobbyManager:FireWinnerScreen(data)
+
+	local remote = getRemote(RemoteIndex.ShowWinnerScreen)
+	if not remote then
+		return
+	end
+
+	for player in pairs(inMatchSet) do
+
+		local playerRole =
+			PlayerManager:GetTeam(player) == Enums.Team.Hunter
+			and "Hunter"
+			or "Runner"
+
+		remote:FireClient(player,{
+			winner = data.winner,
+			playerRole = playerRole,
+			hunterName = data.hunterName,
+			rewardPreview = data.rewardPreview,
+		})
+
 	end
 end
 
