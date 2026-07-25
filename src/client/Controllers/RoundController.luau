@@ -21,27 +21,16 @@ local UIManager = require(script.Parent.Parent.manager.UImanager)
 -- end)
 
 ------------------------------------------------
-print("roundcontroller initialized")
 Remotes:WaitForChild(RemoteIndex.RoundEnded).OnClientEvent:Connect(function(data)
-	print("RoundController: Round ended event received to Show UI")
     UIManager:ShowRoundResult(data)
-
 end)
 
 
 local RoundController = {}
 
 function RoundController:Init()
-
-    print("RoundController Initializing...")
-
     Remotes:WaitForChild(RemoteIndex.RoundEnded).OnClientEvent:Connect(function(data)
-
-        print("RoundController: RoundEnded received")
-        print(data)
-
         UIManager:ShowRoundResult(data)
-
     end)
 
 end

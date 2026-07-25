@@ -10,6 +10,7 @@ local SpawnManager  = require(script.Parent.SpawnManager)
 local FreezeManager = require(script.Parent.FreezeManager)
 local LobbyManager  = require(script.Parent.LobbyManager)
 local RoundEventManager = require(script.Parent.RoundEventManager)
+local CursorController = require(Shared.Modules.CursorModule)
 
 local RoundManager = {}
 
@@ -86,6 +87,7 @@ function RoundManager:StartGameLoop()
 			-- ── 3. PLAYING — run the round timer ───────────────────────────────
 			RoundManager.CurrentState = Enums.RoundState.Playing
 			RoundManager.LastWinner   = nil
+			CursorController:EnterGameplay()
 			print("Round Started")
 
 			local roundTime = GameConfig.Round.RoundTime
@@ -114,7 +116,8 @@ function RoundManager:StartGameLoop()
 			RoundManager.CurrentHunter = nil
 			RoundManager.TimeRemaining = 0
 			print("Round Ended — winner:", RoundManager.LastWinner or "Unknown")
-
+			-- unhide cursor for all players
+			CursorController:EnterLobby()
 			-- Unfreeze everyone in the match
 			FreezeManager:UnfreezeAll()
 			
@@ -164,6 +167,7 @@ function RoundManager:StartGameLoop()
 			task.wait(endTime)
 
 		
+			
 			-- Return all in-match players to lobby (resets state, teleports, fires remote)
 			LobbyManager:ReturnAllToLobby(inMatchPlayers)
 

@@ -3,9 +3,16 @@ local Players = game:GetService("Players")
 
 local LocalPlayer = Players.LocalPlayer
 
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
 -- Bootstrap lobby UI & queue controller
 local LobbyController = require(script.Controllers.LobbyController)
 local RoundController = require(script.Controllers.RoundController)
+local CursorController = require(
+	ReplicatedStorage.Shared.Modules.CursorModule
+)
+
+CursorController:Init()
 LobbyController:Init()
 RoundController:Init()
 -- Wait for attributes to replicate

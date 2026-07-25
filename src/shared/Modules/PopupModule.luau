@@ -6,6 +6,9 @@ local PopupManager = {}
 PopupManager.CurrentPopup = nil
 PopupManager.Overlay = nil
 
+PopupManager.IsAnimating = false
+PopupManager.CanClickOutsideToClose = true
+
 -- SETTINGS
 
 PopupManager.BlurSize = 18
@@ -43,7 +46,11 @@ function PopupManager:Init(Overlay)
 			return
 		end
 
-		if self.CurrentPopup then
+		if not self.CanClickOutsideToClose then
+			return
+		end
+
+		if self.CurrentPopup and not self.IsAnimating then
 			self:CloseCurrent()
 		end
 
@@ -53,7 +60,14 @@ end
 
 -------------------------------------------------------
 
-function PopupManager:Open(Popup)
+function PopupManager:Open(Popup, Options)
+	
+	Options = Options or {}
+
+	self.CanClickOutsideToClose =
+		if Options.CanClickOutsideToClose ~= nil
+			then Options.CanClickOutsideToClose
+		else true
 
 	if self.CurrentPopup == Popup then
 		return
