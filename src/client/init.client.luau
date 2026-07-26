@@ -12,12 +12,13 @@ local CursorController = require(
 	ReplicatedStorage.Shared.Modules.CursorModule
 )
 local FreezeController = require(script.Controllers.FreezeController)
-
+local DailyRewardController = require(script.Controllers.DailyRewardController)
 
 CursorController:Init()
 LobbyController:Init()
 RoundController:Init()
 FreezeController:Init()
+DailyRewardController:Init()
 -- Wait for attributes to replicate
 if not LocalPlayer:GetAttribute("Team") then
 	LocalPlayer:GetAttributeChangedSignal("Team"):Wait()

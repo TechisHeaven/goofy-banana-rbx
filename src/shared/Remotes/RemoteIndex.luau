@@ -19,5 +19,9 @@ RemoteIndex.OnJoinRequest = "OnJoinRequest"       -- server → host: player req
 RemoteIndex.RoundStarted = "RoundStarted"        -- server -> client: round has started
 RemoteIndex.RoundEnded = "RoundEnded"          -- server -> client: round has ended
 RemoteIndex.PlayerFrozen = "PlayerFrozen"
+RemoteIndex.RequestDailyReward = "RequestDailyReward"
+RemoteIndex.UpdateDailyReward = "UpdateDailyReward"
+RemoteIndex.GetDailyReward = "GetDailyReward"
+
 
 return RemoteIndex
