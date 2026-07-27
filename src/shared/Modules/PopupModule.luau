@@ -60,7 +60,7 @@ end
 
 -------------------------------------------------------
 
-function PopupManager:Open(Popup, Options)
+function PopupManager:Open(Popup, Options : {CanClickOutsideToClose: boolean})
 	
 	Options = Options or {}
 

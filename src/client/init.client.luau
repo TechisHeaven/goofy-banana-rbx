@@ -13,7 +13,9 @@ local CursorController = require(
 )
 local FreezeController = require(script.Controllers.FreezeController)
 local DailyRewardController = require(script.Controllers.DailyRewardController)
+local ShopController = require(script.Controllers.ShopController)
 
+ShopController:Init()
 CursorController:Init()
 LobbyController:Init()
 RoundController:Init()
