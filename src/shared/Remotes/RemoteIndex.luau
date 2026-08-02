@@ -22,6 +22,9 @@ RemoteIndex.PlayerFrozen = "PlayerFrozen"
 RemoteIndex.RequestDailyReward = "RequestDailyReward"
 RemoteIndex.UpdateDailyReward = "UpdateDailyReward"
 RemoteIndex.GetDailyReward = "GetDailyReward"
-
+RemoteIndex.RequestEquip = "RequestEquip"
+RemoteIndex.UpdateInventory = "UpdateInventory"
+RemoteIndex.RequestUnequip = "RequestUnequip"
+RemoteIndex.PlayVictory = "PlayVictory"
 
 return RemoteIndex

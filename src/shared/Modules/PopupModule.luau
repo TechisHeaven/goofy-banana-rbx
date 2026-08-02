@@ -36,7 +36,6 @@ end
 function PopupManager:Init(Overlay)
 
 	self.Overlay = Overlay
-
 	self.Overlay.Visible = false
 	self.Overlay.BackgroundTransparency = 1
 

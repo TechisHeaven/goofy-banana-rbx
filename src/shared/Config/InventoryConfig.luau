@@ -1,10 +1,10 @@
-local ShopConfig = {}
+local InventoryConfig = {}
 
 local ShopData = script.Parent:WaitForChild("ShopConfigData")
 
-ShopConfig.DefaultCategory = "Skins"
+InventoryConfig.DefaultCategory = "Skins"
 
-ShopConfig.Categories = {
+InventoryConfig.Categories = {
 
 	Skins = {
 		Page = "DefaultPage",
@@ -24,18 +24,8 @@ ShopConfig.Categories = {
 	VictoryPoses = {
 		Page = "DefaultPage",
 		Items = require(ShopData.VictoryPoses)
-	},
-
-	Coins = {
-		Page = "DefaultPage",
-		Items = require(ShopData.Coins)
-	},
-
-	GamePacks = {
-		Page = "GamePackPage",
-		Items = require(ShopData.GamePacks)
 	}
 
 }
 
-return ShopConfig
+return InventoryConfig

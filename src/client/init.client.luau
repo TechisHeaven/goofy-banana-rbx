@@ -14,13 +14,18 @@ local CursorController = require(
 local FreezeController = require(script.Controllers.FreezeController)
 local DailyRewardController = require(script.Controllers.DailyRewardController)
 local ShopController = require(script.Controllers.ShopController)
+local InventoryController = require(script.Controllers.InventoryController)
+local VictoryController = require(script.Controllers.VictoryController)
 
 ShopController:Init()
 CursorController:Init()
 LobbyController:Init()
 RoundController:Init()
 FreezeController:Init()
+InventoryController:Init()
 DailyRewardController:Init()
+VictoryController:Init()
+
 -- Wait for attributes to replicate
 if not LocalPlayer:GetAttribute("Team") then
 	LocalPlayer:GetAttributeChangedSignal("Team"):Wait()
