@@ -1,5 +1,6 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
+local ServerStorage = game:GetService("ServerStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 
@@ -15,6 +16,17 @@ local LobbyGui = PlayerGui:WaitForChild("LobbyGui")
 local ShopButton = LobbyGui.Center.Left.ShopButton
 
 ----------------------------------------------------
+local RemoteIndexData = require(Shared.Remotes.RemoteIndex)
+local RemoteIndex = RemoteIndexData.Functions
+----------------------------------------------------
+
+local Remotes = Shared:WaitForChild("Remotes")
+
+local function getRemote(name: RemoteFunction)
+
+	return Remotes:WaitForChild(name)
+
+end
 
 local ShopController = {}
 
@@ -30,18 +42,22 @@ local function OpenCategory(categoryName)
 		warn("Unknown Shop Category:", categoryName)
 		return
 	end
-
+	
 	CurrentCategory = categoryName
 
+		-- ShopUI:ShowLoading(true)
+	local items = getRemote(RemoteIndex.GetShopItems):InvokeServer(categoryName)
+	-- ShopUI:ShowLoading(false)
 	ShopUI:ShowPage(category.Page)
+
 
 	if category.Page == "DefaultPage" then
 
-		ShopUI:RenderItems(category.Items)
+		ShopUI:RenderItems(items)
 
 	else
 
-		ShopUI:RenderGamePacks(category.Items)
+		ShopUI:RenderGamePacks(items)
 
 	end
 

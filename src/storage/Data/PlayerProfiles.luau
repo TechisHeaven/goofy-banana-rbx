@@ -1,0 +1,3 @@
+local PlayerProfiles = {}
+
+return PlayerProfiles

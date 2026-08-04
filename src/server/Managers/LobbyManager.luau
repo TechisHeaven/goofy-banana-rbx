@@ -169,7 +169,7 @@ function LobbyManager:ReturnAllToLobby(players: {Player})
 			lobbyStates[player] = Enums.PlayerLobbyState.InLobby
 			player:SetAttribute("LobbyState", Enums.PlayerLobbyState.InLobby)
 
-			local re = getRemote(RemoteIndex.ReturnToLobby)
+			local re = getRemote(RemoteIndex.Events.ReturnToLobby)
 			if re then re:FireClient(player) end
 		end
 	end
@@ -211,7 +211,7 @@ end
 -- end
 function LobbyManager:FireWinnerScreen(data)
 
-	local remote = getRemote(RemoteIndex.ShowWinnerScreen)
+	local remote = getRemote(RemoteIndex.Events.ShowWinnerScreen)
 	if not remote then
 		return
 	end
@@ -242,13 +242,13 @@ end
 
 --- Broadcasts the current match status to every connected client.
 function LobbyManager:BroadcastStatus()
-	local re = getRemote(RemoteIndex.UpdateLobbyStatus)
+	local re = getRemote(RemoteIndex.Events.UpdateLobbyStatus)
 	if not re then return end
 	re:FireAllClients(buildStatusPayload())
 end
 
 function LobbyManager:FireTeleportToArena(players: {Player}, hunter: Player)
-	local re = getRemote(RemoteIndex.TeleportToArena)
+	local re = getRemote(RemoteIndex.Events.TeleportToArena)
 	if not re then
 		return
 	end
@@ -289,7 +289,7 @@ local function onPlayerAdded(player: Player)
 
 	-- Send them the current status immediately
 	task.defer(function()
-		local re = getRemote(RemoteIndex.UpdateLobbyStatus)
+		local re = getRemote(RemoteIndex.Events.UpdateLobbyStatus)
 		if re then re:FireClient(player, buildStatusPayload()) end
 	end)
 end
@@ -312,17 +312,65 @@ function LobbyManager:Init()
 	local shared = ReplicatedStorage:WaitForChild("Shared")
 	remotesFolder = shared:WaitForChild("Remotes")
 
+
 	-- Cache (or create) each RemoteEvent listed in RemoteIndex
-	for _, name in pairs(RemoteIndex) do
-		local existing = remotesFolder:FindFirstChild(name)
-		if existing and existing:IsA("RemoteEvent") then
-			remotes[name] = existing
+	-- for _, name in pairs(RemoteIndex) do
+	-- 	local existing = remotesFolder:FindFirstChild(name)
+	-- 	if existing and existing:IsA("RemoteEvent") then
+	-- 		remotes[name] = existing
+	-- 	else
+	-- 		local re   = Instance.new("RemoteEvent")
+	-- 		re.Name    = name
+	-- 		re.Parent  = remotesFolder
+	-- 		remotes[name] = re
+	-- 	end
+	-- end
+
+	------------------------------------------------
+	-- Remote Events
+	------------------------------------------------
+
+	for _, name in pairs(RemoteIndex.Events) do
+
+		local remote = remotesFolder:FindFirstChild(name)
+		if remote and remote:IsA("RemoteEvent") then
+
+			remotes[name] = remote
+
 		else
-			local re   = Instance.new("RemoteEvent")
-			re.Name    = name
-			re.Parent  = remotesFolder
-			remotes[name] = re
+
+			remote = Instance.new("RemoteEvent")
+			remote.Name = name
+			remote.Parent = remotesFolder
+
+			remotes[name] = remote
+
 		end
+
+	end
+
+	------------------------------------------------
+	-- Remote Functions
+	------------------------------------------------
+
+	for _, name in pairs(RemoteIndex.Functions) do
+
+		local remote = remotesFolder:FindFirstChild(name)
+
+		if remote and remote:IsA("RemoteFunction") then
+
+			remotes[name] = remote
+
+		else
+
+			remote = Instance.new("RemoteFunction")
+			remote.Name = name
+			remote.Parent = remotesFolder
+
+			remotes[name] = remote
+
+		end
+
 	end
 
 	-- Client → server: player pressed Play
@@ -340,7 +388,7 @@ function LobbyManager:Init()
 	-- 	end
 	-- end)
 
-	remotes[RemoteIndex.RequestJoinQueue].OnServerEvent:Connect(function(player)
+	remotes[RemoteIndex.Events.RequestJoinQueue].OnServerEvent:Connect(function(player)
 
 		print(string.format("LobbyManager: RequestJoinQueue from %s", player.Name))
 
@@ -358,7 +406,7 @@ function LobbyManager:Init()
 	-- 	print(string.format("LobbyManager: RequestLeaveQueue from %s", player.Name))
 	-- 	self:RemoveFromQueue(player)
 	-- end)
-	remotes[RemoteIndex.RequestLeaveQueue].OnServerEvent:Connect(function(player)
+	remotes[RemoteIndex.Events.RequestLeaveQueue].OnServerEvent:Connect(function(player)
 
 		print(string.format("LobbyManager: RequestLeaveQueue from %s", player.Name))
 

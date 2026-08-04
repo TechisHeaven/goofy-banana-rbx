@@ -6,7 +6,8 @@ local Players = game:GetService("Players")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Enums = require(Shared.Enums)
 local GameConfig = require(Shared.GameConfig)
-local RemoteIndex = require(Shared.Remotes.RemoteIndex)
+local RemoteIndexData = require(Shared.Remotes.RemoteIndex)
+local RemoteIndex = RemoteIndexData.Events
 
 local PlayerManager = require(script.Parent.PlayerManager)
 local FreezeEventManager = require(script.Parent.FreezeEventManager)

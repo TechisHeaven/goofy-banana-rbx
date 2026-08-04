@@ -183,7 +183,6 @@ end
 function InventoryUI:RenderItems(category,items)
 
 	Clear()
-
 	for _,data in ipairs(items) do
 
 		local item = DefaultTemplate:Clone()

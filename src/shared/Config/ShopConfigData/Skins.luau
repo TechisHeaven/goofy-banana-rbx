@@ -7,7 +7,6 @@ local Skins = {
 		Rarity = "Common",
 		Price = 0,
 		Currency = "Coins",
-		Owned = false,
 	},
 
 	{
@@ -17,7 +16,6 @@ local Skins = {
 		Rarity = "Rare",
 		Price = 1200,
 		Currency = "Coins",
-		Owned = false,
 	},
 
 	{
@@ -27,7 +25,6 @@ local Skins = {
 		Rarity = "Epic",
 		Price = 5999,
 		Currency = "Coins",
-		Owned = false,
 	},
 
 }

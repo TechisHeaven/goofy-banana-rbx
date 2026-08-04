@@ -194,12 +194,28 @@ function ShopUI:RenderItems(items)
 
 		item.Preview.Item.Image = data.Image
         local price = if data.Price <= 0 then "Free" else tostring(data.Price)
-		item.Button.ButtonFrame.Price.Text =
-			price
+		
 
 		local buttonImage = if data.Currency == "Robux" then ROBUX_CURRENCY_IMAGE else COIN_CURRENCY_IMAGE
+		item.Button.Visible = false
+		item.EquipButton.Visible = false
+		if data.Equipped then
+			item.EquipButton.Visible = true
+			item.EquipButton.Title.Text = "Equipped"
+			item.Button.Active = false
+		elseif data.Owned then
+			item.EquipButton.Visible = true
+			item.EquipButton.Title.Text = "Equip"
+			item.Button.Active = false
+		else
+			item.Button.Active = true
+			item.Button.Visible = true
+			item.Button.ButtonFrame.Coin.Image = buttonImage
+			item.Button.ButtonFrame.Coin.Visible = true
+			item.Button.ButtonFrame.Price.Text =
+			price
 
-		item.Button.ButtonFrame.Coin.Image = buttonImage
+		end
 		
         item.Preview.Background.Image =
             rarity.Background

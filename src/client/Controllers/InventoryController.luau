@@ -2,7 +2,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 
-local RemoteIndex = require(Shared.Remotes.RemoteIndex)
+local RemoteIndexData = require(Shared.Remotes.RemoteIndex)
+local RemoteIndex = RemoteIndexData.Events
 
 local InventoryConfig =
 	require(Shared.Config.InventoryConfig)
@@ -45,6 +46,7 @@ local function OpenCategory(category)
 
 	local items =
 		InventoryData[category] or {}
+
 
 	InventoryUI:RenderItems(
 		category,

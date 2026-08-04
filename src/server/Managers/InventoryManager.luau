@@ -2,9 +2,14 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage.Shared
+local ServerStorage = game:GetService("ServerStorage")
 
-local RemoteIndex = require(Shared.Remotes.RemoteIndex)
+local RemoteIndexData = require(Shared.Remotes.RemoteIndex)
+local RemoteIndex = RemoteIndexData.Events
 local ShopConfig = require(Shared.Config.ShopConfig)
+
+local ProfileManager =
+	require(script.Parent.ProfileManager)
 
 local Remotes = Shared.Remotes
 
@@ -18,52 +23,17 @@ local UpdateInventory =
 
 local RequestUnequip = Remotes:WaitForChild(RemoteIndex.RequestUnequip)
 
+-----------------------------------------------
+--Templates
+local InventoryTemplate =
+	require(ServerStorage.Data.InventoryTemplate)
+
+local PlayerProfiles =
+	require(ServerStorage.Data.PlayerProfiles)
+
 ------------------------------------------------
 
 local InventoryManager = {}
-
-local PlayerInventory = {}
-
-------------------------------------------------
--- Test Data
-------------------------------------------------
-
-local function CreateInventory()
-
-	return {
-
-		Owned = {
-
-			SleepyBanana = true,
-			CoolBanana = true,
-			GalaxyBanana = false,
-
-			RainbowPeel = true,
-			IcePeel = false,
-
-			Snow = true,
-			Fire = false,
-
-			Dance = true,
-			Wave = false,
-
-		},
-
-		Equipped = {
-
-			Skins = "SleepyBanana",
-
-			BananaSkins = "RainbowPeel",
-
-			RescueEffects = "Snow",
-
-			VictoryPoses = "Dance",
-
-		}
-
-	}
-
-end
 
 ------------------------------------------------
 
@@ -79,7 +49,7 @@ local function BuildCategory(categoryName, inventory)
 		local data = table.clone(item)
 
 		data.Owned =
-			inventory.Owned[data.Id] == true
+			inventory.Owned[categoryName][data.Id] == true
 
 		data.Equipped =
 			inventory.Equipped[categoryName] == data.Id
@@ -95,9 +65,14 @@ end
 ------------------------------------------------
 
 function InventoryManager:SendInventory(player)
+	local profile = ProfileManager:GetProfile(player)
+	if not profile then
+		return
+	end
 
-	local inventory =
-		PlayerInventory[player]
+	local inventory = profile.Inventory
+	-- local inventory =
+	-- 	PlayerProfiles[player].Inventory
 
 	UpdateInventory:FireClient(player,{
 
@@ -122,13 +97,13 @@ end
 function InventoryManager:Equip(player,category,itemId)
 
 	local inventory =
-		PlayerInventory[player]
+		PlayerProfiles[player].Inventory
 
 	if not inventory then
 		return
 	end
 
-	if not inventory.Owned[itemId] then
+	if not inventory.Owned[category][itemId] then
 		return
 	end
 
@@ -141,7 +116,7 @@ end
 
 function InventoryManager:Unequip(player, category)
 
-	local inventory = PlayerInventory[player]
+	local inventory = PlayerProfiles[player].Inventory
 
 	if not inventory then
 		return
@@ -153,38 +128,62 @@ function InventoryManager:Unequip(player, category)
 
 end
 
+----------------------------------------------
+function InventoryManager:GetInventory(player)
+	return PlayerProfiles[player].Inventory
+end
+
+function InventoryManager:GetEquipped(player, category)
+	local inventory = PlayerProfiles[player].Inventory
+
+	if not inventory then
+		return nil
+	end
+
+	return inventory.Equipped[category]
+end
+
+function InventoryManager:GetOwned(player, category)
+	local inventory = PlayerProfiles[player].Inventory
+
+	if not inventory then
+		return nil
+	end
+
+	return inventory.Owned[category]
+end
+
+
 ------------------------------------------------
 
 function InventoryManager:Init()
-
+	task.wait(1)
 	Players.PlayerAdded:Connect(function(player)
-
-		PlayerInventory[player] =
-			CreateInventory()
-
-		task.wait(1)
-
+		local profile = ProfileManager:GetProfile(player)
+		-- task.wait(1)
 		self:SendInventory(player)
 
 	end)
 
 	Players.PlayerRemoving:Connect(function(player)
-
-		PlayerInventory[player] = nil
-
+		ProfileManager:RemovePlayer(player)
 	end)
 
 	RequestEquip.OnServerEvent:Connect(function(player,category,itemId)
-
 		self:Equip(player,category,itemId)
 
 	end)
 
     RequestUnequip.OnServerEvent:Connect(function(player, category)
 
-	self:Unequip(player, category)
+		self:Unequip(player, category)
 
-end)
+	end)
+
+	-- Register players already in the server
+	for _, player in ipairs(Players:GetPlayers()) do
+		self:SendInventory(player)
+	end
 
 end
 

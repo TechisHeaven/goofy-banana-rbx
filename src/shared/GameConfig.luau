@@ -7,6 +7,7 @@ return {
         EndTime = 10,
         AllowLateJoin = true,
         LateJoinCutoff = 30,
+        DefaultVictoryWinDuration = 5,
     },
 
     Rescue = {

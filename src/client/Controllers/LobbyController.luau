@@ -8,7 +8,8 @@ local Players            = game:GetService("Players")
 local LocalPlayer        = Players.LocalPlayer
 
 local Shared             = ReplicatedStorage:WaitForChild("Shared")
-local RemoteIndex        = require(Shared.Remotes.RemoteIndex)
+local RemoteIndexData = require(Shared.Remotes.RemoteIndex)
+local RemoteIndex = RemoteIndexData.Events
 
 local LobbyUI            = require(script.Parent.Parent.UI.LobbyUI)
 local UIManager          = require(script.Parent.Parent.manager.UImanager)

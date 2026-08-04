@@ -1,4 +1,5 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerStorage = game:GetService("ServerStorage")
 local Players           = game:GetService("Players")
 
 local Shared      = ReplicatedStorage:WaitForChild("Shared")
@@ -11,9 +12,13 @@ local FreezeManager = require(script.Parent.FreezeManager)
 local LobbyManager  = require(script.Parent.LobbyManager)
 local RoundEventManager = require(script.Parent.RoundEventManager)
 local CursorController = require(Shared.Modules.CursorModule)
+local VictoryManager = require(script.Parent.VictoryManager)
 
 local RoundManager = {}
 
+local PlayerProfiles =
+	require(ServerStorage.Data.PlayerProfiles)
+	
 RoundManager.CurrentState = Enums.RoundState.Waiting
 RoundManager.LastWinner   = nil  -- "Hunter" | "Runners" | nil (set before Ending)
 RoundManager.TimeRemaining = 0
@@ -87,6 +92,7 @@ function RoundManager:StartGameLoop()
 			-- ── 3. PLAYING — run the round timer ───────────────────────────────
 			RoundManager.CurrentState = Enums.RoundState.Playing
 			RoundManager.LastWinner   = nil
+			RoundManager.VictoryPlayer = nil
 			CursorController:EnterGameplay()
 			print("Round Started")
 
@@ -116,13 +122,80 @@ function RoundManager:StartGameLoop()
 			RoundManager.CurrentHunter = nil
 			RoundManager.TimeRemaining = 0
 			print("Round Ended — winner:", RoundManager.LastWinner or "Unknown")
+			local inMatchPlayers = LobbyManager:GetInMatchPlayers()
+
+			local victoryPlayer
+
+			if RoundManager.LastWinner == "Hunter" then
+
+				-- Hunter team won
+				victoryPlayer = hunter
+
+			else
+
+				-- Runner team won
+				local bestCoins = -math.huge
+				local tiedPlayers = {}
+
+				for _, player in ipairs(inMatchPlayers) do
+
+					if PlayerManager:GetTeam(player) == Enums.Team.Runner then
+
+						local profile = PlayerProfiles[player]
+
+						if profile then
+							local coins = profile.RoundStats.Coins
+
+							if coins > bestCoins then
+								bestCoins = coins
+								tiedPlayers = {player}
+							elseif coins == bestCoins then
+								table.insert(tiedPlayers, player)
+							end
+						end
+
+					end
+
+				end
+
+				if #tiedPlayers > 0 then
+					victoryPlayer = tiedPlayers[math.random(1, #tiedPlayers)]
+				end
+
+			end
+
+			RoundManager.VictoryPlayer = victoryPlayer
+
+			-- local winnerPlayer
+
+			-- if RoundManager.LastWinner == "Hunter" then
+
+			-- 	winnerPlayer = hunter
+
+			-- else
+			-- 	for _, player in ipairs(inMatchPlayers) do
+
+			-- 		if PlayerManager:GetTeam(player) == Enums.Team.Runner
+			-- 			and PlayerManager:GetState(player) == Enums.PlayerState.Alive then
+
+			-- 			winnerPlayer = player
+			-- 			break
+
+			-- 		end
+
+			-- 	end
+
+			-- end
+
+			
+			VictoryManager:Play(RoundManager.VictoryPlayer)
+			task.wait(GameConfig.Round.DefaultVictoryWinDuration)
 			-- unhide cursor for all players
 			CursorController:EnterLobby()
 			-- Unfreeze everyone in the match
 			FreezeManager:UnfreezeAll()
 			
 			-- Collect in-match players before returning them
-			local inMatchPlayers = LobbyManager:GetInMatchPlayers()
 
 			-- Show winner screen to in-match players
 			local rewardPreview = RoundManager.LastWinner == "Hunter"

@@ -9,7 +9,8 @@ local AnimsFolder = ReplicatedStorage.CinematicAnimations
 
 local RunService = game:GetService("RunService")
 
-local RemoteIndex = require(Shared.Remotes.RemoteIndex)
+local RemoteIndexData = require(Shared.Remotes.RemoteIndex)
+local RemoteIndex = RemoteIndexData.Events
 local Remotes = Shared:WaitForChild("Remotes")
 
 local function getRemote(name)
@@ -232,7 +233,7 @@ function VictoryController:PlayCutScene(model, poseName, options)
         -- Leave the camera locked exactly where the animation ended
         cam.CameraType = Enum.CameraType.Custom
         cam.CFrame = lastCameraCFrame
-        cam.FieldOfView = 90
+        cam.FieldOfView = preFov
     end
 	-- END CUSTSCENE
 end
