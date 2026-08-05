@@ -62,7 +62,6 @@ RemoteIndex.Events = {
 	RequestUnequip = "RequestUnequip",
 	UpdateInventory = "UpdateInventory",
 
-	RequestPurchase = "RequestPurchase",
 
 	PlayVictory = "PlayVictory",
 	GetDailyReward = "GetDailyReward",
@@ -73,6 +72,7 @@ RemoteIndex.Functions = {
 
 
 	GetShopItems = "GetShopItems",
+	GetInventoryItems = "GetInventoryItems",
 
 	RequestPurchase = "RequestPurchase",
 

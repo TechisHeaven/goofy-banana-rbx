@@ -13,7 +13,7 @@ function ProfileManager:RegisterPlayer(player)
 	print("Registering player profile for",player.Name)
 	PlayerProfiles[player] = {
 
-		Coins = 0,
+		Coins = 10000,
 		Wins = 0,
 		Level = 1,
 
@@ -44,7 +44,6 @@ function ProfileManager:Init()
 
 	print("ProfileManager Initializing...")
 	-- Register players who are already connected
-	print("Registering existing players...", Players:GetPlayers(), #Players:GetPlayers())
 	for _, player in pairs(Players:GetPlayers()) do
 		if not PlayerProfiles[player] then
 			self:RegisterPlayer(player)

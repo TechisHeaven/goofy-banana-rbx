@@ -4,6 +4,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 
 local RemoteIndexData = require(Shared.Remotes.RemoteIndex)
 local RemoteIndex = RemoteIndexData.Events
+local RemoteIndexFunctions = RemoteIndexData.Functions
 
 local InventoryConfig =
 	require(Shared.Config.InventoryConfig)
@@ -45,7 +46,8 @@ local function OpenCategory(category)
 	InventoryUI:ShowPage(config.Page)
 
 	local items =
-		InventoryData[category] or {}
+		getRemote(RemoteIndexFunctions.GetInventoryItems)
+		:InvokeServer(category)
 
 
 	InventoryUI:RenderItems(
@@ -57,16 +59,10 @@ end
 
 ----------------------------------------------------
 
-local function OnInventoryUpdate(data)
-
-	InventoryData = data
-
-	if CurrentCategory then
-
-		OpenCategory(CurrentCategory)
-
-	end
-
+local function OnInventoryUpdate()
+	  if CurrentCategory then
+        OpenCategory(CurrentCategory)
+    end
 end
 
 ----------------------------------------------------
@@ -94,6 +90,11 @@ function InventoryController:Init()
 
 	end
 
+	InventoryUI.OnOpened = function()
+		OpenCategory(CurrentCategory or InventoryConfig.DefaultCategory)
+	end
+
+
     InventoryUI.OnEquipPressed = function(category, id)
 
         getRemote(RemoteIndex.RequestEquip)
@@ -111,6 +112,7 @@ function InventoryController:Init()
 	getRemote(RemoteIndex.UpdateInventory)
 		.OnClientEvent
 		:Connect(OnInventoryUpdate)
+
 
 	OpenCategory(
 		InventoryConfig.DefaultCategory

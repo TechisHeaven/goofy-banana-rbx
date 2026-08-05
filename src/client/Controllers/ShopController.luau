@@ -1,6 +1,5 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
-local ServerStorage = game:GetService("ServerStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 
@@ -18,6 +17,7 @@ local ShopButton = LobbyGui.Center.Left.ShopButton
 ----------------------------------------------------
 local RemoteIndexData = require(Shared.Remotes.RemoteIndex)
 local RemoteIndex = RemoteIndexData.Functions
+local RemoteEvents = RemoteIndexData.Events
 ----------------------------------------------------
 
 local Remotes = Shared:WaitForChild("Remotes")
@@ -47,6 +47,7 @@ local function OpenCategory(categoryName)
 
 		-- ShopUI:ShowLoading(true)
 	local items = getRemote(RemoteIndex.GetShopItems):InvokeServer(categoryName)
+	print("Items for category", categoryName, ":", items)
 	-- ShopUI:ShowLoading(false)
 	ShopUI:ShowPage(category.Page)
 
@@ -83,6 +84,17 @@ function ShopController:Init()
 
 	end)
 
+	ShopUI.OnBuyPressed = function(category, itemId)
+
+		local success, message = getRemote(RemoteIndex.RequestPurchase):InvokeServer(category, itemId)
+
+		if success then
+			OpenCategory(CurrentCategory)
+		else
+			-- Show notification
+		end
+
+	end
 	------------------------------------------------
 	-- Tabs
 	------------------------------------------------
@@ -92,6 +104,15 @@ function ShopController:Init()
 		OpenCategory(category)
 
 	end
+
+	getRemote(RemoteEvents.UpdateInventory)
+	.OnClientEvent
+	:Connect(function()
+		if CurrentCategory then
+			OpenCategory(CurrentCategory)
+		end
+
+	end)
 
 end
 

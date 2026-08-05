@@ -51,7 +51,7 @@ local defaultTab = Tabs:FindFirstChild(ShopConfig.DefaultCategory)
 ------------------------------------------------
 
 local ShopUI = {}
-
+ShopUI.OnBuyPressed = nil
 ShopUI.OnTabChanged = nil
 
 local CurrentTab = nil
@@ -214,6 +214,24 @@ function ShopUI:RenderItems(items)
 			item.Button.ButtonFrame.Coin.Visible = true
 			item.Button.ButtonFrame.Price.Text =
 			price
+
+		end
+
+		if not data.Owned then
+
+			item.Button.Active = true
+			item.Button.Visible = true
+
+			item.Button.ButtonFrame.Coin.Image = buttonImage
+			item.Button.ButtonFrame.Coin.Visible = true
+			item.Button.ButtonFrame.Price.Text = price
+
+			item.Button.Activated:Connect(function()
+				if self.OnBuyPressed then
+					self.OnBuyPressed(data.Category, data.Id)
+				end
+
+			end)
 
 		end
 		

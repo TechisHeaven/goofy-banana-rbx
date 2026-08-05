@@ -13,6 +13,7 @@ local RemoteIndex = RemoteIndexData.Events
 
 local LobbyUI            = require(script.Parent.Parent.UI.LobbyUI)
 local UIManager          = require(script.Parent.Parent.manager.UImanager)
+local NotificationUI     = require(script.Parent.Parent.UI.NotificationUI)
 
 local GameConfig  	     = require(Shared.GameConfig)
 
@@ -159,7 +160,7 @@ end
 
 local function onNotifyPlayer(message)
 	if not message then return end
-	UIManager:ShowNotification(message, GameConfig.Game.NotificationDuration)
+	NotificationUI:ShowNotification(message, GameConfig.Game.NotificationDuration)
 end
 
 -- Init ---------------------------------------------------------------------

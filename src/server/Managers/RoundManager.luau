@@ -13,6 +13,8 @@ local LobbyManager  = require(script.Parent.LobbyManager)
 local RoundEventManager = require(script.Parent.RoundEventManager)
 local CursorController = require(Shared.Modules.CursorModule)
 local VictoryManager = require(script.Parent.VictoryManager)
+local NotificationManager = require(script.Parent.NotificationManager)
+
 
 local RoundManager = {}
 
@@ -95,6 +97,8 @@ function RoundManager:StartGameLoop()
 			RoundManager.VictoryPlayer = nil
 			CursorController:EnterGameplay()
 			print("Round Started")
+			NotificationManager:Broadcast(string.format("Round Started!"), Enums.NotificationTarget.Gameplay)
+	
 
 			local roundTime = GameConfig.Round.RoundTime
 			local elapsed   = 0
@@ -121,6 +125,7 @@ function RoundManager:StartGameLoop()
 			LobbyManager:UpdateMatchStatus(Enums.RoundState.Ending, 0)
 			RoundManager.CurrentHunter = nil
 			RoundManager.TimeRemaining = 0
+			NotificationManager:Broadcast(string.format("Round Ended!"), Enums.NotificationTarget.Gameplay)
 			print("Round Ended — winner:", RoundManager.LastWinner or "Unknown")
 			local inMatchPlayers = LobbyManager:GetInMatchPlayers()
 

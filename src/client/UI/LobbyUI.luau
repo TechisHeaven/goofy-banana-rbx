@@ -265,22 +265,6 @@ function LobbyUI:ShowWinnerScreen(info: { winnerTeam: string, hunterName: string
 	end)
 end
 
---- Destroy the GUI (useful during testing reloads).
-function LobbyUI:ShowNotification(message: string)
-	if not notificationFrame or not notificationLabel then return end
-	notificationLabel.Text = message
-	notificationFrame.Visible = true
-	notificationFrame.Position = UDim2.new(1, 0, 0, 24)
-	TweenService:Create(notificationFrame, TweenInfo.new(0.25), { Position = UDim2.new(1, -300, 0, 24) }):Play()
-	task.delay(3, function()
-		if notificationFrame then
-			TweenService:Create(notificationFrame, TweenInfo.new(0.25), { Position = UDim2.new(1, 0, 0, 24) }):Play()
-			task.delay(0.3, function()
-				if notificationFrame then notificationFrame.Visible = false end
-			end)
-		end
-	end)
-end
 
 function LobbyUI:Destroy()
 	if screenGui then

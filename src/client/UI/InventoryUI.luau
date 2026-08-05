@@ -55,6 +55,7 @@ local InventoryUI = {}
 InventoryUI.OnEquipPressed = nil
 InventoryUI.OnUnequipPressed = nil
 InventoryUI.OnTabChanged = nil
+InventoryUI.OnOpened = nil
 
 local CurrentTab
 
@@ -108,9 +109,7 @@ function InventoryUI:Init()
 	PopupManager:Init(Overlay)
 
 	InventoryButton.Activated:Connect(function()
-
 		self:Open()
-
 	end)
 
 	for _,tab in ipairs(Tabs:GetChildren()) do
@@ -150,6 +149,9 @@ function InventoryUI:Open()
 		}
 	)
 
+	if self.OnOpened then
+		self.OnOpened()
+	end
 end
 
 ------------------------------------------------
@@ -217,7 +219,7 @@ function InventoryUI:RenderItems(category,items)
 
         equipButton.Visible = false
         equippedButton.Visible = false
-
+		print(data.Equipped)
 		if data.Equipped then
 
         equippedButton.Visible = true

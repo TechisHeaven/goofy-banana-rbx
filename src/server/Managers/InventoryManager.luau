@@ -6,6 +6,7 @@ local ServerStorage = game:GetService("ServerStorage")
 
 local RemoteIndexData = require(Shared.Remotes.RemoteIndex)
 local RemoteIndex = RemoteIndexData.Events
+local RemoteIndexFunctions = RemoteIndexData.Functions
 local ShopConfig = require(Shared.Config.ShopConfig)
 
 local ProfileManager =
@@ -21,12 +22,12 @@ local RequestEquip =
 local UpdateInventory =
 	Remotes:WaitForChild(RemoteIndex.UpdateInventory)
 
+local GetInventoryItems = Remotes:WaitForChild(RemoteIndexFunctions.GetInventoryItems)
+
 local RequestUnequip = Remotes:WaitForChild(RemoteIndex.RequestUnequip)
 
 -----------------------------------------------
 --Templates
-local InventoryTemplate =
-	require(ServerStorage.Data.InventoryTemplate)
 
 local PlayerProfiles =
 	require(ServerStorage.Data.PlayerProfiles)
@@ -34,6 +35,13 @@ local PlayerProfiles =
 ------------------------------------------------
 
 local InventoryManager = {}
+
+local RequireEquip = {
+	Skins = true,
+	BananaSkins = true,
+	RescueEffects = true,
+	VictoryPoses = true,
+}
 
 ------------------------------------------------
 
@@ -70,34 +78,21 @@ function InventoryManager:SendInventory(player)
 		return
 	end
 
-	local inventory = profile.Inventory
-	-- local inventory =
-	-- 	PlayerProfiles[player].Inventory
-
-	UpdateInventory:FireClient(player,{
-
-		Skins =
-			BuildCategory("Skins",inventory),
-
-		BananaSkins =
-			BuildCategory("BananaSkins",inventory),
-
-		RescueEffects =
-			BuildCategory("RescueEffects",inventory),
-
-		VictoryPoses =
-			BuildCategory("VictoryPoses",inventory),
-
-	})
+	UpdateInventory:FireClient(player)
 
 end
+
+function InventoryManager:NotifyInventoryChanged(player)
+    UpdateInventory:FireClient(player)
+end
+
 
 ------------------------------------------------
 
 function InventoryManager:Equip(player,category,itemId)
 
 	local inventory =
-		PlayerProfiles[player].Inventory
+		self:GetInventory(player)
 
 	if not inventory then
 		return
@@ -110,24 +105,95 @@ function InventoryManager:Equip(player,category,itemId)
 	inventory.Equipped[category] = itemId
 
 
-	self:SendInventory(player)
+	self:NotifyInventoryChanged(player)
 
 end
 
 function InventoryManager:Unequip(player, category)
 
-	local inventory = PlayerProfiles[player].Inventory
+	local inventory = self:GetInventory(player)
 
 	if not inventory then
 		return
 	end
 
+	if RequireEquip[category] then
+		return
+	end
+
+
 	inventory.Equipped[category] = nil
 
-	self:SendInventory(player)
+	self:NotifyInventoryChanged(player)
 
 end
 
+function InventoryManager:AddItem(player, category, itemId)
+
+	local profile = ProfileManager:GetProfile(player)
+	if not profile then
+		return false
+	end
+
+	local inventory = profile.Inventory
+
+	inventory.Owned[category] = inventory.Owned[category] or {}
+
+	if inventory.Owned[category][itemId] then
+		return false
+	end
+
+	inventory.Owned[category][itemId] = true
+
+	self:SendInventory(player)
+
+	return true
+
+end
+
+function InventoryManager:SetOwned(player, category, itemId, owned)
+
+	local profile = ProfileManager:GetProfile(player)
+	if not profile then
+		return false
+	end
+
+	local inventory = profile.Inventory
+
+	inventory.Owned[category] = inventory.Owned[category] or {}
+
+	if owned then
+		inventory.Owned[category][itemId] = true
+	else
+		inventory.Owned[category][itemId] = nil
+	end
+
+	return true
+
+end
+
+function InventoryManager:RemoveItem(player, category, itemId)
+
+	local profile = ProfileManager:GetProfile(player)
+	if not profile then
+		return false
+	end
+
+	local inventory = profile.Inventory
+
+	if inventory.Owned[category] then
+		inventory.Owned[category][itemId] = nil
+	end
+
+	if inventory.Equipped[category] == itemId then
+		inventory.Equipped[category] = nil
+	end
+
+	self:SendInventory(player)
+
+	return true
+
+end
 ----------------------------------------------
 function InventoryManager:GetInventory(player)
 	return PlayerProfiles[player].Inventory
@@ -153,25 +219,41 @@ function InventoryManager:GetOwned(player, category)
 	return inventory.Owned[category]
 end
 
+function InventoryManager:GetInventoryItems(player, category)
 
+	local profile = ProfileManager:GetProfile(player)
+
+	if not profile then
+		return {}
+	end
+
+	local inventory = profile.Inventory
+	return BuildCategory(category, inventory)
+
+end
 ------------------------------------------------
 
 function InventoryManager:Init()
-	task.wait(1)
+	
 	Players.PlayerAdded:Connect(function(player)
-		local profile = ProfileManager:GetProfile(player)
-		-- task.wait(1)
 		self:SendInventory(player)
-
 	end)
 
 	Players.PlayerRemoving:Connect(function(player)
 		ProfileManager:RemovePlayer(player)
 	end)
 
+	GetInventoryItems.OnServerInvoke = function(player, category)
+
+		return InventoryManager:GetInventoryItems(
+			player,
+			category
+		)
+
+	end
+
 	RequestEquip.OnServerEvent:Connect(function(player,category,itemId)
 		self:Equip(player,category,itemId)
-
 	end)
 
     RequestUnequip.OnServerEvent:Connect(function(player, category)

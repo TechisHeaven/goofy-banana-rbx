@@ -11,7 +11,7 @@ local RemoteIndex = RemoteIndexData.Events
 
 local PlayerManager = require(script.Parent.PlayerManager)
 local FreezeEventManager = require(script.Parent.FreezeEventManager)
-
+local NotificationManager = require(script.Parent.NotificationManager)
 
 -- Lazy-required to avoid circular dependency
 local RoundManager = nil
@@ -135,15 +135,18 @@ end
 function FreezeManager:FreezePlayer(player: Player, freezer: Player?)
 	PlayerManager:SetState(player, Enums.PlayerState.Frozen)
 	FreezeEventManager:FirePlayerFrozen(player, freezer)
-
-	local re = getRemote(RemoteIndex.NotifyPlayer)
-	if re then
+	
 		if freezer and freezer.Parent then
-			re:FireAllClients(string.format("%s froze %s!", freezer.Name, player.Name))
+			NotificationManager:Broadcast(
+			("%s froze %s!"):format(
+				freezer.Name,
+				player.Name
+			), Enums.NotificationTarget.Gameplay)
 		else
-			re:FireAllClients(string.format("%s was frozen!", player.Name))
+			NotificationManager:Broadcast(
+			("%s was frozen!"):format(player.Name)
+			, Enums.NotificationTarget.Gameplay)
 		end
-	end
 
 	local character = player.Character
 	if character then
@@ -201,11 +204,14 @@ function FreezeManager:FreezePlayer(player: Player, freezer: Player?)
 				print(string.format("FreezeManager: %s was rescued by %s!", player.Name, rescuer.Name))
 				FreezeManager:UnfreezePlayer(player, rescuer)
 				if rescuer and rescuer.Parent then
-					local re = getRemote(RemoteIndex.NotifyPlayer)
-					if re then
-						re:FireClient(player, string.format("You were rescued by %s!", rescuer.Name))
-						re:FireClient(rescuer, string.format("You rescued %s!", player.Name))
-					end
+					NotificationManager:Send(player,
+					("You were rescued by %s!"):format(
+						rescuer.Name
+					), Enums.NotificationTarget.Gameplay)
+					NotificationManager:Send(rescuer,
+					("You rescued %s!"):format(
+						player.Name
+					), Enums.NotificationTarget.Gameplay)
 				end
 			end)
 
@@ -226,14 +232,9 @@ function FreezeManager:UnfreezePlayer(player: Player, rescuer: Player?)
 	-- Set state back to Alive
 	PlayerManager:SetState(player, Enums.PlayerState.Alive)
 
-	local re = getRemote(RemoteIndex.NotifyPlayer)
-	if re then
 		if rescuer and rescuer.Parent then
-			re:FireAllClients(string.format("%s rescued %s!", rescuer.Name, player.Name))
-		-- else
-		-- 	re:FireAllClients(string.format("%s was rescued!", player.Name))
+			NotificationManager:Broadcast(string.format("%s rescued %s!", rescuer.Name, player.Name), Enums.NotificationTarget.Gameplay)
 		end
-	end
 	-- Clean up ProximityPrompt
 	local prompt = activePrompts[player]
 	if prompt then

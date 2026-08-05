@@ -6,7 +6,7 @@ local ServerStorage = game:GetService("ServerStorage")
 local ShopConfig = require(Shared.Config.ShopConfig)
 
 local InventoryManager = require(script.Parent.InventoryManager)
-
+local NotificationManager = require(script.Parent.NotificationManager)
 local PlayerProfiles =
 	require(ServerStorage.Data.PlayerProfiles)
 
@@ -25,13 +25,10 @@ local RequestPurchase =
 local ShopManager = {}
 
 function ShopManager:GetCategory(name)
-
 	return ShopConfig.Categories[name]
-
 end
 
 function ShopManager:GetShopItems(player, categoryName)
-
 	local category = ShopConfig.Categories[categoryName]
 	if not category then
 		return {}
@@ -44,7 +41,7 @@ function ShopManager:GetShopItems(player, categoryName)
 	for _, item in ipairs(category.Items) do
 
 		local data = table.clone(item)
-
+        data.Category = categoryName
         data.Owned = false
 
         if inventory.Owned[categoryName] then
@@ -69,7 +66,7 @@ end
 function ShopManager:GetItem(categoryName,itemId)
 
     local category = ShopConfig.Categories[categoryName]
-
+    print("Category:", categoryName, category)
     if not category then
         return nil
     end
@@ -94,28 +91,45 @@ function ShopManager:Purchase(player, category, itemId)
         return
     end
 
-    local inventory = profile.Inventory
+    local inventory = InventoryManager:GetInventory(player)
+    print("Inventory:", inventory)
+    local data = {}
+    local ownedCategory = inventory.Owned[category] or {}
 
-    if inventory.Owned[itemId] then
-        return
-    end
-
+    data.Owned = ownedCategory[itemId] == true
+  if data.Owned then
+        NotificationManager:Send(
+            player,
+            "Already owned.")
+        --update inventory
+        InventoryManager:NotifyInventoryChanged(player)
+		return false, "Already owned."
+	end
     local item = self:GetItem(category, itemId)
 
     if not item then
+        NotificationManager:Send(
+            player,
+            "Item not found.")
         return
     end
 
     if profile.Coins < item.Price then
-        return
+        NotificationManager:Send(
+            player,
+            "Not enough coins.!")
+        return false, "Not enough coins."
     end
 
     profile.Coins -= item.Price
 
-    inventory.Owned[itemId] = true
+   InventoryManager:SetOwned(player, category, itemId, true)
 
-    InventoryManager:SendInventory(player)
-
+    NotificationManager:Success(
+        player,
+        "Purchase successful!"
+    )
+    return true, "Purchase successful."
 end
 
 
@@ -127,11 +141,9 @@ function ShopManager:Init()
 
 	end
 
-	RequestPurchase.OnServerEvent:Connect(function(player, category, itemId)
-
-		self:Purchase(player, category, itemId)
-
-	end)
+	RequestPurchase.OnServerInvoke = function(player, category, itemId)
+        return self:Purchase(player, category, itemId)
+    end
 
 end
 
