@@ -23,7 +23,7 @@ local RESPAWN_DELAY = GameConfig.Game.CoinRespawnTime
 local RoundStatsManager =
 	require(script.Parent.RoundStatsManager)
 local TaskManager = require(script.Parent.TaskManager)
-local TaskEvents = require(Shared.Enums.TaskEvents)
+local TaskEvents = require(Shared.EnumsEvents.TaskEvents)
 local CoinTemplate =
 	ServerStorage.Templates:WaitForChild("Coin")
 

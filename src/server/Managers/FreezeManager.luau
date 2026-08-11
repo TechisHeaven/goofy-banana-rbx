@@ -14,7 +14,7 @@ local FreezeEventManager = require(script.Parent.FreezeEventManager)
 local NotificationManager = require(script.Parent.NotificationManager)
 local RoundStatsManager = require(script.Parent.RoundStatsManager)
 local TaskManager = require(script.Parent.TaskManager)
-local TaskEvents = require(Shared.Enums.TaskEvents)
+local TaskEvents = require(Shared.EnumsEvents.TaskEvents)
 
 -- Lazy-required to avoid circular dependency
 local RoundManager = nil
@@ -255,7 +255,7 @@ function FreezeManager:FreezePlayer(player: Player, freezer: Player?)
 	RoundStatsManager:Freeze(player)
 	RoundStatsManager:AddFrozenPlayer(freezer)
 	TaskManager:AddProgress(
-		player,
+		freezer,
 		TaskEvents.PlayerFrozen,
 		1
 	)

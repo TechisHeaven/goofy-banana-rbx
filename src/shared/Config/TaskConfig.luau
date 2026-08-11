@@ -1,6 +1,7 @@
 local TaskConfig = {}
 local TaskEvents =
-	require(script.Parent.Parent.Enums.TaskEvents)
+	require(script.Parent.Parent.EnumsEvents.TaskEvents)
+
 ------------------------------------------------
 -- Settings
 ------------------------------------------------

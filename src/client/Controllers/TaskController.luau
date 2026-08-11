@@ -134,6 +134,53 @@ function TaskController:Init()
 
 	end
 
+	TaskUI.OnClaimPressed = function(category, taskId)
+
+		local success, claimed, message =
+			pcall(function()
+
+				return Remotes
+					:WaitForChild(
+						RemoteIndex.Functions.ClaimTask
+					)
+					:InvokeServer(
+						category,
+						taskId
+					)
+
+			end)
+
+		if not success then
+
+			warn(
+				"[TaskController] Claim request failed:",
+				claimed
+			)
+
+			return
+		end
+
+		if claimed then
+
+			print(
+				"[TaskController] Claimed:",
+				taskId
+			)
+
+			OpenCategory(
+				CurrentCategory
+			)
+
+		else
+
+			warn(
+				"[TaskController] Claim rejected:",
+				message
+			)
+
+		end
+
+	end
 	------------------------------------------------
 	-- Server task update
 	------------------------------------------------
