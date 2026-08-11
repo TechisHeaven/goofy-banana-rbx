@@ -66,6 +66,16 @@ RemoteIndex.Events = {
 	PlayVictory = "PlayVictory",
 	GetDailyReward = "GetDailyReward",
 
+ 	UpdateCurrency = "UpdateCurrency",
+	
+	PromptProductPurchase = "PromptProductPurchase",
+
+	FreezeCooldown = "FreezeCooldown",
+
+	StartSlowMo = "StartSlowMo",
+
+	UpdateTasks = "UpdateTasks",
+
 }
 
 RemoteIndex.Functions = {
@@ -76,6 +86,9 @@ RemoteIndex.Functions = {
 
 	RequestPurchase = "RequestPurchase",
 
+	ClaimTask = "ClaimTask",
+
+	GetTasks = "GetTasks",
 }
 
 return RemoteIndex

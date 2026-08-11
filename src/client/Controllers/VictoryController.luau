@@ -299,6 +299,17 @@ function VictoryController:Play(data)
 local humanoid = clone:WaitForChild("Humanoid")
 	local hrp = clone:WaitForChild("HumanoidRootPart")
 
+	local head = clone:WaitForChild("Head")
+
+	local template = ReplicatedStorage.UI:WaitForChild("VictoryNameTag")
+	local tag = template:Clone()
+	-- Ensure Winner is a string (Player instance -> use Name)
+	local winnerName = (type(data.Winner) == "table" and data.Winner.Name) or tostring(data.Winner)
+	tag.NameLabel.Text = winnerName ~= "nil" and winnerName or "OG PLAYER"
+	tag.TitleLabel.Text = "MVP"
+
+	tag.Parent = head
+
 	-- Make it a display model
 	humanoid.AutoRotate = false
 
@@ -329,7 +340,7 @@ local humanoid = clone:WaitForChild("Humanoid")
 	local pose = data.Pose or "Default"
 
 	-- local track = self:PlayAnimation(clone, pose)
-	local track = self:PlayCutScene(clone, pose, {ResetCamera = false, FOV = 90})
+	local track = self:PlayCutScene(clone, pose, {ResetCamera = false, FOV = 110})
 
 	task.wait(5)
 

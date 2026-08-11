@@ -12,11 +12,15 @@ local RemoteIndex = RemoteIndexData.Events
 local PlayerManager = require(script.Parent.PlayerManager)
 local FreezeEventManager = require(script.Parent.FreezeEventManager)
 local NotificationManager = require(script.Parent.NotificationManager)
+local RoundStatsManager = require(script.Parent.RoundStatsManager)
+local TaskManager = require(script.Parent.TaskManager)
+local TaskEvents = require(Shared.Enums.TaskEvents)
 
 -- Lazy-required to avoid circular dependency
 local RoundManager = nil
 
 local remotes = {}
+local FreezeCooldownUntil = {}
 
 local function getRemote(name: string)
 	if remotes[name] then return remotes[name] end
@@ -27,6 +31,28 @@ local function getRemote(name: string)
 		return remote
 	end
 	return nil
+end
+
+function FreezeManager:GetFreezeCooldown(player)
+
+	local untilTime =
+		FreezeCooldownUntil[player]
+
+	if not untilTime then
+		return 0
+	end
+
+	return math.max(
+		0,
+		untilTime - os.clock()
+	)
+
+end
+
+function FreezeManager:IsFreezeReady(player)
+
+	return self:GetFreezeCooldown(player) <= 0
+
 end
 
 local function clearHoverEffect(player: Player)
@@ -103,6 +129,7 @@ function FreezeManager:ApplyHunterCooldown(player: Player, duration: number?)
 	setMovementLocked(player, true, originalWalkSpeed, originalJumpPower)
 
 	local cooldownTime = duration or (GameConfig.Hunter and GameConfig.Hunter.CooldownTime) or 4
+	
 	task.spawn(function()
 		local elapsed = 0
 		while player and player.Parent and player.Character and elapsed < cooldownTime do
@@ -134,8 +161,8 @@ end
 -- Freeze a runner
 function FreezeManager:FreezePlayer(player: Player, freezer: Player?)
 	PlayerManager:SetState(player, Enums.PlayerState.Frozen)
-	FreezeEventManager:FirePlayerFrozen(player, freezer)
-	
+
+
 		if freezer and freezer.Parent then
 			NotificationManager:Broadcast(
 			("%s froze %s!"):format(
@@ -200,8 +227,7 @@ function FreezeManager:FreezePlayer(player: Player, freezer: Player?)
 				if RoundManager.CurrentState ~= Enums.RoundState.Playing then return end
 				if PlayerManager:GetTeam(rescuer) ~= Enums.Team.Runner then return end
 				if PlayerManager:GetState(rescuer) ~= Enums.PlayerState.Alive then return end
-
-				print(string.format("FreezeManager: %s was rescued by %s!", player.Name, rescuer.Name))
+				-- Round Stats 
 				FreezeManager:UnfreezePlayer(player, rescuer)
 				if rescuer and rescuer.Parent then
 					NotificationManager:Send(player,
@@ -224,14 +250,48 @@ function FreezeManager:FreezePlayer(player: Player, freezer: Player?)
 	if not RoundManager then
 		RoundManager = require(script.Parent.RoundManager)
 	end
+
+
+	RoundStatsManager:Freeze(player)
+	RoundStatsManager:AddFrozenPlayer(freezer)
+	TaskManager:AddProgress(
+		player,
+		TaskEvents.PlayerFrozen,
+		1
+	)
+
+	if freezer then
+
+		local cooldown =
+			GameConfig.Hunter.FreezeCooldown or 3
+
+		FreezeCooldownUntil[freezer] =
+			os.clock() + cooldown
+		print("firing in server")
+		getRemote(RemoteIndex.FreezeCooldown):FireClient(
+			freezer,
+			cooldown
+		)
+	end
+
+	if RoundStatsManager:ShouldShowFrozenUI() then
+		FreezeEventManager:FirePlayerFrozen(player, freezer)
+	end
+
 	RoundManager:CheckWinCondition()
 end
 
 -- Unfreeze a player and restore movement/appearance
 function FreezeManager:UnfreezePlayer(player: Player, rescuer: Player?)
 	-- Set state back to Alive
-	PlayerManager:SetState(player, Enums.PlayerState.Alive)
+	RoundStatsManager:Rescue(rescuer, player)
+	TaskManager:AddProgress(
+		rescuer,
+		TaskEvents.PlayerRescued,
+		1
+	)
 
+	PlayerManager:SetState(player, Enums.PlayerState.Alive)
 		if rescuer and rescuer.Parent then
 			NotificationManager:Broadcast(string.format("%s rescued %s!", rescuer.Name, player.Name), Enums.NotificationTarget.Gameplay)
 		end
@@ -273,6 +333,7 @@ function FreezeManager:UnfreezePlayer(player: Player, rescuer: Player?)
 	if not RoundManager then
 		RoundManager = require(script.Parent.RoundManager)
 	end
+
 	RoundManager:CheckWinCondition()
 end
 
@@ -280,6 +341,7 @@ end
 function FreezeManager:UnfreezeAll()
 	for _, player in ipairs(Players:GetPlayers()) do
 		self:UnfreezePlayer(player)
+		table.clear(FreezeCooldownUntil)
 	end
 end
 
@@ -320,6 +382,10 @@ function FreezeManager:HandleTouch(toucher: Player, otherPart: BasePart)
 
 	-- 4. Is target already frozen?
 	if PlayerManager:GetState(target) == Enums.PlayerState.Frozen then
+		return
+	end
+
+	if not self:IsFreezeReady(toucher) then
 		return
 	end
 
@@ -374,6 +440,12 @@ function FreezeManager:Init()
 			onCharacterAdded(player, character)
 		end)
 	end)
+
+		-- Re-check win condition whenever a player leaves
+	Players.PlayerRemoving:Connect(function(_player)
+		FreezeCooldownUntil[_player] = nil
+	end)
+
 end
 
 return FreezeManager

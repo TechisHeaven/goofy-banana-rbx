@@ -179,7 +179,6 @@ end
 -------------------------------------------------------
 
 function PopupManager:CloseCurrent()
-
 	if self.CurrentPopup then
 		self:Close(self.CurrentPopup)
 	end

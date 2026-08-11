@@ -10,6 +10,11 @@ local LoadOrder = {
 	"RoundEventManager",
 	"VictoryManager",
 	"RoundManager",
+	"DailyRewardManager",
+	"CurrencyManager",
+	"CoinManager",
+	"MonetizationManager",
+	"TaskManager",
 }
 
 

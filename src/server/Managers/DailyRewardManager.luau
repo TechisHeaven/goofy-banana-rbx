@@ -9,6 +9,13 @@ local RemoteIndex = RemoteIndexData.Events
 
 local RemotesFolder = Shared:WaitForChild("Remotes")
 
+------------------------------------------------
+-- Managers
+------------------------------------------------
+
+local CurrencyManager =
+	require(script.Parent.CurrencyManager)
+
 ----------------------------------------------------
 -- Remotes
 ----------------------------------------------------
@@ -124,27 +131,6 @@ function DailyRewardManager:BuildCards(player)
 
 end
 
--- function DailyRewardManager:RefreshPlayer(player)
-
---     local data = getPlayerData(player)
-
---     if data.LastClaim == 0 then
---         return
---     end
-
---     local elapsed = os.time() - data.LastClaim
-
---     if elapsed >= DailyRewardConfig.ClaimCooldown then
-
---         if data.CurrentDay < DailyRewardConfig.MaxDay then
---             data.CurrentDay += 1
---         end
-        
---         data.LastClaim = 0
---     end
-
--- end
-
 function DailyRewardManager:RefreshPlayer(player)
 
     local data = getPlayerData(player)
@@ -174,7 +160,6 @@ function DailyRewardManager:SendData(player)
     self:RefreshPlayer(player)
 
     local data = getPlayerData(player)
-    local canClaim = self:CanClaim(player)
 
     UpdateReward:FireClient(player,{
 
@@ -198,54 +183,74 @@ function DailyRewardManager:SendData(player)
 
 end
 
+------------------------------------------------
+-- Give Reward
+------------------------------------------------
+
+function DailyRewardManager:GiveReward(player, reward)
+
+	if not reward then
+		return false
+	end
+
+	------------------------------------------------
+	-- Coins
+	------------------------------------------------
+
+	if reward.Coins then
+		CurrencyManager:AddCoins(
+			player,
+			reward.Coins
+		)
+
+		print(
+			player.Name
+			.. " received "
+			.. reward.Coins
+			.. " coins"
+		)
+
+	end
+
+	------------------------------------------------
+	-- Skin
+	------------------------------------------------
+
+	if reward.Skin then
+
+		print(
+			player.Name
+			.. " received skin: "
+			.. tostring(reward.Skin)
+		)
+
+		-- Add to InventoryManager later
+
+	end
+
+	------------------------------------------------
+	-- Head
+	------------------------------------------------
+
+	if reward.Head then
+
+		print(
+			player.Name
+			.. " received head: "
+			.. tostring(reward.Head)
+		)
+
+		-- Add to InventoryManager later
+
+	end
+
+	return true
+
+end
+
+
+
 ----------------------------------------------------
-
--- function DailyRewardManager:Claim(player)
-
---     if not self:CanClaim(player) then
-
---         self:SendData(player)
-
---         return
-
---     end
-
---     local data = getPlayerData(player)
-
---     local reward =
---         DailyRewardConfig.Rewards[data.CurrentDay]
-
---     ------------------------------------------------
---     -- TODO
---     -- Give Coins
---     -- Give Skin
---     -- Give Head
---     ------------------------------------------------
-
---     print(player.Name.." claimed Day "..data.CurrentDay)
-
---     if reward.Coins then
---         print("Coins:",reward.Coins)
---     end
-
---     if reward.Skin then
---         print("Skin:",reward.Skin)
---     end
-
---     if reward.Head then
---         print("Head:",reward.Head)
---     end
-
---     ------------------------------------------------
-
---     data.LastClaim = os.time()
-
---    -- Give rewards
---     ------------------------------------------------
-
---     self:SendData(player)
-
--- end
 
 function DailyRewardManager:Claim(player)
 
@@ -253,17 +258,40 @@ function DailyRewardManager:Claim(player)
 
     if not self:CanClaim(player) then
         self:SendData(player)
-        return
+        return false
     end
 
     local data = getPlayerData(player)
 
-    local reward =
-        DailyRewardConfig.Rewards[data.CurrentDay]
+   local reward =
+		DailyRewardConfig.Rewards[
+			data.CurrentDay
+		]
+
+	if not reward then
+
+		warn(
+			"No reward configured for day "
+			.. tostring(data.CurrentDay)
+		)
+
+		return false
+
+	end
+
 
     ------------------------------------------------
     -- Give reward here
     ------------------------------------------------
+    local success =
+            self:GiveReward(
+                player,
+                reward
+            )
+
+        if not success then
+            return false
+        end
 
     data.ClaimedDay = data.CurrentDay
 
@@ -273,19 +301,45 @@ function DailyRewardManager:Claim(player)
 
     self:SendData(player)
 
+	return true
 end
 
 ----------------------------------------------------
 
 function DailyRewardManager:Init()
 
+    ------------------------------------------------
+	-- Existing players
+	------------------------------------------------
+
+	for _, player in ipairs(
+		Players:GetPlayers()
+	) do
+
+		getPlayerData(player)
+
+		task.defer(function()
+
+			self:SendData(player)
+
+		end)
+
+	end
+
+
     Players.PlayerAdded:Connect(function(player)
 
         getPlayerData(player)
 
-        task.wait(1)
+        -- task.wait(1)
 
-        self:SendData(player)
+        -- self:SendData(player)
+
+        task.defer(function()
+
+			self:SendData(player)
+
+		end)
 
     end)
 

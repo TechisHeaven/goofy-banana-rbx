@@ -47,7 +47,6 @@ local function OpenCategory(categoryName)
 
 		-- ShopUI:ShowLoading(true)
 	local items = getRemote(RemoteIndex.GetShopItems):InvokeServer(categoryName)
-	print("Items for category", categoryName, ":", items)
 	-- ShopUI:ShowLoading(false)
 	ShopUI:ShowPage(category.Page)
 
@@ -85,7 +84,6 @@ function ShopController:Init()
 	end)
 
 	ShopUI.OnBuyPressed = function(category, itemId)
-
 		local success, message = getRemote(RemoteIndex.RequestPurchase):InvokeServer(category, itemId)
 
 		if success then

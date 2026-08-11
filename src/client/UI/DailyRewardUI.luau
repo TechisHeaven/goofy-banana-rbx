@@ -63,89 +63,6 @@ local function ClearRewards()
 end
 
 
--- function DailyRewardUI:Render(data)
-
---     ClearRewards()
---     print(data)
-
---     for _,card in ipairs(data.Cards) do
-
---         local reward = Template:Clone()
-
---         reward.Name = "Reward"
-
---         reward.Visible = true
-
---         reward.Parent = RewardsFrame
-
-
-        
---         local claimButton = reward.Claim
---         local timerLabel = reward.Timer
---         local laterLabel = reward.Later
-
---         claimButton.Visible = false
---         timerLabel.Visible = false
---         laterLabel.Visible = false
---         ------------------------------------
-
---         reward.Day.Text =
---             "Day "..card.Day
-
---         reward.Preview.Coins.Text =
---             tostring(card.Reward.Coins)
-
---         ------------------------------------
---         -- Big reward
---         ------------------------------------
-
---         if card.BigReward then
-
---             -- reward.Preview.ItemImage.Image =
---             --     "rbxassetid://YOUR_BIG_REWARD"
---             print("Big reward for day "..card.Day.." is available!")
-
---         end
-
---         ------------------------------------
---         -- State
---         ------------------------------------
-
---         if card.Day == data.CurrentDay then
---             if data.CanClaim then
---                 claimButton.Visible = true
---                 claimButton.Text.Text = "Claim"
-
---                 reward.Claim.Text.TextColor3 =
---                     Color3.fromRGB(255,255,255)
-
---                 claimButton.Activated:Once(function()
-
---             if DailyRewardUI.OnClaimPressed then
---                 DailyRewardUI.OnClaimPressed()
---                 end
---             end)
-
---             else
---                 claimButton.Visible = true
---                 reward.Claim.Text.Text = "Claimed"
---                 claimButton.Active = false
---                 claimButton.AutoButtonColor = false
---             end
-
---        elseif card.Day == data.CurrentDay + 1 and not data.CanClaim then
---             timerLabel.Visible = true
-
---         else
-
---             laterLabel.Visible = true
-
---         end
-
---     end
-
--- end
-
 function DailyRewardUI:Render(data)
 
     ClearRewards()
@@ -268,94 +185,6 @@ end
 
 ---------------------------------------------------
 
--- function DailyRewardUI:Render(data)
-
---     hideAll()
-
---     for index,card in ipairs(data.Cards) do
-
---         local frame = rewardFrames[index]
-
---         if not frame then
---             break
---         end
-
---         frame.Visible = true
-
---         ------------------------------------------
---         -- Day
---         ------------------------------------------
-
---         frame.Day.Text =
---             "Day "..card.Day
-
---         ------------------------------------------
---         -- Coins
---         ------------------------------------------
-
---         frame.Preview.Coins.Text =
---             tostring(card.Reward.Coins or 0)
-
---         ------------------------------------------
---         -- Big reward
---         ------------------------------------------
-
---         if card.BigReward then
-
---             Popup.FutureRewards.Visible = true
-
---         else
-
---             Popup.FutureRewards.Visible = false
-
---         end
-
---         ------------------------------------------
---         -- Current day
---         ------------------------------------------
-
---         if card.Day == data.CurrentDay then
-
---             if data.CanClaim then
-
---                 frame.Claim.Text = "Claim"
-
---                 frame.Claim.TextColor3 =
---                     Color3.fromRGB(255,255,255)
-
---                 frame.Claim.Active = true
-
---             else
-
---                 frame.Claim.Text = "Claimed"
-
---                 frame.Claim.TextColor3 =
---                     Color3.fromRGB(0,255,0)
-
---                 frame.Claim.Active = false
-
---             end
-
---         elseif card.Day == data.CurrentDay + 1
---             and not data.CanClaim then
-
---             frame.Claim.Text = ""
---             frame.Claim.Active = false
-
---         else
-
---             frame.Claim.Text = "Later..."
-
---             frame.Claim.TextColor3 =
---                 Color3.fromRGB(160,160,160)
-
---             frame.Claim.Active = false
-
---         end
-
---     end
-
--- end
 
 
 function DailyRewardUI:Init()
@@ -363,9 +192,7 @@ function DailyRewardUI:Init()
     Template.Visible = false
 
     DailyRewardButton.Activated:Connect(function()
-
         PopupManager:Open(DailyRewardGui)
-
     end)
 
 end

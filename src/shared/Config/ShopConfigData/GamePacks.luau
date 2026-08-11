@@ -2,7 +2,7 @@ local GamePacks = {
 
 	{
 		Id = "StarterPack",
-
+		ProductId = 3672502514,
 		Name = "Starter Pack",
 
 		Image = "rbxassetid://111415095133320",
@@ -42,7 +42,7 @@ local GamePacks = {
 
 	{
 		Id = "EpicPack",
-
+		ProductId = 3673574630,
 		Name = "Epic Pack",
 
 		Image = "rbxassetid://137906952419654",
@@ -61,8 +61,8 @@ local GamePacks = {
 
 			Skins = {
 				{
-					Id = "SleepyBanana",
-					Image = "rbxassetid://136115997706635",
+					Id = "JackLantern",
+					Image = "rbxassetid://103958840548469",
 				},
 				{
 					Id = "CoolBanana",

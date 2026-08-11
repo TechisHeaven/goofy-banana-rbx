@@ -3,7 +3,7 @@ return {
     Round = {
         MinimumPlayers = 2,
         IntermissionTime = 10,
-        RoundTime = 40,
+        RoundTime = 60,
         EndTime = 10,
         AllowLateJoin = true,
         LateJoinCutoff = 30,
@@ -11,12 +11,13 @@ return {
     },
 
     Rescue = {
-        HoldTime = 5,
+        HoldTime = 3,
     },
 
     Hunter = {
         Count = 1,
         CooldownTime = 2,
+	    FreezeCooldown = 5,
     },
 
     Lobby = {
@@ -29,6 +30,12 @@ return {
         ResultScreenDuration = 10,      -- how long to show the result screen (seconds)
         NotificationDuration = 10,      -- how long to show notifications (seconds)
         FreezeDuration = 5,              -- how long a player is frozen (seconds)
+        MaxCoinActive = 3,
+        CoinAmount = 50,
+        CoinRespawnTime = 3,
+        DefaultSlowMoDuration = 3,
+        DefaultSlowMoFOV = 70,
+        DefaultSlowMoSpeed = 0.35
     }
 
 }

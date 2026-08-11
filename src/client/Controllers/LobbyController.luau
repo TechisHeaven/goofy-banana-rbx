@@ -10,6 +10,7 @@ local LocalPlayer        = Players.LocalPlayer
 local Shared             = ReplicatedStorage:WaitForChild("Shared")
 local RemoteIndexData = require(Shared.Remotes.RemoteIndex)
 local RemoteIndex = RemoteIndexData.Events
+local PopupManager = require(Shared.Modules.PopupModule)
 
 local LobbyUI            = require(script.Parent.Parent.UI.LobbyUI)
 local UIManager          = require(script.Parent.Parent.manager.UImanager)
@@ -126,11 +127,11 @@ end
 -- end
 
 local function onTeleportToArena(data)
+	PopupManager:CloseCurrent()
 	isInMatch = true
 	isQueued  = false
 	LobbyUI:SetQueued(false)
 	UIManager:ShowGame()
-	print(data)
 	UIManager:SetRole(data.role)
 	UIManager:SetTimer(data.roundTime)
 

@@ -56,8 +56,8 @@ ShopUI.OnTabChanged = nil
 
 local CurrentTab = nil
 
-local NORMAL_IMAGE = "rbxassetid://78379740934807"
-local SELECTED_IMAGE = "rbxassetid://112933688047512"
+local NORMAL_IMAGE = "rbxassetid://140549211259515"
+local SELECTED_IMAGE = "rbxassetid://115943360307489"
 local ROBUX_CURRENCY_IMAGE = "rbxassetid://97754220698381"
 local COIN_CURRENCY_IMAGE = "rbxassetid://99841109202747"
 ------------------------------------------------
@@ -272,7 +272,12 @@ function ShopUI:RenderGamePacks(items)
 
 		pack.Button.ButtonFrame.Price.Text =
 			tostring(data.Price)
-        
+        pack.Button.Activated:Connect(function()
+				if self.OnBuyPressed then
+					self.OnBuyPressed(data.Category, data.Id)
+				end
+
+			end)
 		local coins = pack.Preview.Rewards.Coins.CoinsFrame
 
 		coins.Price.Text = tostring(rewards.Coins.Amount)

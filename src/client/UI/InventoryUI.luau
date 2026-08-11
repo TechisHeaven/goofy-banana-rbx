@@ -78,11 +78,9 @@ end
 
 ------------------------------------------------
 
-local NORMAL_IMAGE =
-	"rbxassetid://78379740934807"
 
-local SELECTED_IMAGE =
-	"rbxassetid://112933688047512"
+local NORMAL_IMAGE = "rbxassetid://140549211259515"
+local SELECTED_IMAGE = "rbxassetid://115943360307489"
 
 function InventoryUI:SetSelectedTab(name)
 
@@ -219,7 +217,6 @@ function InventoryUI:RenderItems(category,items)
 
         equipButton.Visible = false
         equippedButton.Visible = false
-		print(data.Equipped)
 		if data.Equipped then
 
         equippedButton.Visible = true

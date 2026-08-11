@@ -51,7 +51,7 @@ end
 -------------------------------------------------------
 
 function ResultUI:Show(data)
-
+    print(data)
     hideAll()
 
     if data.won then
@@ -85,25 +85,25 @@ function ResultUI:Show(data)
     --------------------------------------------------
     -- Rewards
     --------------------------------------------------
-
+    print(data.stats)
     ResultFrame.Rewards.XP.Text =
-        "+" .. data.reward.xp
+        "+" .. data.stats.MVPScore
 
     ResultFrame.Rewards.Coins.Text =
-        "+" .. data.reward.coins
+        "+" .. data.stats.Coins
 
     --------------------------------------------------
     -- Stats
     --------------------------------------------------
 
     ResultFrame.Stats.Survival.Text =
-        tostring(data.stats.survivalTime)
+        tostring(data.stats.SurvivalTime)
 
     ResultFrame.Stats.Rescues.Text =
-        tostring(data.stats.rescues)
+        tostring(data.stats.Rescues)
 
     ResultFrame.Stats.Frozen.Text =
-        tostring(data.stats.frozenPlayers)
+        tostring(data.stats.FrozenPlayers)
 
     ResultFrame.Visible = true
 

@@ -9,23 +9,27 @@ local InventoryTemplate =
 	require(ServerStorage.Data.InventoryTemplate)
 
 
+
 function ProfileManager:RegisterPlayer(player)
 	print("Registering player profile for",player.Name)
 	PlayerProfiles[player] = {
-
 		Coins = 10000,
-		Wins = 0,
+		XP = 110,
 		Level = 1,
-
-		RoundStats = {
-			Coins = 0,
-			SurvivalTime = 0,
-			Rescues = 0,
-			FrozenPlayers = 0,
-		},
-
 		Inventory = InventoryTemplate.Create(),
+		Tasks = {
+			Daily = {
+				Version = "",
+				Tasks = {},
+			},
 
+			Weekly = {
+				Version = "",
+				Tasks = {},
+			},
+
+			Overall = {},
+		},
 	}
 
 end

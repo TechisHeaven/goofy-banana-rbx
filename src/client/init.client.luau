@@ -16,6 +16,10 @@ local DailyRewardController = require(script.Controllers.DailyRewardController)
 local ShopController = require(script.Controllers.ShopController)
 local InventoryController = require(script.Controllers.InventoryController)
 local VictoryController = require(script.Controllers.VictoryController)
+local CurrencyController= require(script.Controllers.CurrencyController)
+local MonetizationController = require(script.Controllers.MonetizationController)
+local SlowMoController = require(script.Controllers.SlowMoController)
+local TaskController = require(script.Controllers.TaskController)
 
 ShopController:Init()
 CursorController:Init()
@@ -25,6 +29,10 @@ FreezeController:Init()
 InventoryController:Init()
 DailyRewardController:Init()
 VictoryController:Init()
+CurrencyController:Init()
+MonetizationController:Init()
+SlowMoController:Init()
+TaskController:Init()
 
 -- Wait for attributes to replicate
 if not LocalPlayer:GetAttribute("Team") then
