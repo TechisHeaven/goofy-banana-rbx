@@ -2,7 +2,12 @@ local Players = game:GetService("Players")
 
 local PlayerGui =
 	Players.LocalPlayer:WaitForChild("PlayerGui")
-
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Shared = ReplicatedStorage.Shared
+local LevelConfig =
+	require(
+		Shared.Config.LevelConfig
+	)
 ------------------------------------------------
 -- Change these paths to match your UI
 ------------------------------------------------
@@ -13,7 +18,11 @@ local LobbyGui =
 local CoinsLabel =
 	LobbyGui.Top.Right.CurrencyFrame.Coins.Amount
 
-local XPLabel = LobbyGui.Top.Right.XPFrame.XP.Amount
+local XPLabel =  LobbyGui.Top.Left.XPFrame.ProgressBar.XP
+local XPBar =
+	LobbyGui.Top.Left.XPFrame.ProgressBar.XPBar
+local LevelLabel = LobbyGui.Top.Left.XPFrame.XPImage.Level
+local WinsLabel = LobbyGui.Top.Right.WinsFrame.Wins.Amount
 ------------------------------------------------
 
 local CurrencyUI = {}
@@ -23,7 +32,9 @@ local CurrencyUI = {}
 function CurrencyUI:Init()
 
 	self:SetCoins(0)
-    self:SetXP(0)
+    self:SetXP(0,1)
+	self:SetLevel(1)
+	self:SetWins(0)
 
 end
 
@@ -33,8 +44,82 @@ function CurrencyUI:SetCoins(coins)
 	CoinsLabel.Text = self:Format(coins)
 end
 
-function CurrencyUI:SetXP(xp)
-    XPLabel.Text = self:Format(xp)
+function CurrencyUI:SetXP(xp, level)
+    XPLabel.Text = self:FormatXP(xp, level)
+
+	local progress =
+		self:GetXPProgress(
+			xp,
+			level
+		)
+
+	XPBar.Size =
+		UDim2.new(
+			progress,
+			0,
+			XPBar.Size.Y.Scale,
+			XPBar.Size.Y.Offset
+		)
+end
+
+function CurrencyUI:SetWins(wins)
+    WinsLabel.Text = self:Format(wins)
+end
+
+function CurrencyUI:SetLevel(level)
+    LevelLabel.Text = self:Format(level)
+end
+
+function CurrencyUI:GetXPProgress(xp, level)
+
+	local currentLevelXP =
+		LevelConfig.Levels[level] or 0
+	local nextLevelXP =
+		LevelConfig.Levels[level + 1]
+
+	if not nextLevelXP then
+		return 1
+	end
+
+	local currentXP =
+		math.max(0, xp - currentLevelXP)
+
+	local requiredXP =
+		nextLevelXP - currentLevelXP
+
+	return math.clamp(
+		currentXP / requiredXP,
+		0,
+		1
+	)
+
+end
+
+function CurrencyUI:FormatXP(xp, level)
+
+	local currentLevelXP =
+		LevelConfig.Levels[level] or 0
+
+	local nextLevelXP =
+		LevelConfig.Levels[level + 1]
+
+	if not nextLevelXP then
+		return tostring(xp - currentLevelXP)
+			.. "/MAX"
+	end
+
+	local currentXP =
+		math.max(0, xp - currentLevelXP)
+
+	local requiredXP =
+		nextLevelXP - currentLevelXP
+
+	return string.format(
+		"xp %d/%d",
+		currentXP,
+		requiredXP
+	)
+
 end
 
 ------------------------------------------------

@@ -28,7 +28,7 @@ return {
 
     Game = {
         ResultScreenDuration = 10,      -- how long to show the result screen (seconds)
-        NotificationDuration = 10,      -- how long to show notifications (seconds)
+        NotificationDuration = 5,      -- how long to show notifications (seconds)
         FreezeDuration = 5,              -- how long a player is frozen (seconds)
         MaxCoinActive = 3,
         CoinAmount = 50,

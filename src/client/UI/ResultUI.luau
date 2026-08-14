@@ -85,7 +85,7 @@ function ResultUI:Show(data)
     --------------------------------------------------
     -- Rewards
     --------------------------------------------------
-    print(data.stats)
+    
     ResultFrame.Rewards.XP.Text =
         "+" .. data.stats.MVPScore
 

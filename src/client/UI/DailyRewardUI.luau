@@ -21,6 +21,8 @@ local Popup = DailyRewardGui.DailyRewardItemsFrame
 local RewardsFrame =
     Popup.ScrollingFrame
 
+local PremiumButton = Popup.PurchaseButton
+local GetPremium = Popup.GetPremium
 
 local Template =
     RewardsFrame.RewardTemplate
@@ -61,6 +63,43 @@ local function ClearRewards()
     end
 
 end
+local function RenderReward(frame, rewardData)
+
+	if not rewardData then
+		frame.Visible = false
+		return
+	end
+
+	frame.Visible = true
+
+	------------------------------------------------
+	-- Image
+	------------------------------------------------
+	frame.Image.Image =
+		rewardData.Image or ""
+
+	------------------------------------------------
+	-- Text
+	------------------------------------------------
+
+	if rewardData.Type == "Coins" then
+
+		frame.Amount.Text =
+			tostring(rewardData.Value)
+
+	elseif rewardData.Type == "XP" then
+
+		frame.Amount.Text =
+			tostring(rewardData.Value) .. " XP"
+
+	else
+
+		frame.Amount.Text =
+			rewardData.Id or rewardData.Type
+
+	end
+
+end
 
 
 function DailyRewardUI:Render(data)
@@ -68,7 +107,6 @@ function DailyRewardUI:Render(data)
     ClearRewards()
 
     local currentReward
-
     for _,card in ipairs(data.Cards) do
 
         local reward = Template:Clone()
@@ -78,35 +116,46 @@ function DailyRewardUI:Render(data)
         reward.Parent = RewardsFrame
 
         reward.Day.Text = "Day "..card.Day
-        reward.Preview.Coins.Text = tostring(card.Reward.Coins)
+        RenderReward(
+            reward.Preview.BasicReward,
+            card.FreeReward
+        )
 
+        RenderReward(
+            reward.Preview.PremiumReward,
+            card.PremiumReward
+        )
+
+        if data.IsPremium then
+             reward.Preview.PremiumReward.Locked.Visible = false
+             PremiumButton.Selectable = false
+             PremiumButton.Visible = false
+             GetPremium.Selectable = false
+        end
         local claim = reward.Claim
-        local timer = reward.Timer
-        local later = reward.Later
+        -- local later = reward.Later
 
         claim.Visible = false
-        timer.Visible = false
-        later.Visible = false
+        -- later.Visible = false
 
         claim.Active = false
         claim.AutoButtonColor = false
-
         ------------------------------------------------
         -- Already Claimed
         ------------------------------------------------
-
         if card.Day <= data.ClaimedDay then
 
             claim.Visible = true
             claim.Text.Text = "Claimed"
             claim.Active = false
+	        claim.AutoButtonColor = false
 
         ------------------------------------------------
         -- Today's reward
         ------------------------------------------------
 
         elseif card.Day == data.CurrentDay and data.CanClaim then
-
+            reward.BackgroundColor3  = Color3.fromRGB(249, 200, 53)
             currentReward = reward
 
                 claim.Visible = true
@@ -114,7 +163,7 @@ function DailyRewardUI:Render(data)
                 claim.Text.Text = "Claim"
 
                 claim.Active = true
-                claim.AutoButtonColor = true
+                claim.AutoButtonColor = false
 
                 claim.Activated:Once(function()
 
@@ -125,15 +174,13 @@ function DailyRewardUI:Render(data)
                 end)
         elseif card.Day == data.CurrentDay + 1 and not data.CanClaim then
 
-            timer.Visible = true
-
         ------------------------------------------------
         -- Future rewards
         ------------------------------------------------
 
         else
-
-            later.Visible = true
+            claim.Visible = false
+            -- later.Visible = true
 
         end
 
@@ -195,30 +242,24 @@ function DailyRewardUI:Init()
         PopupManager:Open(DailyRewardGui)
     end)
 
+
+    PremiumButton.Activated:Connect(function()
+		if DailyRewardUI.OnPremiumPressed then
+			DailyRewardUI.OnPremiumPressed()
+		end
+
+	end)
+
+    GetPremium.Activated:Connect(function()
+		if DailyRewardUI.OnPremiumPressed then
+			DailyRewardUI.OnPremiumPressed()
+		end
+	end)
 end
 
 
 ---------------------------------------------------
 
-function DailyRewardUI:SetCountdown(text)
-
-    for _,reward in ipairs(RewardsFrame:GetChildren()) do
-
-        if reward.Name ~= "Reward" then
-            continue
-        end
-
-        if reward.Timer.Visible then
-            reward.Timer.Text = text
-            return
-
-        end
-
-    end
-            -- self.NextReward.Claim.Text = text
-
-
-end
 
 ---------------------------------------------------
 

@@ -1,16 +1,25 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local Shared = ReplicatedStorage:WaitForChild("Shared")
+local Shared =
+	ReplicatedStorage:WaitForChild("Shared")
 
-local RemoteIndexData = require(Shared.Remotes.RemoteIndex)
-local RemoteIndex = RemoteIndexData.Events
+local RemoteIndexData =
+	require(Shared.Remotes.RemoteIndex)
+
+local RemoteIndex =
+	RemoteIndexData
 
 local DailyRewardUI =
 	require(script.Parent.Parent.UI.DailyRewardUI)
 
+local MonetizationController = require(script.Parent.MonetizationController)
+local DailyRewardConfig = require(Shared.Config.DailyRewardConfig)
+-----------------------------------------------------
+-- Remotes
 -----------------------------------------------------
 
-local Remotes = Shared:WaitForChild("Remotes")
+local Remotes =
+	Shared:WaitForChild("Remotes")
 
 local function getRemote(name)
 
@@ -18,6 +27,18 @@ local function getRemote(name)
 
 end
 
+local UpdateReward =
+	getRemote(
+		RemoteIndex.Events.UpdateDailyReward
+	)
+
+local RequestReward =
+	getRemote(
+		RemoteIndex.Events.RequestDailyReward
+	)
+
+-----------------------------------------------------
+-- Controller
 -----------------------------------------------------
 
 local DailyRewardController = {}
@@ -26,83 +47,33 @@ local CurrentData = nil
 
 
 -----------------------------------------------------
--- Countdown
+-- Server Update
 -----------------------------------------------------
 
-local CountdownThread = nil
+function OnDailyRewardUpdate(data)
 
-local function StartCountdown()
-	if CountdownThread then
-		task.cancel(CountdownThread)
+	if not data then
+		return
 	end
-
-	CountdownThread = task.spawn(function()
-
-		while CurrentData and not CurrentData.CanClaim do
-			local remaining =
-				math.max(
-					0,
-					CurrentData.NextClaimTime - os.time()
-				)
-
-			local hours =
-				math.floor(remaining / 3600)
-
-			local minutes =
-				math.floor((remaining % 3600) / 60)
-
-			local seconds =
-				remaining % 60
-
-			DailyRewardUI:SetCountdown(
-				string.format(
-					"%02dh %02dm %02ds",
-					hours,
-					minutes,
-					seconds
-				)
-			)
-
-			if remaining <= 0 then
-                getRemote(RemoteIndex.GetDailyReward):FireServer()
-
-				break
-			end
-
-			task.wait(1)
-
-		end
-
-	end)
-
-end
-
------------------------------------------------------
--- Remote
------------------------------------------------------
-
-local function OnDailyRewardUpdate(data)
 
 	CurrentData = data
 
-	DailyRewardUI:Render(data)
+	------------------------------------------------
+	-- Render latest reward information
+	------------------------------------------------
 
-	if data.CanClaim then
-
-		DailyRewardUI:SetCountdown("Claim")
-
-	else
-
-		StartCountdown()
-
-	end
-
+	DailyRewardUI:Render(
+		data
+	)
 end
 
-
+function DailyRewardController:BuyPremium()
+	print("buy premium, MonetizationController")
+	MonetizationController:PurchaseGamePass(DailyRewardConfig.PremiumGamePassId)
+end
 
 -----------------------------------------------------
--- Claim Button
+-- Claim
 -----------------------------------------------------
 
 local function OnClaimPressed()
@@ -115,31 +86,56 @@ local function OnClaimPressed()
 		return
 	end
 
-	getRemote(RemoteIndex.RequestDailyReward):FireServer()
+	------------------------------------------------
+	-- Server handles:
+	--
+	-- Free reward
+	-- Premium ownership
+	-- Premium bonus
+	-- Claim validation
+	-- Updating profile
+	------------------------------------------------
+
+	RequestReward:FireServer()
 
 end
 
+-----------------------------------------------------
+-- Init
 -----------------------------------------------------
 
 function DailyRewardController:Init()
 
-	print("DailyRewardController Initialized")
+	print(
+		"DailyRewardController Initialized"
+	)
 
 	DailyRewardUI:Init()
 
-	DailyRewardUI.OnClaimPressed = OnClaimPressed
+	------------------------------------------------
+	-- Claim callback
+	------------------------------------------------
 
-	getRemote(RemoteIndex.UpdateDailyReward)
-		.OnClientEvent
-		:Connect(OnDailyRewardUpdate)
-    getRemote(RemoteIndex.GetDailyReward)
-        .OnClientEvent
-        :Connect(function(player)
-            self:SendData(player)
-        end)
+	DailyRewardUI.OnClaimPressed =
+		OnClaimPressed
+
+	------------------------------------------------
+	-- Server updates
+	------------------------------------------------
+
+	UpdateReward.OnClientEvent:Connect(
+		OnDailyRewardUpdate
+	)
+	-- Premium Buy
+	DailyRewardUI.OnPremiumPressed = function()
+		if CurrentData
+			and CurrentData.IsPremium then
+			return
+		end
+		self:BuyPremium()
+
+	end
 
 end
-
------------------------------------------------------
 
 return DailyRewardController

@@ -31,4 +31,15 @@ return {
 		ProductId = 3673371784
 	},
 
+	
+	{
+		Id = "Coins10000",
+		Name = "10000 Coins",
+		Image = "rbxassetid://88032550394310",
+		Rarity = "Epic",
+		Price = 399,
+		Currency = "Robux",
+		Amount = 10000,
+		ProductId = 3708008253
+	},
 }

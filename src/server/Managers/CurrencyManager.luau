@@ -7,12 +7,16 @@ local RemoteIndexData = require(Shared.Remotes.RemoteIndex)
 local RemoteIndex = RemoteIndexData.Events
 
 local ProfileManager = require(script.Parent.ProfileManager)
-
+local NotificationManager = require(script.Parent.NotificationManager)
 ------------------------------------------------
 
 local UpdateCurrency =
 	Remotes:WaitForChild(RemoteIndex.UpdateCurrency)
+local LevelConfig =
+	require(Shared.Config.LevelConfig)
 
+local LevelUp =
+	Remotes:WaitForChild(RemoteIndex.LevelUp)
 ------------------------------------------------
 
 local CurrencyManager = {}
@@ -24,6 +28,57 @@ local CurrencyManager = {}
 local function GetProfile(player)
 
 	return ProfileManager:GetProfile(player)
+
+end
+
+local function UpdateLevel(player, profile)
+
+	if profile.Level == nil then
+		profile.Level = 1
+	end
+
+	local oldLevel = profile.Level
+	local newLevel = oldLevel
+
+	for level = 1, LevelConfig.MaxLevel do
+
+		local requiredXP =
+			LevelConfig.Levels[level]
+
+		if requiredXP == nil then
+			break
+		end
+
+		if profile.XP >= requiredXP then
+			newLevel = level
+		else
+			break
+		end
+
+	end
+
+	profile.Level = newLevel
+	NotificationManager:Send(
+		player,
+		string.format("Level Upgraded +%d", profile.Level)
+	)
+	------------------------------------------------
+	-- Level increased
+	------------------------------------------------
+
+	if newLevel > oldLevel then
+
+		LevelUp:FireClient(
+			player,
+			{
+				OldLevel = oldLevel,
+				NewLevel = newLevel,
+			}
+		)
+
+	end
+
+	return newLevel
 
 end
 
@@ -41,7 +96,9 @@ function CurrencyManager:Send(player)
 
 	UpdateCurrency:FireClient(player, {
 		Coins = profile.Coins,
-		XP = profile.XP
+		XP = profile.XP,
+		Level = profile.Level,
+		Wins = profile.Wins
 	})
 
 end
@@ -71,29 +128,98 @@ function CurrencyManager:GetCoins(player)
 end
 
 
-function CurrencyManager:AddResultStats(player, Coins, MVPScore)
-	local amount = Coins
-	local xp = MVPScore
+function CurrencyManager:AddResultStats(
+	player,
+	coins,
+	xp,
+	won
+)
 
-	if amount <= 0 then
-		return
-	end
-
-	if xp <= 0 then
-		return
-	end
-
-	local profile = GetProfile(player)
+	local profile =
+		GetProfile(player)
 
 	if not profile then
 		return
 	end
-	profile.XP += xp
-	profile.Coins += amount
 
-	print(profile)
+	------------------------------------------------
+	-- Coins
+	------------------------------------------------
+
+	if coins and coins > 0 then
+
+		profile.Coins += coins
+
+	end
+
+	------------------------------------------------
+	-- XP
+	------------------------------------------------
+
+	if xp and xp > 0 then
+
+		profile.XP += xp
+
+	end
+
+	------------------------------------------------
+	-- Win
+	------------------------------------------------
+
+	if won then
+
+		profile.Wins += 1
+
+	end
+
+	------------------------------------------------
+	-- Level
+	------------------------------------------------
+
+	UpdateLevel(
+		player,
+		profile
+	)
+
+	------------------------------------------------
+	-- Notification
+	------------------------------------------------
+
+	local message = "Round rewards!"
+
+	if coins and coins > 0 then
+		message =
+			message
+			.. string.format(
+				" +%d Coins",
+				coins
+			)
+	end
+
+	if xp and xp > 0 then
+		message =
+			message
+			.. string.format(
+				" +%d XP",
+				xp
+			)
+	end
+
+	if won then
+
+		message =
+			message
+			.. " +1 Win"
+
+	end
+
+	NotificationManager:Send(
+		player,
+		message
+	)
 
 	self:Send(player)
+
 end
 
 
@@ -114,7 +240,10 @@ function CurrencyManager:AddCoins(player, amount)
 	end
 
 	profile.Coins += amount
-
+	NotificationManager:Send(
+		player,
+		string.format("+%d Coins", amount)
+	)
 	self:Send(player)
 
 end
@@ -146,6 +275,50 @@ function CurrencyManager:RemoveCoins(player, amount)
 	return true
 
 end
+
+
+function CurrencyManager:AddXP(player, amount)
+
+	if amount <= 0 then
+		return
+	end
+
+	local profile = GetProfile(player)
+
+	if not profile then
+		return
+	end
+
+	if profile.Level == nil then
+		profile.Level = 1
+	end
+
+	------------------------------------------------
+	-- Add XP
+	------------------------------------------------
+
+	profile.XP += amount
+	NotificationManager:Send(
+			player,
+			string.format("+%d XP", amount)
+		)
+	------------------------------------------------
+	-- Update Level
+	------------------------------------------------
+
+	UpdateLevel(
+		player,
+		profile
+	)
+
+	------------------------------------------------
+	-- Send updated currency data
+	------------------------------------------------
+
+	self:Send(player)
+
+end
+
 
 ------------------------------------------------
 -- Set
@@ -182,11 +355,15 @@ end
 function CurrencyManager:TrySpend(player, amount)
 
 	if not self:HasCoins(player, amount) then
+		NotificationManager:Send(
+			player,
+			string.format("Doesn't Have Enough Coins")
+		)
 		return false
 	end
 
 	self:RemoveCoins(player, amount)
-
+	
 	return true
 
 end

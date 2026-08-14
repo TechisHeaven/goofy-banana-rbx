@@ -215,14 +215,12 @@ function ShopManager:GetBestCoinProduct(requiredCoins, currentCoins)
 			or product.ProductId <= 0 then
 			continue
 		end
-
 		-- Product must cover the missing coins
 		if product.Amount >= missingCoins then
-
 			-- Pick the smallest suitable pack
 			if not bestProduct
 				or product.Amount < bestProduct.Amount then
-                    
+                
 				bestProduct = product
 
 			elseif product.Amount == bestProduct.Amount
@@ -232,6 +230,8 @@ function ShopManager:GetBestCoinProduct(requiredCoins, currentCoins)
 
 			end
 
+		else
+			bestProduct = Coins[#Coins]
 		end
 
 	end
@@ -243,7 +243,6 @@ end
 function ShopManager:Purchase(player, category, itemId)
 
 	local profile = PlayerProfiles[player]
-
 	if not profile then
 		return false, "Profile not loaded."
 	end
@@ -293,11 +292,10 @@ function ShopManager:Purchase(player, category, itemId)
 
 	if item.Price <= 0 then
 
-		InventoryManager:SetOwned(
+		InventoryManager:AddItem(
 			player,
 			category,
-			itemId,
-			true
+			itemId
 		)
 
 		NotificationManager:Success(
@@ -328,25 +326,18 @@ function ShopManager:Purchase(player, category, itemId)
                     item.Price,
                     currentCoins
                 )
-          
 			return self:PromptProduct(
                 player,
                 coinProduct.ProductId
             )
 		end
 
-		InventoryManager:SetOwned(
+		InventoryManager:AddItem(
 			player,
 			category,
-			itemId,
-			true
+			itemId
 		)
-
-		NotificationManager:Success(
-			player,
-			"Purchase successful!"
-		)
-
+	
 		return true, "Purchase successful."
 	end
 
@@ -372,7 +363,10 @@ function ShopManager:Purchase(player, category, itemId)
 		-- Your MarketplaceService ProcessReceipt
 		-- handler must grant it after Roblox confirms
 		-- the purchase.
-
+		-- NotificationManager:Send(
+		-- 	player,
+		-- 	"Robux Purchasing successful!"
+		-- )
         return self:PromptProduct(
             player,
             item.ProductId

@@ -27,6 +27,14 @@ local Skins = {
 		Currency = "Coins",
 	},
 
+	{
+		Id = "GalaxyBanana",
+		Name = "Galaxy Banana",
+		Image = "rbxassetid://77545653351880",
+		Rarity = "Epic",
+		Price = 12999,
+		Currency = "Coins",
+	},
 }
 
 return Skins

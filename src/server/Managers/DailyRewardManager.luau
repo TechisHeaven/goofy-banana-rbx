@@ -1,187 +1,298 @@
 local Players = game:GetService("Players")
+local MarketplaceService = game:GetService("MarketplaceService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 
-local DailyRewardConfig = require(Shared.Config.DailyRewardConfig)
-local RemoteIndexData = require(Shared.Remotes.RemoteIndex)
-local RemoteIndex = RemoteIndexData.Events
+local DailyRewardConfig =
+	require(Shared.Config.DailyRewardConfig)
 
-local RemotesFolder = Shared:WaitForChild("Remotes")
+local RemoteIndexData =
+	require(Shared.Remotes.RemoteIndex)
 
-------------------------------------------------
--- Managers
-------------------------------------------------
+local RemoteIndex =
+	RemoteIndexData.Events
+
+local RemotesFolder =
+	Shared:WaitForChild("Remotes")
 
 local CurrencyManager =
 	require(script.Parent.CurrencyManager)
 
-----------------------------------------------------
+local InventoryManager =
+	require(script.Parent.InventoryManager)
+
+local RewardDisplay = require(Shared.Modules.RewardDisplay)
+
+local ShopConfig =
+    require(Shared.Config.ShopConfig)
+
+------------------------------------------------
 -- Remotes
-----------------------------------------------------
+------------------------------------------------
 
 local RequestReward =
-    RemotesFolder:WaitForChild(RemoteIndex.RequestDailyReward)
+	RemotesFolder:WaitForChild(
+		RemoteIndex.RequestDailyReward
+	)
 
 local UpdateReward =
-    RemotesFolder:WaitForChild(RemoteIndex.UpdateDailyReward)
+	RemotesFolder:WaitForChild(
+		RemoteIndex.UpdateDailyReward
+	)
 
-----------------------------------------------------
+------------------------------------------------
+-- Manager
+------------------------------------------------
 
 local DailyRewardManager = {}
 
-----------------------------------------------------
--- Temporary Data
---
--- Replace this section with DataStore later.
-----------------------------------------------------
-
 local PlayerData = {}
+local PremiumPlayers = {}
+------------------------------------------------
+-- Player Data
+------------------------------------------------
 
-----------------------------------------------------
+local function GetPlayerData(player)
 
-local function getPlayerData(player)
+	local data = PlayerData[player]
 
-    local data = PlayerData[player]
+	if not data then
 
-    if not data then
+		data = {
 
-        data = {
-            CurrentDay = 4,     -- Current unlocked calendar day
-            ClaimedDay = 3,     -- Last claimed reward
-            LastUnlock = os.time(),     -- Time current day was unlocked
-        }
+			CurrentDay = 5,
+	        ClaimedDay = 4,
+			LastUnlock = os.time(),
 
-        PlayerData[player] = data
+		}
 
-    end
+		PlayerData[player] = data
 
-    return data
+	end
+
+	return data
 
 end
 
-----------------------------------------------------
+------------------------------------------------
+-- Premium
+------------------------------------------------
 
--- function DailyRewardManager:CanClaim(player)
+function DailyRewardManager:IsPremium(player)
+	if PremiumPlayers[player] then
+		return true
+	end
+	local gamePassId =
+		DailyRewardConfig.PremiumGamePassId
 
---     -- local data = getPlayerData(player)
+	if not gamePassId
+		or gamePassId <= 0 then
 
---     -- if data.LastClaim == 0 then
---     --     return true
---     -- end
+		return false
+	end
 
---     -- local elapsed =
---     --     os.time() - data.LastClaim
+	local success, ownsPass =
+		pcall(function()
+			return MarketplaceService:
+				UserOwnsGamePassAsync(
+					player.UserId,
+					gamePassId
+				)
 
---     -- return elapsed >= DailyRewardConfig.ClaimCooldown
+		end)
 
---     local data = getPlayerData(player)
+	if not success then
 
--- 	return data.NextDay <= data.HighestUnlocked
+		warn(
+			"[DailyRewardManager] Failed to check Premium:",
+			player.Name
+		)
 
--- end
+		return false
+	end
+	return ownsPass == true
+end
+
+------------------------------------------------
+-- Can Claim
+------------------------------------------------
 
 function DailyRewardManager:CanClaim(player)
 
-    local data = getPlayerData(player)
+    local data = GetPlayerData(player)
 
     return data.ClaimedDay < data.CurrentDay
 
 end
 
-----------------------------------------------------
+------------------------------------------------
+-- Remaining Time
+------------------------------------------------
 
 function DailyRewardManager:GetRemaining(player)
 
-     local data = getPlayerData(player)
+	local data =
+		GetPlayerData(player)
 
-    local nextUnlock =
-        data.LastUnlock + DailyRewardConfig.ClaimCooldown
+	if data.LastUnlock == 0 then
+		return 0
+	end
 
-    return math.max(
-        0,
-        nextUnlock - os.time()
-    )
+	local nextUnlock =
+		data.LastUnlock
+		+ DailyRewardConfig.ClaimCooldown
 
-
-end
-
-
-function DailyRewardManager:BuildCards(player)
-
-     local data = getPlayerData(player)
-
-    local cards = {}
-
-    local startDay = data.CurrentDay
-
-    for day = 1, startDay + DailyRewardConfig.VisibleRewards - 1 do
-
-        table.insert(cards,{
-
-            Day = day,
-            Reward = DailyRewardConfig.Rewards[day],
-            BigReward = day == DailyRewardConfig.MaxDay,
-
-        })
-
-    end
-
-    return cards
+	return math.max(
+		0,
+		nextUnlock - os.time()
+	)
 
 end
+
+------------------------------------------------
+-- Refresh
+------------------------------------------------
 
 function DailyRewardManager:RefreshPlayer(player)
 
-    local data = getPlayerData(player)
+	local data =
+		GetPlayerData(player)
 
-    if data.LastUnlock == 0 then
-        return
-    end
+	if data.LastUnlock == 0 then
 
-    local now = os.time()
+		-- First reward available immediately
+		data.CurrentDay = 1
 
-    while
-        data.CurrentDay < DailyRewardConfig.MaxDay
-        and now >= data.LastUnlock + DailyRewardConfig.ClaimCooldown
-    do
+		return
+	end
 
-        data.CurrentDay += 1
-        data.LastUnlock += DailyRewardConfig.ClaimCooldown
+	local now = os.time()
 
-    end
+	while
+		data.CurrentDay
+			< DailyRewardConfig.MaxDay
+
+		and now >=
+			data.LastUnlock
+			+ DailyRewardConfig.ClaimCooldown
+
+	do
+
+		data.CurrentDay += 1
+
+		data.LastUnlock +=
+			DailyRewardConfig.ClaimCooldown
+
+	end
 
 end
 
-----------------------------------------------------
+------------------------------------------------
+-- Build Cards
+------------------------------------------------
+
+function DailyRewardManager:BuildCards(player)
+
+	local data =
+		GetPlayerData(player)
+
+	local cards = {}
+
+	------------------------------------------------
+	-- Build ALL reward days
+	------------------------------------------------
+
+	for day = 1, DailyRewardConfig.MaxDay do
+
+		local reward =
+			DailyRewardConfig.Rewards[day]
+
+		if reward then
+
+			table.insert(
+				cards,
+				{
+
+					Day = day,
+
+					FreeReward =
+						RewardDisplay:GetRewardDisplay(
+							reward.FreeReward
+						),
+
+					PremiumReward =
+						RewardDisplay:GetRewardDisplay(
+							reward.PremiumReward
+						),
+
+					BigReward =
+						day == DailyRewardConfig.MaxDay,
+
+					Claimed =
+						day <= data.ClaimedDay,
+
+					Current =
+						day == data.CurrentDay,
+
+				}
+			)
+
+		end
+
+	end
+
+	return cards
+
+end
+
+------------------------------------------------
+-- Send Data
+------------------------------------------------
 
 function DailyRewardManager:SendData(player)
 
-    self:RefreshPlayer(player)
+	self:RefreshPlayer(player)
 
-    local data = getPlayerData(player)
+	local data =
+		GetPlayerData(player)
 
-    UpdateReward:FireClient(player,{
+	local premium =
+		self:IsPremium(player)
 
-        CurrentDay = data.CurrentDay,
+	UpdateReward:FireClient(
+		player,
+		{
 
-	ClaimedDay = data.ClaimedDay,
+			CurrentDay =
+				data.CurrentDay,
 
-	LastUnlock = data.LastUnlock,
+			IsPremium =
+				premium,
 
-	CanClaim = self:CanClaim(player),
+			CanClaim =
+				self:CanClaim(player),
 
-	Remaining = self:GetRemaining(player),
+			Remaining =
+				self:GetRemaining(player),
 
-	NextClaimTime =
-		self:CanClaim(player)
-		and 0
-		or (data.LastUnlock + DailyRewardConfig.ClaimCooldown),
+			NextClaimTime =
+				self:CanClaim(player)
+					and 0
+					or (
+						data.LastUnlock
+						+ DailyRewardConfig.ClaimCooldown
+					),
+            ClaimedDay = data.ClaimedDay,
+			Cards =
+				self:BuildCards(player),
 
-	Cards = self:BuildCards(player),
-    })
+		}
+	)
 
 end
+
+
 
 ------------------------------------------------
 -- Give Reward
@@ -194,129 +305,179 @@ function DailyRewardManager:GiveReward(player, reward)
 	end
 
 	------------------------------------------------
-	-- Coins
+	-- COINS
 	------------------------------------------------
 
 	if reward.Coins then
+
 		CurrencyManager:AddCoins(
 			player,
 			reward.Coins
 		)
 
-		print(
-			player.Name
-			.. " received "
-			.. reward.Coins
-			.. " coins"
-		)
-
+		return true
 	end
 
 	------------------------------------------------
-	-- Skin
+	-- XP
+	------------------------------------------------
+
+	if reward.XP then
+
+		-- Add your XP manager here later.
+		-- Example:
+		-- XPManager:AddXP(player, reward.XP)
+		CurrencyManager:AddXP(
+			player,
+			reward.XP
+		)
+		return true
+	end
+
+	------------------------------------------------
+	-- SKIN
 	------------------------------------------------
 
 	if reward.Skin then
 
-		print(
-			player.Name
-			.. " received skin: "
-			.. tostring(reward.Skin)
+		InventoryManager:AddItem(
+			player,
+			"Skins",
+			reward.Skin
 		)
 
-		-- Add to InventoryManager later
-
+		return true
 	end
 
 	------------------------------------------------
-	-- Head
+	-- BANANA SKIN
 	------------------------------------------------
 
-	if reward.Head then
+	if reward.BananaSkin then
 
-		print(
-			player.Name
-			.. " received head: "
-			.. tostring(reward.Head)
+		InventoryManager:AddItem(
+			player,
+			"BananaSkins",
+			reward.BananaSkin
 		)
 
-		-- Add to InventoryManager later
-
+		return true
 	end
 
-	return true
+	------------------------------------------------
+	-- VICTORY POSE
+	------------------------------------------------
+
+	if reward.VictoryPose then
+
+		InventoryManager:AddItem(
+			player,
+			"VictoryPoses",
+			reward.VictoryPose
+		)
+
+		return true
+	end
+
+	------------------------------------------------
+	-- RESCUE EFFECT
+	------------------------------------------------
+
+	if reward.RescueEffect then
+
+		InventoryManager:AddItem(
+			player,
+			"RescueEffects",
+			reward.RescueEffect
+		)
+
+		return true
+	end
+
+	warn(
+		"[DailyRewardManager] Unknown reward type"
+	)
+
+	return false
 
 end
-
-
-
-----------------------------------------------------
-
+------------------------------------------------
+-- Claim
+------------------------------------------------
 function DailyRewardManager:Claim(player)
 
-    self:RefreshPlayer(player)
+	self:RefreshPlayer(player)
 
-    if not self:CanClaim(player) then
-        self:SendData(player)
-        return false
-    end
+	if not self:CanClaim(player) then
+		self:SendData(player)
+		return false
+	end
 
-    local data = getPlayerData(player)
+	local data =
+		GetPlayerData(player)
 
-   local reward =
-		DailyRewardConfig.Rewards[
-			data.CurrentDay
-		]
+	local rewardData =
+		DailyRewardConfig.Rewards[data.CurrentDay]
 
-	if not reward then
+	if not rewardData then
+		return false
+	end
 
-		warn(
-			"No reward configured for day "
-			.. tostring(data.CurrentDay)
+	------------------------------------------------
+	-- FREE REWARD
+	------------------------------------------------
+
+	local success =
+		self:GiveReward(
+			player,
+			rewardData.FreeReward
 		)
 
+	if not success then
 		return false
+	end
+
+	------------------------------------------------
+	-- PREMIUM BONUS
+	------------------------------------------------
+
+	if self:IsPremium(player) then
+
+		self:GiveReward(
+			player,
+			rewardData.PremiumReward
+		)
 
 	end
 
+	------------------------------------------------
+	-- ONE CLAIM FOR THE DAY
+	------------------------------------------------
 
-    ------------------------------------------------
-    -- Give reward here
-    ------------------------------------------------
-    local success =
-            self:GiveReward(
-                player,
-                reward
-            )
+	data.ClaimedDay =
+		data.CurrentDay
 
-        if not success then
-            return false
-        end
-
-    data.ClaimedDay = data.CurrentDay
-
-    if data.LastUnlock == 0 then
-        data.LastUnlock = os.time()
-    end
-
-    self:SendData(player)
+	self:SendData(player)
 
 	return true
+
 end
 
-----------------------------------------------------
+------------------------------------------------
+-- Init
+------------------------------------------------
 
 function DailyRewardManager:Init()
 
-    ------------------------------------------------
-	-- Existing players
-	------------------------------------------------
+	print(
+		"DailyRewardManager Initialized"
+	)
 
 	for _, player in ipairs(
 		Players:GetPlayers()
 	) do
 
-		getPlayerData(player)
+		GetPlayerData(player)
 
 		task.defer(function()
 
@@ -326,37 +487,68 @@ function DailyRewardManager:Init()
 
 	end
 
+	Players.PlayerAdded:Connect(
+		function(player)
 
-    Players.PlayerAdded:Connect(function(player)
+			GetPlayerData(player)
 
-        getPlayerData(player)
+			task.defer(function()
 
-        -- task.wait(1)
+				self:SendData(player)
 
-        -- self:SendData(player)
+			end)
 
-        task.defer(function()
+		end
+	)
+
+	Players.PlayerRemoving:Connect(
+		function(player)
+			PremiumPlayers[player] = nil
+			PlayerData[player] = nil
+
+		end
+	)
+
+	RequestReward.OnServerEvent:Connect(
+		function(player)
+
+			self:Claim(
+				player
+			)
+
+		end
+	)
+
+	------------------------------------------------
+	-- GamePass purchase
+	------------------------------------------------
+
+	MarketplaceService.PromptGamePassPurchaseFinished:Connect(
+		function(player, purchasedPassId, purchaseSuccess)
+
+			if not purchaseSuccess then
+				return
+			end
+
+			if purchasedPassId
+				~= DailyRewardConfig.PremiumGamePassId then
+				return
+			end
+
+			-- Session ownership
+			PremiumPlayers[player] = true
+
+			print(
+				"[DailyRewardManager]",
+				player.Name,
+				"purchased Premium Pass"
+			)
 
 			self:SendData(player)
 
-		end)
-
-    end)
-
-    Players.PlayerRemoving:Connect(function(player)
-
-        PlayerData[player] = nil
-
-    end)
-
-    RequestReward.OnServerEvent:Connect(function(player)
-
-        self:Claim(player)
-
-    end)
+		end
+	)
 
 end
-
-----------------------------------------------------
 
 return DailyRewardManager

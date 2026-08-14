@@ -70,6 +70,32 @@ function MonetizationController:PurchaseProduct(
 
 end
 
+
+function MonetizationController:PurchaseGamePass(passId)
+    if not passId or passId <= 0 then
+        warn("Invalid GamePass ID")
+        return
+    end
+
+    local player = Players.LocalPlayer
+
+	local success, err =
+		pcall(function()
+			return MarketplaceService:PromptGamePassPurchase(
+					player,
+					passId
+				)
+		end)
+    
+	if not success then
+		warn(
+			"[MonetizationController] Failed to prompt GamePass:",
+			err
+		)
+	end
+end
+
+
 ------------------------------------------------
 -- Init
 ------------------------------------------------

@@ -16,6 +16,11 @@ local CurrencyManager =
 local InventoryManager =
 	require(script.Parent.InventoryManager)
 
+local RewardDisplay =
+	require(
+		Shared.Modules.RewardDisplay
+	)
+
 local RemoteIndexData =
 	require(Shared.Remotes.RemoteIndex)
 
@@ -569,6 +574,7 @@ local function BuildTaskData(
 				taskId
 			)
 
+
 		if config then
 
 			table.insert(
@@ -587,9 +593,10 @@ local function BuildTaskData(
 
 					Difficulty =
 						config.Difficulty,
-
-					Reward =
-						config.Reward,
+					
+					Reward = RewardDisplay:GetRewardDisplay(
+						config.Reward
+					),
 
 					Progress =
 						state.Progress,
@@ -708,6 +715,17 @@ local function GiveReward(
 
 	end
 
+	
+	if reward.XP
+		and reward.XP > 0 then
+
+		CurrencyManager:AddXP(
+			player,
+			reward.XP
+		)
+
+	end
+
 	------------------------------------------------
 	-- Item
 	------------------------------------------------
@@ -720,11 +738,10 @@ local function GiveReward(
 		if item.Category
 			and item.Id then
 
-			InventoryManager:SetOwned(
+			InventoryManager:AddItem(
 				player,
 				item.Category,
-				item.Id,
-				true
+				item.Id
 			)
 
 		end

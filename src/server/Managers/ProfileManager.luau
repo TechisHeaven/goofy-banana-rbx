@@ -14,13 +14,16 @@ function ProfileManager:RegisterPlayer(player)
 	print("Registering player profile for",player.Name)
 	PlayerProfiles[player] = {
 		Coins = 10000,
-		XP = 110,
+		XP = 220,
+		Wins = 0,
 		Level = 1,
 		Inventory = InventoryTemplate.Create(),
 		Tasks = {
 			Daily = {
 				Version = "",
-				Tasks = {},
+				Tasks = {
+					
+				},
 			},
 
 			Weekly = {

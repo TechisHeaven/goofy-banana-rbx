@@ -610,6 +610,7 @@ function RoundManager:CheckWinCondition()
 			}
 		)
 
+		task.wait(GameConfig.Game.DefaultSlowMoDuration)
 		------------------------------------------------
 		-- End immediately
 		------------------------------------------------

@@ -13,6 +13,9 @@ local CurrencyManager =
 local InventoryManager =
 	require(script.Parent.InventoryManager)
 
+local NotificationManager = require(script.Parent.NotificationManager)
+
+
 local MonetizationManager = {}
 
 ------------------------------------------------
@@ -110,7 +113,11 @@ local function GrantCoinPack(player, product)
 		player,
 		product.Amount
 	)
-
+	
+	NotificationManager:Send(
+			player,
+			"Coin Pack Purchase Successful!."
+		)
 	print(
 		string.format(
 			"[MonetizationManager] %s received %d coins from %s",
@@ -166,14 +173,13 @@ local function GrantGamePack(player, product)
 		for _, reward in ipairs(
 			rewards.Skins
 		) do
-
+			print(reward)
 			if reward.Id then
 
-				InventoryManager:SetOwned(
+				InventoryManager:AddItem(
 					player,
 					"Skins",
-					reward.Id,
-					true
+					reward.Id
 				)
 
 			end
@@ -194,11 +200,10 @@ local function GrantGamePack(player, product)
 
 			if reward.Id then
 
-				InventoryManager:SetOwned(
+				InventoryManager:AddItem(
 					player,
 					"BananaSkins",
-					reward.Id,
-					true
+					reward.Id
 				)
 
 			end
@@ -219,11 +224,10 @@ local function GrantGamePack(player, product)
 
 			if reward.Id then
 
-				InventoryManager:SetOwned(
+				InventoryManager:AddItem(
 					player,
 					"RescueEffects",
-					reward.Id,
-					true
+					reward.Id
 				)
 
 			end
@@ -240,11 +244,10 @@ local function GrantGamePack(player, product)
 
 			if reward.Id then
 
-				InventoryManager:SetOwned(
+				InventoryManager:AddItem(
 					player,
 					"VictoryPoses",
-					reward.Id,
-					true
+					reward.Id
 				)
 
 			end
@@ -252,7 +255,10 @@ local function GrantGamePack(player, product)
 		end
 
 	end
-
+	NotificationManager:Send(
+			player,
+			"Game Pack Purchase Successful!."
+		)
 	print(
 		"[MonetizationManager] Granted GamePack:",
 		product.Id,

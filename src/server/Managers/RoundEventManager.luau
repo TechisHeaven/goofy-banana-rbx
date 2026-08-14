@@ -9,6 +9,11 @@ local Enums = require(Shared.Enums)
 local PlayerManager = require(script.Parent.PlayerManager)
 local RoundStatsManager = require(script.Parent.RoundStatsManager)
 local CurrencyManager = require(script.Parent.CurrencyManager)
+local TaskManager =
+	require(script.Parent.TaskManager)
+
+local TaskEvents =
+	require(Shared.EnumsEvents.TaskEvents)
 
 local RoundEventManager = {}
 
@@ -68,13 +73,39 @@ function RoundEventManager:FireRoundEnded(players, data)
 
         local team = PlayerManager:GetTeam(player)
 	    local stats = RoundStatsManager:GetPlayerStats(player)
-    
-        CurrencyManager:AddResultStats(player, stats.Coins, stats.MVPScore)
+    ------------------------------------------------
+		-- Determine winner
+		------------------------------------------------
+        
+		local won =
+			(
+				data.winner == "Hunter"
+				and team == Enums.Team.Hunter
+			)
+			or
+			(
+				data.winner == "Runners"
+				and team == Enums.Team.Runner
+			)
+
+        if won then
+
+            TaskManager:AddProgress(
+                player,
+                TaskEvents.WinRound,
+                1
+            )
+
+        end    
+
+        CurrencyManager:AddResultStats(
+            player,
+			stats.Coins,
+			stats.MVPScore,
+			won
+        )
      
-        local won =
-            (data.winner == "Hunter" and team == Enums.Team.Hunter)
-            or
-            (data.winner == "Runners" and team == Enums.Team.Runner)
+       
         RoundEndedRemote:FireClient(player,{
             won = won,
             role = team,

@@ -249,11 +249,15 @@ local function RenderReward(
 	card,
 	taskData
 )
-
 	local rewardText =
 		Find(
 			card,
 			"Text"
+		)
+	local rewardImage =
+		Find(
+			card,
+			"RewardImage"
 		)
 
 	if not rewardText
@@ -268,13 +272,9 @@ local function RenderReward(
 	if not reward then
 		return
 	end
-
-	if reward.Coins then
-
-		rewardText.Text =
-			tostring(reward.Coins)
-
-	end
+	rewardImage.Image = reward.Image
+	rewardText.Text =
+			if reward.Value then tostring(reward.Value) else ""
 
 end
 
@@ -447,7 +447,6 @@ end
 ------------------------------------------------
 
 local function RenderTask(taskData)
-
 	local card =
 		TaskTemplate:Clone()
 
@@ -540,9 +539,9 @@ end
 
 function TaskUI:Open()
 
-	Popup:Open(
-		TaskFrame
-	)
+	Popup:Open(TaskFrame, {
+        CanClickOutsideToClose = false
+    })
 
 end
 

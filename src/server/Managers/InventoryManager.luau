@@ -9,6 +9,7 @@ local RemoteIndex = RemoteIndexData.Events
 local RemoteIndexFunctions = RemoteIndexData.Functions
 local ShopConfig = require(Shared.Config.ShopConfig)
 
+local NotificationManager = require(script.Parent.NotificationManager)
 local ProfileManager =
 	require(script.Parent.ProfileManager)
 
@@ -103,7 +104,12 @@ function InventoryManager:Equip(player,category,itemId)
 	end
 
 	inventory.Equipped[category] = itemId
-
+	local item = self:GetItem(category, itemId)
+	local itemName = item.Name
+	NotificationManager:Success(
+		player,
+		itemName .. " Equipped!"
+	)
 
 	self:NotifyInventoryChanged(player)
 
@@ -122,8 +128,13 @@ function InventoryManager:Unequip(player, category)
 	end
 
 
+	local item = self:GetItem(category, inventory.Equipped[category])
 	inventory.Equipped[category] = nil
-
+	local itemName = item.Name
+	NotificationManager:Success(
+		player,
+		itemName .. " UnEquipped!"
+	)
 	self:NotifyInventoryChanged(player)
 
 end
@@ -144,6 +155,12 @@ function InventoryManager:AddItem(player, category, itemId)
 	end
 
 	inventory.Owned[category][itemId] = true
+	local item = self:GetItem(category, itemId)
+	local itemName = item.Name
+	NotificationManager:Success(
+		player,
+		itemName .. " Purchased!"
+	)
 
 	self:SendInventory(player)
 
@@ -151,26 +168,6 @@ function InventoryManager:AddItem(player, category, itemId)
 
 end
 
-function InventoryManager:SetOwned(player, category, itemId, owned)
-
-	local profile = ProfileManager:GetProfile(player)
-	if not profile then
-		return false
-	end
-
-	local inventory = profile.Inventory
-
-	inventory.Owned[category] = inventory.Owned[category] or {}
-
-	if owned then
-		inventory.Owned[category][itemId] = true
-	else
-		inventory.Owned[category][itemId] = nil
-	end
-
-	return true
-
-end
 
 function InventoryManager:RemoveItem(player, category, itemId)
 
@@ -229,8 +226,28 @@ function InventoryManager:GetInventoryItems(player, category)
 
 	local inventory = profile.Inventory
 	return BuildCategory(category, inventory)
+end
+
+
+function InventoryManager:GetItem(categoryName,itemId)
+
+    local category = ShopConfig.Categories[categoryName]
+    if not category then
+        return nil
+    end
+
+    for _,item in ipairs(category.Items) do
+
+        if item.Id == itemId then
+            return item
+        end
+
+    end
+
+    return nil
 
 end
+
 ------------------------------------------------
 
 function InventoryManager:Init()

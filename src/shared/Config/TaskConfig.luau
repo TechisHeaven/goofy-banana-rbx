@@ -34,7 +34,18 @@ TaskConfig.Difficulty = {
 ------------------------------------------------
 
 TaskConfig.Daily = {
+	{
+		Id = "DailyCollectCoins",
+		Name = "Beginner Coin Hunter",
+		Description = "Collect 10 coins during rounds.",
+		Event = TaskEvents.CoinCollected,
+		Target = 10,
+		Difficulty = "Easy",
 
+		Reward = {
+			XP = 250,
+		},
+	},
 	{
 		Id = "DailyCollectCoins",
 		Name = "Coin Hunter",
@@ -44,7 +55,7 @@ TaskConfig.Daily = {
 		Difficulty = "Easy",
 
 		Reward = {
-			Coins = 250,
+			XP = 250,
 		},
 	},
 
@@ -57,7 +68,7 @@ TaskConfig.Daily = {
 		Difficulty = "Medium",
 
 		Reward = {
-			Coins = 600,
+			XP = 600,
 		},
 	},
 
@@ -70,7 +81,7 @@ TaskConfig.Daily = {
 		Difficulty = "Hard",
 
 		Reward = {
-			Coins = 1500,
+			XP = 1500,
 		},
 	},
 
@@ -134,7 +145,7 @@ TaskConfig.Daily = {
 		Difficulty = "Medium",
 
 		Reward = {
-			Coins = 600,
+			XP = 200,
 		},
 	},
 
@@ -164,7 +175,20 @@ TaskConfig.Daily = {
 		Difficulty = "Medium",
 
 		Reward = {
-			Coins = 750,
+			XP = 100,
+		},
+	},
+
+	{
+		Id = "DailyWin",
+		Name = "Super Winner",
+		Description = "Win 2 round.",
+		Event = TaskEvents.RoundWon,
+		Target = 2,
+		Difficulty = "Medium",
+
+		Reward = {
+			XP = 200,
 		},
 	},
 
@@ -185,7 +209,7 @@ TaskConfig.Weekly = {
 		Difficulty = "Medium",
 
 		Reward = {
-			Coins = 3000,
+			XP = 200,
 		},
 	},
 
@@ -209,7 +233,6 @@ TaskConfig.Weekly = {
 		Event =TaskEvents.PlayerFrozen,
 		Target = 25,
 		Difficulty = "Hard",
-
 		Reward = {
 			Coins = 5000,
 		},
@@ -257,7 +280,7 @@ TaskConfig.Overall = {
 		Target = 50000,
 
 		Reward = {
-			Coins = 10000,
+			XP = 3000,
 		},
 	},
 
@@ -269,7 +292,7 @@ TaskConfig.Overall = {
 		Target = 100,
 
 		Reward = {
-			Coins = 15000,
+			XP = 4000,
 		},
 	},
 
@@ -305,7 +328,7 @@ TaskConfig.Overall = {
 		Target = 50,
 
 		Reward = {
-			Coins = 50000,
+			Skin = "GalaxyBanana",
 		},
 	},
 
