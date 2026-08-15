@@ -53,6 +53,8 @@ function CurrencyUI:SetXP(xp, level)
 			level
 		)
 
+	print(progress)
+
 	XPBar.Size =
 		UDim2.new(
 			progress,
@@ -72,20 +74,36 @@ end
 
 function CurrencyUI:GetXPProgress(xp, level)
 
-	local currentLevelXP =
-		LevelConfig.Levels[level] or 0
+	level = tonumber(level) or 1
+	xp = math.max(0, tonumber(xp) or 0)
+
+	local levelStartXP =
+		LevelConfig.Levels[level]
+
+	if levelStartXP == nil then
+		return 0
+	end
+
 	local nextLevelXP =
 		LevelConfig.Levels[level + 1]
+
+	------------------------------------------------
+	-- MAX LEVEL
+	------------------------------------------------
 
 	if not nextLevelXP then
 		return 1
 	end
 
+	------------------------------------------------
+	-- XP INSIDE CURRENT LEVEL
+	------------------------------------------------
+
 	local currentXP =
-		math.max(0, xp - currentLevelXP)
+		xp - levelStartXP
 
 	local requiredXP =
-		nextLevelXP - currentLevelXP
+		nextLevelXP - levelStartXP
 
 	return math.clamp(
 		currentXP / requiredXP,
@@ -97,25 +115,54 @@ end
 
 function CurrencyUI:FormatXP(xp, level)
 
-	local currentLevelXP =
-		LevelConfig.Levels[level] or 0
+	level = tonumber(level) or 1
+	xp = math.max(0, tonumber(xp) or 0)
+
+	local levelStartXP =
+		LevelConfig.Levels[level]
+
+	if levelStartXP == nil then
+		return "XP 0/MAX"
+	end
 
 	local nextLevelXP =
 		LevelConfig.Levels[level + 1]
 
+	------------------------------------------------
+	-- MAX LEVEL
+	------------------------------------------------
+
 	if not nextLevelXP then
-		return tostring(xp - currentLevelXP)
-			.. "/MAX"
+
+		local currentXP =
+			math.max(
+				0,
+				xp - levelStartXP
+			)
+
+		return string.format(
+			"XP %d/MAX",
+			currentXP
+		)
+
 	end
 
+	------------------------------------------------
+	-- CURRENT LEVEL XP
+	------------------------------------------------
+
 	local currentXP =
-		math.max(0, xp - currentLevelXP)
+		math.clamp(
+			xp - levelStartXP,
+			0,
+			nextLevelXP - levelStartXP
+		)
 
 	local requiredXP =
-		nextLevelXP - currentLevelXP
+		nextLevelXP - levelStartXP
 
 	return string.format(
-		"xp %d/%d",
+		"XP %d/%d",
 		currentXP,
 		requiredXP
 	)

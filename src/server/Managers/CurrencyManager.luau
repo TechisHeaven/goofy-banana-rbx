@@ -38,6 +38,8 @@ local function UpdateLevel(player, profile)
 	end
 
 	local oldLevel = profile.Level
+	local oldXP = profile.XP
+
 	local newLevel = oldLevel
 
 	for level = 1, LevelConfig.MaxLevel do
@@ -58,21 +60,43 @@ local function UpdateLevel(player, profile)
 	end
 
 	profile.Level = newLevel
-	NotificationManager:Send(
-		player,
-		string.format("Level Upgraded +%d", profile.Level)
-	)
+
+	-- NotificationManager:Send(
+	-- 	player,
+	-- 	string.format("Level Upgraded +%d", profile.Level)
+	-- )
 	------------------------------------------------
 	-- Level increased
 	------------------------------------------------
 
 	if newLevel > oldLevel then
 
+		NotificationManager:Send(
+			player,
+			string.format(
+				"Level Upgraded +%d",
+				newLevel - oldLevel
+			)
+		)
+
 		LevelUp:FireClient(
 			player,
 			{
 				OldLevel = oldLevel,
 				NewLevel = newLevel,
+
+				OldXP = oldXP,
+				NewXP = profile.XP,
+				CurrentXP = profile.XP,
+
+				LevelStartXP =
+					LevelConfig.Levels[newLevel] or 0,
+
+				NextLevelXP =
+					LevelConfig.Levels[newLevel + 1],
+
+				MaxLevel =
+					LevelConfig.MaxLevel,
 			}
 		)
 
@@ -298,10 +322,10 @@ function CurrencyManager:AddXP(player, amount)
 	------------------------------------------------
 
 	profile.XP += amount
-	NotificationManager:Send(
-			player,
-			string.format("+%d XP", amount)
-		)
+	-- NotificationManager:Send(
+	-- 		player,
+	-- 		string.format("+%d XP", amount)
+	-- 	)
 	------------------------------------------------
 	-- Update Level
 	------------------------------------------------

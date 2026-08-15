@@ -84,7 +84,7 @@ DailyRewardConfig.Rewards = {
 
 	[5] = {
 		FreeReward = {
-			XP = 100,
+			XP = 500,
 		},
 
 		PremiumReward = {

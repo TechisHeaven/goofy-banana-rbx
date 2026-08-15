@@ -20,6 +20,7 @@ local CurrencyController= require(script.Controllers.CurrencyController)
 local MonetizationController = require(script.Controllers.MonetizationController)
 local SlowMoController = require(script.Controllers.SlowMoController)
 local TaskController = require(script.Controllers.TaskController)
+local LevelUpController = require(script.Controllers.LevelUpController)
 
 ShopController:Init()
 CursorController:Init()
@@ -33,6 +34,8 @@ CurrencyController:Init()
 MonetizationController:Init()
 SlowMoController:Init()
 TaskController:Init()
+LevelUpController:Init()
+
 
 -- Wait for attributes to replicate
 if not LocalPlayer:GetAttribute("Team") then
