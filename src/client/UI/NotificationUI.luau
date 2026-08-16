@@ -123,7 +123,7 @@ function NotificationUI:ShowNotification(data)
 
 	notification.Visible = true
 	notification.Parent = slot
-
+	notification.RichText = data.RichText == true
 	notification.Text =
 		data.Message or "Notification"
 
@@ -199,7 +199,7 @@ function NotificationUI:ShowNotification(data)
 		data.Duration
 		or GameConfig.Game.NotificationDuration
 		or 5
-
+	print(duration)
 	task.delay(
 		duration,
 		function()

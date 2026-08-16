@@ -126,7 +126,6 @@ function PopupManager:Open(Popup, Options : {CanClickOutsideToClose: boolean, Re
 	
 	Popup.Visible = true
 	self.Overlay.Visible = true
-	print("true overlay", self.Overlay.Visible)
 
 	TweenService:Create(
 		self.Overlay,
@@ -157,7 +156,6 @@ function PopupManager:Open(Popup, Options : {CanClickOutsideToClose: boolean, Re
 		}
 	):Play()
 
-	print("final open", self.CurrentPopup)
 	-- SoundUtil:PlaySound(WoshSound, Popup)
 
 end
@@ -230,7 +228,6 @@ function PopupManager:Close(Popup, IsSwitching)
 	if self.ReopenPreviousOnClose
 		and self.PreviousPopup then
 
-			print("reopen previous")
 
 		local previous =
 			self.PreviousPopup

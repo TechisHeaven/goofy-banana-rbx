@@ -15,7 +15,7 @@ function NotificationData.new(message, target, duration)
 		Target = target or Enums.NotificationTarget.Overlay,
 
 		Duration = duration or 3,
-
+		RichText = true
 	}
 
 end

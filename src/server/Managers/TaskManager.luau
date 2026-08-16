@@ -16,6 +16,12 @@ local CurrencyManager =
 local InventoryManager =
 	require(script.Parent.InventoryManager)
 
+local NotificationManager =
+	require(script.Parent.NotificationManager)
+
+local Enums =
+	require(Shared.Enums)
+	
 local RewardDisplay =
 	require(
 		Shared.Modules.RewardDisplay
@@ -42,6 +48,7 @@ local ClaimTask =
 	Remotes:WaitForChild(
 		RemoteIndxFunction.ClaimTask
 )
+
 
 local TaskManager = {}
 
@@ -408,15 +415,15 @@ local function UpdateTaskProgress(
 )
 
 	if task.Event ~= event then
-		return
+		return false
 	end
 
 	if state.Claimed then
-		return
+		return false
 	end
 
 	if state.Completed then
-		return
+		return false
 	end
 
 	state.Progress += amount
@@ -427,10 +434,73 @@ local function UpdateTaskProgress(
 			task.Target
 
 		state.Completed = true
+		return true
+	end
+	return false
+end
+
+
+------------------------------------------------
+-- Mission Completion Notification
+------------------------------------------------
+
+local function SendTaskCompletedNotification(
+	player,
+	task
+)
+
+	local reward =
+		RewardDisplay:GetRewardDisplay(
+			task.Reward
+		)
+
+	local rewardText = ""
+
+	if reward then
+
+		if reward.Type == "Coins" then
+
+			rewardText =
+				string.format(
+					' <font color="#FFD43B"><b>+%d Coins</b></font>',
+					reward.Value
+				)
+
+		elseif reward.Type == "XP" then
+
+			rewardText =
+				string.format(
+					' <font color="#61D9FF"><b>+%d XP</b></font>',
+					reward.Value
+				)
+
+		elseif reward.Id then
+
+			rewardText =
+				string.format(
+					' <font color="#9BFF7A"><b>%s</b></font>',
+					tostring(reward.Id)
+				)
+
+		end
 
 	end
 
+	local message =
+		'<font color="#FFD43B"><b>MISSION COMPLETE!</b></font> ' ..
+		'<font color="#FFFFFF">' ..
+		tostring(task.Name) ..
+		'</font>' ..
+		rewardText
+
+	NotificationManager:Send(
+		player,
+		message,
+		Enums.NotificationTarget.Default
+	)
+
 end
+
 
 ------------------------------------------------
 -- Add Progress
@@ -480,12 +550,22 @@ function TaskManager:AddProgress(
 
 		if task then
 
-			UpdateTaskProgress(
-				task,
-				state,
-				event,
-				amount
-			)
+			local completed =
+				UpdateTaskProgress(
+					task,
+					state,
+					event,
+					amount
+				)
+
+			if completed then
+
+				SendTaskCompletedNotification(
+					player,
+					task
+				)
+
+			end
 
 		end
 
@@ -507,12 +587,22 @@ function TaskManager:AddProgress(
 
 		if task then
 
-			UpdateTaskProgress(
-				task,
-				state,
-				event,
-				amount
-			)
+			local completed =
+				UpdateTaskProgress(
+					task,
+					state,
+					event,
+					amount
+				)
+
+			if completed then
+
+				SendTaskCompletedNotification(
+					player,
+					task
+				)
+
+			end
 
 		end
 
@@ -534,12 +624,22 @@ function TaskManager:AddProgress(
 
 		if task then
 
-			UpdateTaskProgress(
-				task,
-				state,
-				event,
-				amount
-			)
+			local completed =
+				UpdateTaskProgress(
+					task,
+					state,
+					event,
+					amount
+				)
+
+			if completed then
+
+				SendTaskCompletedNotification(
+					player,
+					task
+				)
+
+			end
 
 		end
 
