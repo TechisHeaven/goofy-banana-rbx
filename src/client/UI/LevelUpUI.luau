@@ -329,7 +329,7 @@ function LevelUpUI:Show(data)
 
 	PopupManager:Open(LevelUpFrame, {
         CanClickOutsideToClose = false,
-		ReopenPreviousOnClose = true,
+		ReopenPreviousOnClose = false,
     })
 
 	------------------------------------------------

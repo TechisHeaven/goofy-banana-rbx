@@ -3,15 +3,12 @@ local Lighting = game:GetService("Lighting")
 
 local PopupManager = {}
 
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local SoundUtil = require(ReplicatedStorage.Shared.Utils.SoundUtils)
-local WoshSound = ReplicatedStorage.Sounds.Woosh
 PopupManager.CurrentPopup = nil
 PopupManager.PreviousPopup = nil
 PopupManager.ReopenPreviousOnClose = false
+PopupManager.IsAnimating = false
 PopupManager.Overlay = nil
 
-PopupManager.IsAnimating = false
 PopupManager.CanClickOutsideToClose = true
 
 -- SETTINGS
@@ -43,6 +40,7 @@ function PopupManager:Init(Overlay)
 	self.Overlay = Overlay
 	self.Overlay.Visible = false
 	self.Overlay.BackgroundTransparency = 1
+	print("[popup] init")
 
 	self.Overlay.InputBegan:Connect(function(input)
 
@@ -55,8 +53,8 @@ function PopupManager:Init(Overlay)
 		end
 
 		if self.CurrentPopup and not self.IsAnimating then
-			self:CloseCurrent()
-		end
+		self:CloseCurrent()
+	end
 
 	end)
 
@@ -65,7 +63,9 @@ end
 -------------------------------------------------------
 
 function PopupManager:Open(Popup, Options : {CanClickOutsideToClose: boolean, ReopenPreviousOnClose: boolean}?)
-	
+	if self.IsAnimating then
+		return
+	end
 	Options = Options or {}
 
 	self.CanClickOutsideToClose =
@@ -97,7 +97,6 @@ function PopupManager:Open(Popup, Options : {CanClickOutsideToClose: boolean, Re
 		self.PreviousPopup = nil
 
 	end
-
 	-- if self.CurrentPopup then
 	-- 	self:CloseCurrent()
 	-- end
@@ -107,12 +106,11 @@ function PopupManager:Open(Popup, Options : {CanClickOutsideToClose: boolean, Re
 	------------------------------------------------
 
 	if self.CurrentPopup then
+		local oldPopup = self.CurrentPopup
 
-		self:Close(
-			self.CurrentPopup,
-			true
-		)
-
+		-- IMPORTANT:
+		-- This is a switch, NOT a normal close.
+		self:Close(oldPopup, true)
 	end
 
 	self.CurrentPopup = Popup
@@ -125,10 +123,10 @@ function PopupManager:Open(Popup, Options : {CanClickOutsideToClose: boolean, Re
 	end
 
 	Scale.Scale = self.ClosedScale
-
+	
 	Popup.Visible = true
 	self.Overlay.Visible = true
-
+	print("true overlay", self.Overlay.Visible)
 
 	TweenService:Create(
 		self.Overlay,
@@ -158,6 +156,8 @@ function PopupManager:Open(Popup, Options : {CanClickOutsideToClose: boolean, Re
 			Scale = self.OpenScale
 		}
 	):Play()
+
+	print("final open", self.CurrentPopup)
 	-- SoundUtil:PlaySound(WoshSound, Popup)
 
 end
@@ -165,11 +165,14 @@ end
 -------------------------------------------------------
 
 function PopupManager:Close(Popup, IsSwitching)
-
 	if not Popup then
 		return
 	end
+	if self.IsAnimating then
+		return
+	end
 
+	self.IsAnimating = true
 	local Scale = Popup:FindFirstChildOfClass("UIScale")
 
 	if not Scale then
@@ -211,48 +214,48 @@ function PopupManager:Close(Popup, IsSwitching)
 	-- SoundUtil:PlaySound(WoshSound, Popup)
 
 	Popup.Visible = false
-
-	self.Overlay.Visible = false
+	
 
 	if self.CurrentPopup == Popup then
 		self.CurrentPopup = nil
 	end
 
-	------------------------------------------------
 	-- Don't reopen while switching popup
-	------------------------------------------------
 	if IsSwitching then
+		self.IsAnimating = false
 		return
 	end
 
-	------------------------------------------------
 	-- Reopen previous popup
-	------------------------------------------------
 	if self.ReopenPreviousOnClose
 		and self.PreviousPopup then
+
+			print("reopen previous")
 
 		local previous =
 			self.PreviousPopup
 
-		------------------------------------------------
 		-- Clear history BEFORE opening
 		-- prevents recursive reopening
-		------------------------------------------------
 
 		self.PreviousPopup = nil
 		self.ReopenPreviousOnClose = false
+		self.IsAnimating = false
 
 		self:Open(previous)
 
 	end
 
-	------------------------------------------------
 	-- Hide overlay only if nothing reopened
-	------------------------------------------------
 
 	if not self.CurrentPopup then
 		self.Overlay.Visible = false
 	end
+
+	self.Overlay.Visible = false
+
+	self.IsAnimating = false
+	
 end
 
 -------------------------------------------------------

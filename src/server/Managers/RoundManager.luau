@@ -362,9 +362,7 @@ function RoundManager:EndRound()
 	------------------------------------------------
 
 	if self.LastWinner == "Runners" then
-
 		RoundStatsManager:AwardAliveBonus()
-
 	end
 
 	------------------------------------------------

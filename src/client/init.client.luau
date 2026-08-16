@@ -21,6 +21,8 @@ local MonetizationController = require(script.Controllers.MonetizationController
 local SlowMoController = require(script.Controllers.SlowMoController)
 local TaskController = require(script.Controllers.TaskController)
 local LevelUpController = require(script.Controllers.LevelUpController)
+local RewardItemController = require(script.Controllers.RewardItemController)
+local PopupController = require(script.Controllers.PopupController)
 
 ShopController:Init()
 CursorController:Init()
@@ -35,6 +37,8 @@ MonetizationController:Init()
 SlowMoController:Init()
 TaskController:Init()
 LevelUpController:Init()
+RewardItemController:Init()
+PopupController:Init()
 
 
 -- Wait for attributes to replicate

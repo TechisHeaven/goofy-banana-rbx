@@ -51,7 +51,6 @@ end
 -------------------------------------------------------
 
 function ResultUI:Show(data)
-    print(data)
     hideAll()
 
     if data.won then
@@ -109,14 +108,15 @@ function ResultUI:Show(data)
 
     --------------------------------------------------
     PopupManager:Open(ResultFrame,{
-	    CanClickOutsideToClose = false
+	    CanClickOutsideToClose = false,
+        ReopenPreviousOnClose = false
     })
 
 
 
---     task.delay(DEFAULT_REDIRECT_TIME, function()
---       self.Hide()
---   end)
+    task.delay(DEFAULT_REDIRECT_TIME, function()
+      self.Hide()
+  end)
 if CountdownTask then
 	task.cancel(CountdownTask)
 end
@@ -152,8 +152,8 @@ function ResultUI:Hide()
 		task.cancel(CountdownTask)
 		CountdownTask = nil
 	end
-
-    PopupManager:CloseCurrent()
+    
+    PopupManager:Close(ResultFrame)
 
 end
 

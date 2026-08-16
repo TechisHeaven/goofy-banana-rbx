@@ -21,6 +21,70 @@ local REWARD_IMAGES = {
 }
 
 ------------------------------------------------
+-- Find shop item
+------------------------------------------------
+
+function RewardDisplay:GetItem(category, itemId)
+
+	local categoryData =
+		ShopConfig.Categories[category]
+
+	if not categoryData then
+		return nil
+	end
+
+	for _, item in ipairs(categoryData.Items or {}) do
+
+		if item.Id == itemId then
+			return item
+		end
+
+	end
+
+	return nil
+
+end
+
+------------------------------------------------
+-- Get item display data
+------------------------------------------------
+
+function RewardDisplay:GetItemDisplay(category, itemId)
+
+	local item =
+		self:GetItem(category, itemId)
+
+	if not item then
+		return {
+			Id = itemId,
+			Category = category,
+			Name = tostring(itemId),
+			Image = "",
+			Rarity = "Common",
+		}
+	end
+
+	return {
+		Id = item.Id,
+		Category = category,
+
+		Name =
+			item.DisplayName
+			or item.Name
+			or item.Id,
+
+		Image =
+			item.Image
+			or "",
+
+		Rarity =
+			item.Rarity
+			or "Common",
+
+	}
+end
+
+------------------------------------------------
 -- Find item image
 ------------------------------------------------
 
@@ -77,6 +141,7 @@ function RewardDisplay:GetRewardDisplay(reward)
 			Name = reward.Name,
 			Value = reward.Coins,
 			Image = REWARD_IMAGES.Coins,
+			Rarity = "Common",
 		}
 
 	end
@@ -92,6 +157,7 @@ function RewardDisplay:GetRewardDisplay(reward)
 			Value = reward.XP,
 			Name = reward.Name,
 			Image = REWARD_IMAGES.XP,
+			Rarity = "Common",
 		}
 
 	end
@@ -100,79 +166,40 @@ function RewardDisplay:GetRewardDisplay(reward)
 	-- Skin
 	------------------------------------------------
 
-	if reward.Skin then
+	local itemTypes = {
+		"Skin",
+		"BananaSkin",
+		"VictoryPose",
+		"RescueEffect",
+		"Head",
+	}
 
-		return {
-			Type = "Skin",
-			Name = reward.Name,
-			Id = reward.Skin,
+	for _, category in ipairs(itemTypes) do
 
-			Image =
-				self:GetItemImage(
-					"Skins",
-					reward.Skin
-				),
-		}
+		local itemId =
+			reward[category]
 
-	end
+		if itemId then
 
-	------------------------------------------------
-	-- Banana Skin
-	------------------------------------------------
+			local display =
+				self:GetItemDisplay(
+					category .. "s",
+					itemId
+				)
 
-	if reward.BananaSkin then
+			return {
+				Type = category,
 
-		return {
-			Type = "BananaSkin",
-			Name = reward.Name,
-			Id = reward.BananaSkin,
+				Id = itemId,
 
-			Image =
-				self:GetItemImage(
-					"BananaSkins",
-					reward.BananaSkin
-				),
-		}
+				Name = display.Name,
 
-	end
+				Image = display.Image,
 
-	------------------------------------------------
-	-- Victory Pose
-	------------------------------------------------
+				Rarity = display.Rarity,
+			}
 
-	if reward.VictoryPose then
-
-		return {
-			Type = "VictoryPose",
-			Name = reward.Name,
-			Id = reward.VictoryPose,
-
-			Image =
-				self:GetItemImage(
-					"VictoryPoses",
-					reward.VictoryPose
-				),
-		}
-
-	end
-
-	------------------------------------------------
-	-- Rescue Effect
-	------------------------------------------------
-
-	if reward.RescueEffect then
-
-		return {
-			Type = "RescueEffect",
-			Name = reward.Name,
-			Id = reward.RescueEffect,
-
-			Image =
-				self:GetItemImage(
-					"RescueEffects",
-					reward.RescueEffect
-				),
-		}
+		end
 
 	end
 

@@ -22,7 +22,6 @@ local function bezier(p0, p1, p2, p3, t)
 end
 
 local function createConfetti(origin, container)
-    print(origin, container)
 	local piece = Instance.new("Frame")
 	piece.Name = "Confetti"
 

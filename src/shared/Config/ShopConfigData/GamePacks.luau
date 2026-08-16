@@ -24,6 +24,10 @@ local GamePacks = {
 					Id = "SleepyBanana",
 					Image = "rbxassetid://136115997706635",
 				},
+				{
+					Id = "CoolBanana",
+					Image = "rbxassetid://122492456684024",
+				}
 			},
 
 			BananaSkins = {

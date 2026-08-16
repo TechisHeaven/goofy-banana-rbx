@@ -173,7 +173,6 @@ local function GrantGamePack(player, product)
 		for _, reward in ipairs(
 			rewards.Skins
 		) do
-			print(reward)
 			if reward.Id then
 
 				InventoryManager:AddItem(

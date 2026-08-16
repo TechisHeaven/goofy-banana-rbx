@@ -10,6 +10,7 @@ local RemoteIndexFunctions = RemoteIndexData.Functions
 local ShopConfig = require(Shared.Config.ShopConfig)
 
 local NotificationManager = require(script.Parent.NotificationManager)
+local RewardManager = require(script.Parent.RewardManager)
 local ProfileManager =
 	require(script.Parent.ProfileManager)
 
@@ -88,6 +89,7 @@ function InventoryManager:NotifyInventoryChanged(player)
 end
 
 
+
 ------------------------------------------------
 
 function InventoryManager:Equip(player,category,itemId)
@@ -161,7 +163,11 @@ function InventoryManager:AddItem(player, category, itemId)
 		player,
 		itemName .. " Purchased!"
 	)
-
+	RewardManager:SendInventoryItem(
+		player,
+		category,
+		itemId
+	)
 	self:SendInventory(player)
 
 	return true

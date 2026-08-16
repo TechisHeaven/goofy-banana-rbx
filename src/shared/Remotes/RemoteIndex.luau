@@ -77,6 +77,7 @@ RemoteIndex.Events = {
 	UpdateTasks = "UpdateTasks",
 
 	LevelUp = "LevelUp",
+	RewardReceived="RewardReceived",
 }
 
 RemoteIndex.Functions = {

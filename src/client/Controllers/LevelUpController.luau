@@ -1,38 +1,71 @@
-local ReplicatedStorage =
-	game:GetService("ReplicatedStorage")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
 
 local Shared =
 	ReplicatedStorage:WaitForChild("Shared")
 
-local Remotes =
-	Shared:WaitForChild("Remotes")
+local Enums =
+	require(Shared.Enums)
 
 local RemoteIndexData =
-	require(
-		Shared.Remotes.RemoteIndex
-	)
+	require(Shared.Remotes.RemoteIndex)
 
 local RemoteIndex =
 	RemoteIndexData.Events
 
 local LevelUpUI =
-	require(
-		script.Parent.Parent.UI.LevelUpUI
-	)
+	require(script.Parent.Parent.UI.LevelUpUI)
+
+local Remotes =
+	Shared:WaitForChild("Remotes")
+
+local Player =
+	Players.LocalPlayer
 
 local LevelUpController = {}
 
 ------------------------------------------------
--- Remote
+-- Pending level-up
 ------------------------------------------------
 
-local LevelUpRemote =
-	Remotes:WaitForChild(
-		RemoteIndex.LevelUp
-	)
+local PendingLevelUp = nil
 
 ------------------------------------------------
--- Level up
+-- Check lobby
+------------------------------------------------
+
+local function IsInLobby()
+
+	return Player:GetAttribute("LobbyState")
+		== Enums.PlayerLobbyState.InLobby
+
+end
+
+------------------------------------------------
+-- Show if possible
+------------------------------------------------
+
+local function TryShowLevelUp()
+
+	if not PendingLevelUp then
+		return
+	end
+
+	if not IsInLobby() then
+		return
+	end
+
+	local data =
+		PendingLevelUp
+
+	PendingLevelUp = nil
+
+	LevelUpUI:Show(data)
+
+end
+
+------------------------------------------------
+-- Level Up received
 ------------------------------------------------
 
 local function OnLevelUp(data)
@@ -41,7 +74,17 @@ local function OnLevelUp(data)
 		return
 	end
 
-	LevelUpUI:Show(data)
+	------------------------------------------------
+	-- Always store it first
+	------------------------------------------------
+
+	PendingLevelUp = data
+
+	------------------------------------------------
+	-- If already in lobby, show immediately
+	------------------------------------------------
+
+	TryShowLevelUp()
 
 end
 
@@ -52,14 +95,43 @@ end
 function LevelUpController:Init()
 
 	print(
-		"LevelUpController Initialized"
+		"[LevelUpController] Initialized"
 	)
 
-	LevelUpUI:Init()
+	------------------------------------------------
+	-- Level Up remote
+	------------------------------------------------
+
+	local LevelUpRemote =
+		Remotes:WaitForChild(
+			RemoteIndex.LevelUp
+		)
 
 	LevelUpRemote.OnClientEvent:Connect(
 		OnLevelUp
 	)
+
+	------------------------------------------------
+	-- Watch THIS player's lobby state
+	------------------------------------------------
+
+	Player:GetAttributeChangedSignal(
+		"LobbyState"
+	):Connect(function()
+
+		TryShowLevelUp()
+
+	end)
+
+	------------------------------------------------
+	-- Handle initial state
+	------------------------------------------------
+
+	task.defer(function()
+
+		TryShowLevelUp()
+
+	end)
 
 end
 

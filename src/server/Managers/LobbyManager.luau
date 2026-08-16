@@ -18,6 +18,7 @@ local RemoteIndex = require(Shared.Remotes.RemoteIndex)
 
 local SpawnManager  = require(script.Parent.SpawnManager)
 local PlayerManager = require(script.Parent.PlayerManager)
+-- local PopupModule = require(Shared.Modules.PopupModule)
 
 local LobbyManager = {}
 
@@ -163,6 +164,7 @@ end
 ---   resets PlayerManager state, teleports, fires ReturnToLobby remote.
 function LobbyManager:ReturnAllToLobby(players: {Player})
 	for _, player in ipairs(players) do
+		-- PopupModule:CloseCurrent()
 		inMatchSet[player] = nil
 		if player and player.Parent then
 			PlayerManager:ResetPlayer(player)
@@ -175,6 +177,20 @@ function LobbyManager:ReturnAllToLobby(players: {Player})
 	end
 
 	SpawnManager:TeleportToLobby(players)
+
+	for _, player in ipairs(players) do
+
+		if player and player.Parent then
+
+			player:SetAttribute(
+				"LobbyState",
+				Enums.PlayerLobbyState.InLobby
+			)
+
+		end
+
+	end
+
 	self:BroadcastStatus()
 end
 
@@ -284,6 +300,7 @@ end
 
 local function onPlayerAdded(player: Player)
 	lobbyStates[player] = Enums.PlayerLobbyState.InLobby
+	
 	player:SetAttribute("LobbyState", Enums.PlayerLobbyState.InLobby)
 	print(string.format("LobbyManager: %s registered (InLobby)", player.Name))
 
