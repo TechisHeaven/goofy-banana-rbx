@@ -3,7 +3,12 @@ local Lighting = game:GetService("Lighting")
 
 local PopupManager = {}
 
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local SoundUtil = require(ReplicatedStorage.Shared.Utils.SoundUtils)
+local WoshSound = ReplicatedStorage.Sounds.Woosh
 PopupManager.CurrentPopup = nil
+PopupManager.PreviousPopup = nil
+PopupManager.ReopenPreviousOnClose = false
 PopupManager.Overlay = nil
 
 PopupManager.IsAnimating = false
@@ -59,7 +64,7 @@ end
 
 -------------------------------------------------------
 
-function PopupManager:Open(Popup, Options : {CanClickOutsideToClose: boolean})
+function PopupManager:Open(Popup, Options : {CanClickOutsideToClose: boolean, ReopenPreviousOnClose: boolean}?)
 	
 	Options = Options or {}
 
@@ -67,13 +72,47 @@ function PopupManager:Open(Popup, Options : {CanClickOutsideToClose: boolean})
 		if Options.CanClickOutsideToClose ~= nil
 			then Options.CanClickOutsideToClose
 		else true
+	
+	self.ReopenPreviousOnClose =
+		Options.ReopenPreviousOnClose == true
+
 
 	if self.CurrentPopup == Popup then
 		return
 	end
 
+	------------------------------------------------
+	-- Remember current popup if requested
+	------------------------------------------------
+
+	local previousPopup = self.CurrentPopup
+
+	if previousPopup
+		and self.ReopenPreviousOnClose then
+
+		self.PreviousPopup = previousPopup
+
+	else
+
+		self.PreviousPopup = nil
+
+	end
+
+	-- if self.CurrentPopup then
+	-- 	self:CloseCurrent()
+	-- end
+
+	------------------------------------------------
+	-- Close current popup
+	------------------------------------------------
+
 	if self.CurrentPopup then
-		self:CloseCurrent()
+
+		self:Close(
+			self.CurrentPopup,
+			true
+		)
+
 	end
 
 	self.CurrentPopup = Popup
@@ -90,6 +129,7 @@ function PopupManager:Open(Popup, Options : {CanClickOutsideToClose: boolean})
 	Popup.Visible = true
 	self.Overlay.Visible = true
 
+
 	TweenService:Create(
 		self.Overlay,
 		TweenInfo.new(0.2),
@@ -97,6 +137,7 @@ function PopupManager:Open(Popup, Options : {CanClickOutsideToClose: boolean})
 			BackgroundTransparency = self.BackgroundTransparency
 		}
 	):Play()
+
 
 	TweenService:Create(
 		Blur,
@@ -117,12 +158,13 @@ function PopupManager:Open(Popup, Options : {CanClickOutsideToClose: boolean})
 			Scale = self.OpenScale
 		}
 	):Play()
+	-- SoundUtil:PlaySound(WoshSound, Popup)
 
 end
 
 -------------------------------------------------------
 
-function PopupManager:Close(Popup)
+function PopupManager:Close(Popup, IsSwitching)
 
 	if not Popup then
 		return
@@ -166,6 +208,8 @@ function PopupManager:Close(Popup)
 
 	Tween.Completed:Wait()
 
+	-- SoundUtil:PlaySound(WoshSound, Popup)
+
 	Popup.Visible = false
 
 	self.Overlay.Visible = false
@@ -174,6 +218,41 @@ function PopupManager:Close(Popup)
 		self.CurrentPopup = nil
 	end
 
+	------------------------------------------------
+	-- Don't reopen while switching popup
+	------------------------------------------------
+	if IsSwitching then
+		return
+	end
+
+	------------------------------------------------
+	-- Reopen previous popup
+	------------------------------------------------
+	if self.ReopenPreviousOnClose
+		and self.PreviousPopup then
+
+		local previous =
+			self.PreviousPopup
+
+		------------------------------------------------
+		-- Clear history BEFORE opening
+		-- prevents recursive reopening
+		------------------------------------------------
+
+		self.PreviousPopup = nil
+		self.ReopenPreviousOnClose = false
+
+		self:Open(previous)
+
+	end
+
+	------------------------------------------------
+	-- Hide overlay only if nothing reopened
+	------------------------------------------------
+
+	if not self.CurrentPopup then
+		self.Overlay.Visible = false
+	end
 end
 
 -------------------------------------------------------
