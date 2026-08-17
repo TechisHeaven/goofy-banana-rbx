@@ -16,6 +16,8 @@ local CursorController = require(Shared.Modules.CursorModule)
 local VictoryManager = require(script.Parent.VictoryManager)
 local NotificationManager = require(script.Parent.NotificationManager)
 local RoundStatsManager = require(script.Parent.RoundStatsManager)
+local GameplayItemManager =
+	require(script.Parent.GameplayItemManager)
 
 local TaskManager = require(script.Parent.TaskManager)
 local TaskEvents = require(Shared.EnumsEvents.TaskEvents)
@@ -108,7 +110,19 @@ function RoundManager:StartRound()
 	LobbyManager:SetInMatch(
 		self.RoundPlayers
 	)
+	for _, player in ipairs(self.RoundPlayers) do
 
+		GameplayItemManager:Give(
+			player,
+			"Banana"
+		)
+
+		-- GameplayItemManager:Select(
+		-- 	player,
+		-- 	"Banana"
+		-- )
+
+	end
 	self.CurrentHunter =
 		self:SelectHunter(
 			self.RoundPlayers
@@ -123,6 +137,8 @@ function RoundManager:StartRound()
 		self.RoundPlayers,
 		self.CurrentHunter
 	)
+
+
 
 	FreezeManager:ApplyHunterCooldown(
 		self.CurrentHunter,
@@ -447,6 +463,15 @@ function RoundManager:CleanupRound()
 	local players =
 		LobbyManager:GetInMatchPlayers()
 
+	for _, player in ipairs(players) do
+
+		GameplayItemManager:Remove(
+			player,
+			"Banana"
+		)
+
+	end
+
 	LobbyManager:ReturnAllToLobby(
 		players
 	)
@@ -682,6 +707,11 @@ function RoundManager:AddLateJoiner(player)
 
 	LobbyManager:SetPlayerInMatch(
 		player
+	)
+
+	GameplayItemManager:Give(
+		player,
+		"Banana"
 	)
 
 	SpawnManager:SpawnRunner(

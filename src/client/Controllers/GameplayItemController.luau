@@ -160,8 +160,8 @@ function GameplayItemController:Init()
 		"State"
 	)
 
-	task.wait(6)
-	ItemRequest:FireServer("Select", "Banana")
+	-- task.wait(6)
+	-- ItemRequest:FireServer("Select", "Banana")
 
 end
 

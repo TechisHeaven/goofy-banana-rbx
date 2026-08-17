@@ -401,15 +401,24 @@ function GameplayItemManager:Equip(
 
 	end
 	if itemId == "Banana" then
-		local equippedSkinId =
-		BananaSkinManager:GetEquipped(
-			player
-		)
+		-- local equippedSkinId =
+		-- BananaSkinManager:GetEquipped(
+		-- 	player
+		-- )
 
-		if state.SkinId ~= equippedSkinId then
+		-- if state.SkinId ~= equippedSkinId then
+
+		-- 	state.SkinId =
+		-- 		equippedSkinId
+
+		-- end
+
+		if not state.SkinId then
 
 			state.SkinId =
-				equippedSkinId
+				BananaSkinManager:GetEquipped(
+					player
+				)
 
 		end
 		BananaSkinManager:Apply(
@@ -541,7 +550,7 @@ function GameplayItemManager:Drop(
 			pickedItemId,
 			pickedSkinId
 		)
-
+			print("picked skin", pickedSkinId)
 			return self:PickUp(
 				picker,
 				pickedItemId,
@@ -637,6 +646,86 @@ function GameplayItemManager:ApplyCharacter(
 	self:Equip(
 		player
 	)
+
+end
+
+------------------------------------------------
+-- REMOVE GAMEPLAY ITEM
+------------------------------------------------
+
+function GameplayItemManager:Remove(
+	player,
+	itemId
+)
+
+	if not player then
+		return false
+	end
+
+	local state =
+		PlayerItems[player]
+
+	if not state then
+		return false
+	end
+
+	------------------------------------------------
+	-- Only remove if this is the current item
+	------------------------------------------------
+
+	if itemId
+		and state.Item ~= itemId then
+
+		return false
+
+	end
+
+	------------------------------------------------
+	-- Remove equipped visual
+	------------------------------------------------
+
+	if player.Character then
+
+		for _, object in ipairs(
+			player.Character:GetDescendants()
+		) do
+
+			if object:GetAttribute(
+				"GameplayItemVisual"
+			) == true then
+
+				object:Destroy()
+
+			end
+
+		end
+
+	end
+
+	------------------------------------------------
+	-- Clear temporary state
+	------------------------------------------------
+
+	state.Item = nil
+	state.Selected = nil
+	state.Equipped = false
+	state.SkinId = nil
+
+	------------------------------------------------
+	-- Update client
+	------------------------------------------------
+
+	self:SendState(
+		player
+	)
+
+	print(
+		"[GameplayItemManager] Removed:",
+		player.Name,
+		itemId or "Current Item"
+	)
+
+	return true
 
 end
 
