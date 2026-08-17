@@ -11,6 +11,7 @@ local ShopConfig = require(Shared.Config.ShopConfig)
 
 local NotificationManager = require(script.Parent.NotificationManager)
 local RewardManager = require(script.Parent.RewardManager)
+local CosmeticManager = require(script.Parent.CosmeticManager)
 local ProfileManager =
 	require(script.Parent.ProfileManager)
 
@@ -39,7 +40,7 @@ local PlayerProfiles =
 local InventoryManager = {}
 
 local RequireEquip = {
-	Skins = true,
+	Skins = false,
 	BananaSkins = true,
 	RescueEffects = true,
 	VictoryPoses = true,
@@ -106,6 +107,11 @@ function InventoryManager:Equip(player,category,itemId)
 	end
 
 	inventory.Equipped[category] = itemId
+	CosmeticManager:Refresh(
+		player,
+		category
+	)
+
 	local item = self:GetItem(category, itemId)
 	local itemName = item.Name
 	NotificationManager:Success(
@@ -124,7 +130,7 @@ function InventoryManager:Unequip(player, category)
 	if not inventory then
 		return
 	end
-
+	
 	if RequireEquip[category] then
 		return
 	end
@@ -132,6 +138,11 @@ function InventoryManager:Unequip(player, category)
 
 	local item = self:GetItem(category, inventory.Equipped[category])
 	inventory.Equipped[category] = nil
+	CosmeticManager:Refresh(
+		player,
+		category
+	)
+
 	local itemName = item.Name
 	NotificationManager:Success(
 		player,

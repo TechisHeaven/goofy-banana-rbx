@@ -1,39 +1,153 @@
 local FreezeManager = {}
 
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Players = game:GetService("Players")
+------------------------------------------------
+-- SERVICES
+------------------------------------------------
 
-local Shared = ReplicatedStorage:WaitForChild("Shared")
-local Enums = require(Shared.Enums)
-local GameConfig = require(Shared.GameConfig)
-local RemoteIndexData = require(Shared.Remotes.RemoteIndex)
-local RemoteIndex = RemoteIndexData.Events
+local ReplicatedStorage =
+	game:GetService("ReplicatedStorage")
 
-local PlayerManager = require(script.Parent.PlayerManager)
-local FreezeEventManager = require(script.Parent.FreezeEventManager)
-local NotificationManager = require(script.Parent.NotificationManager)
-local RoundStatsManager = require(script.Parent.RoundStatsManager)
-local TaskManager = require(script.Parent.TaskManager)
-local TaskEvents = require(Shared.EnumsEvents.TaskEvents)
+local Players =
+	game:GetService("Players")
 
--- Lazy-required to avoid circular dependency
+------------------------------------------------
+-- SHARED
+------------------------------------------------
+
+local Shared =
+	ReplicatedStorage:WaitForChild("Shared")
+
+local Enums =
+	require(Shared.Enums)
+
+local GameConfig =
+	require(Shared.GameConfig)
+
+local RemoteIndexData =
+	require(Shared.Remotes.RemoteIndex)
+
+local RemoteIndex =
+	RemoteIndexData.Events
+
+------------------------------------------------
+-- MANAGERS
+------------------------------------------------
+
+local PlayerManager =
+	require(script.Parent.PlayerManager)
+
+local FreezeEventManager =
+	require(script.Parent.FreezeEventManager)
+
+local NotificationManager =
+	require(script.Parent.NotificationManager)
+
+local RoundStatsManager =
+	require(script.Parent.RoundStatsManager)
+
+local TaskManager =
+	require(script.Parent.TaskManager)
+
+local TaskEvents =
+	require(
+		Shared.EnumsEvents.TaskEvents
+	)
+
+------------------------------------------------
+-- FREEZE MODULE
+------------------------------------------------
+-- IMPORTANT:
+-- Change this path only if FreezeModule
+-- is located somewhere else.
+
+local FreezeModule =
+	require(Shared.Modules.FreezeModule)
+
+------------------------------------------------
+-- ROUND MANAGER
+------------------------------------------------
+
 local RoundManager = nil
 
+------------------------------------------------
+-- REMOTES
+------------------------------------------------
+
 local remotes = {}
+
+------------------------------------------------
+-- COOLDOWN
+------------------------------------------------
+
 local FreezeCooldownUntil = {}
 
+------------------------------------------------
+-- DURATION FREEZES
+------------------------------------------------
+-- Player -> timestamp
+
+local FreezeUntil = {}
+
+------------------------------------------------
+-- RESCUE PROMPTS
+------------------------------------------------
+
+local activePrompts = {}
+
+------------------------------------------------
+-- REMOTE HELPER
+------------------------------------------------
+
 local function getRemote(name: string)
-	if remotes[name] then return remotes[name] end
-	local folder = ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Remotes")
-	local remote = folder:FindFirstChild(name)
-	if remote and remote:IsA("RemoteEvent") then
+
+	if remotes[name] then
+		return remotes[name]
+	end
+
+	local folder =
+		ReplicatedStorage
+			:WaitForChild("Shared")
+			:WaitForChild("Remotes")
+
+	local remote =
+		folder:FindFirstChild(name)
+
+	if remote
+		and remote:IsA("RemoteEvent") then
+
 		remotes[name] = remote
+
 		return remote
 	end
+
 	return nil
 end
 
-function FreezeManager:GetFreezeCooldown(player)
+------------------------------------------------
+-- ROUND MANAGER
+------------------------------------------------
+
+local function GetRoundManager()
+
+	if not RoundManager then
+
+		RoundManager =
+			require(
+				script.Parent.RoundManager
+			)
+
+	end
+
+	return RoundManager
+end
+
+------------------------------------------------
+-- COOLDOWN
+------------------------------------------------
+
+function FreezeManager:GetFreezeCooldown(
+	player: Player
+)
 
 	local untilTime =
 		FreezeCooldownUntil[player]
@@ -49,403 +163,893 @@ function FreezeManager:GetFreezeCooldown(player)
 
 end
 
-function FreezeManager:IsFreezeReady(player)
+------------------------------------------------
 
-	return self:GetFreezeCooldown(player) <= 0
+function FreezeManager:IsFreezeReady(
+	player: Player
+)
+
+	return self:GetFreezeCooldown(
+		player
+	) <= 0
 
 end
 
-local function clearHoverEffect(player: Player)
-	local character = player and player.Character
-	if not character then return end
-	local rootPart = character:FindFirstChild("HumanoidRootPart")
-	if rootPart and rootPart:IsA("BasePart") then
-		for _, child in ipairs(rootPart:GetChildren()) do
-			if child.Name == "HoverBodyPosition" or child.Name == "HoverBodyGyro" then
-				child:Destroy()
+------------------------------------------------
+-- HUNTER COOLDOWN
+------------------------------------------------
+-- This is NOT the actual player freeze.
+-- It only locks the hunter temporarily
+-- after using the freeze ability.
+
+function FreezeManager:ApplyHunterCooldown(
+	player: Player,
+	duration: number?
+)
+
+	if not player
+		or not player.Parent then
+
+		return
+	end
+
+	local cooldownTime =
+		duration
+		or (
+			GameConfig.Hunter
+			and GameConfig.Hunter.CooldownTime
+		)
+		or 4
+
+	task.delay(
+		cooldownTime,
+		function()
+
+			if not player
+				or not player.Parent then
+
+				return
 			end
+
 		end
-	end
+	)
+
 end
 
-local function setMovementLocked(player: Player, locked: boolean, walkSpeed: number?, jumpPower: number?)
-	local character = player and player.Character
-	if not character then return end
+------------------------------------------------
+-- FREEZE PLAYER
+------------------------------------------------
 
-	local rootPart = character:FindFirstChild("HumanoidRootPart")
-	if rootPart and rootPart:IsA("BasePart") then
-		rootPart.Anchored = false
+function FreezeManager:FreezePlayer(
+	player: Player,
+	freezer: Player?,
+	freezeOptions
+)
+
+	if not player
+		or not player.Parent then
+
+		return
 	end
 
-	local humanoid = character:FindFirstChildOfClass("Humanoid")
-	if humanoid then
-		humanoid.WalkSpeed = locked and 0 or (walkSpeed or 16)
-		humanoid.JumpPower = locked and 0 or (jumpPower or 50)
-		humanoid.PlatformStand = locked
+	freezeOptions =
+		freezeOptions or {}
+
+	local mode =
+		freezeOptions.Mode
+		or "Rescue"
+
+	local duration =
+		tonumber(
+			freezeOptions.Duration
+		)
+
+	------------------------------------------------
+	-- Validate mode
+	------------------------------------------------
+
+	if mode ~= "Rescue"
+		and mode ~= "Duration" then
+
+		warn(
+			"[FreezeManager] Invalid freeze mode:",
+			mode
+		)
+
+		return
 	end
 
-	if locked then
-		if rootPart and rootPart:IsA("BasePart") then
-			local hoverPosition = Instance.new("BodyPosition")
-			hoverPosition.Name = "HoverBodyPosition"
-			hoverPosition.MaxForce = Vector3.new(0, 50000, 0)
-			hoverPosition.P = 2000
-			hoverPosition.D = 100
-			hoverPosition.Position = rootPart.Position + Vector3.new(0, 3.2, 0)
-			hoverPosition.Parent = rootPart
+	if mode == "Duration" then
 
-			local hoverGyro = Instance.new("BodyGyro")
-			hoverGyro.Name = "HoverBodyGyro"
-			hoverGyro.MaxTorque = Vector3.new(0, 40000, 0)
-			hoverGyro.P = 2000
-			hoverGyro.D = 100
-			hoverGyro.CFrame = rootPart.CFrame
-			hoverGyro.Parent = rootPart
+		if not duration
+			or duration <= 0 then
+
+			warn(
+				"[FreezeManager] Duration mode requires Duration"
+			)
+
+			return
 		end
-	else
-		clearHoverEffect(player)
+
 	end
-end
 
--- Stores the original colors and materials of frozen players' characters
--- Player -> { [BasePart] = { Color = Color3, Material = Enum.Material } }
-local originalAppearance = {}
+	------------------------------------------------
+	-- Already frozen
+	------------------------------------------------
 
--- Stores ProximityPrompt objects for frozen players
--- Player -> ProximityPrompt
-local activePrompts = {}
+	if PlayerManager:GetState(player)
+		== Enums.PlayerState.Frozen then
 
-function FreezeManager:ApplyHunterCooldown(player: Player, duration: number?)
-	if not player or not player.Parent then return end
+		return
+	end
 
-	local character = player.Character
-	if not character then return end
+	------------------------------------------------
+	-- Set game state
+	------------------------------------------------
 
-	local humanoid = character:FindFirstChildOfClass("Humanoid")
-	local rootPart = character:FindFirstChild("HumanoidRootPart")
-	local originalWalkSpeed = humanoid and humanoid.WalkSpeed or 16
-	local originalJumpPower = humanoid and humanoid.JumpPower or 50
+	PlayerManager:SetState(
+		player,
+		Enums.PlayerState.Frozen
+	)
 
-	setMovementLocked(player, true, originalWalkSpeed, originalJumpPower)
+	------------------------------------------------
+	-- Notification
+	------------------------------------------------
 
-	local cooldownTime = duration or (GameConfig.Hunter and GameConfig.Hunter.CooldownTime) or 4
-	
-	task.spawn(function()
-		local elapsed = 0
-		while player and player.Parent and player.Character and elapsed < cooldownTime do
-			task.wait(0.1)
-			elapsed += 0.1
-		end
-	end)
+	if freezer
+		and freezer.Parent then
 
-	task.delay(cooldownTime, function()
-		if not player or not player.Parent then return end
-		local currentCharacter = player.Character
-		if not currentCharacter then return end
-		local currentHumanoid = currentCharacter:FindFirstChildOfClass("Humanoid")
-		local currentRoot = currentCharacter:FindFirstChild("HumanoidRootPart")
-		if currentRoot and currentRoot:IsA("BasePart") then
-			currentRoot.Anchored = false
-			currentRoot.AssemblyLinearVelocity = Vector3.zero
-			currentRoot.AssemblyAngularVelocity = Vector3.zero
-		end
-		clearHoverEffect(player)
-		if currentHumanoid then
-			currentHumanoid.WalkSpeed = originalWalkSpeed > 0 and originalWalkSpeed or 16
-			currentHumanoid.JumpPower = originalJumpPower > 0 and originalJumpPower or 50
-			currentHumanoid.PlatformStand = false
-		end
-	end)
-end
-
--- Freeze a runner
-function FreezeManager:FreezePlayer(player: Player, freezer: Player?)
-	PlayerManager:SetState(player, Enums.PlayerState.Frozen)
-
-
-		if freezer and freezer.Parent then
-			NotificationManager:Broadcast(
+		NotificationManager:Broadcast(
 			("%s froze %s!"):format(
 				freezer.Name,
 				player.Name
-			), Enums.NotificationTarget.Gameplay)
-		else
-			NotificationManager:Broadcast(
-			("%s was frozen!"):format(player.Name)
-			, Enums.NotificationTarget.Gameplay)
-		end
+			),
+			Enums.NotificationTarget.Gameplay
+		)
 
-	local character = player.Character
-	if character then
-		-- Lock movement: Anchor the HumanoidRootPart and set speed to 0
-		local rootPart = character:FindFirstChild("HumanoidRootPart")
-		if rootPart and rootPart:IsA("BasePart") then
-			rootPart.Anchored = true
-		end
+	else
 
-		local humanoid = character:FindFirstChildOfClass("Humanoid")
-		if humanoid then
-			humanoid.WalkSpeed = 0
-			humanoid.JumpPower = 0
-		end
+		NotificationManager:Broadcast(
+			("%s was frozen!"):format(
+				player.Name
+			),
+			Enums.NotificationTarget.Gameplay
+		)
 
-		-- Play ice effect (change material to Ice and color to light blue)
-		local appearance = {}
-		for _, child in ipairs(character:GetDescendants()) do
-			if child:IsA("BasePart") and child.Name ~= "HumanoidRootPart" then
-				appearance[child] = {
-					Color = child.Color,
-					Material = child.Material
-				}
-				child.Color = Color3.fromRGB(150, 220, 255)
-				child.Material = Enum.Material.Ice
-			end
-		end
-		originalAppearance[player] = appearance
-
-		-- Create a ProximityPrompt on the HumanoidRootPart to allow rescues
-		if rootPart then
-			-- Remove any existing prompt first
-			if activePrompts[player] then
-				activePrompts[player]:Destroy()
-				activePrompts[player] = nil
-			end
-
-			local prompt = Instance.new("ProximityPrompt")
-			prompt.ObjectText = player.Name
-			prompt.ActionText = "Rescue"
-			prompt.HoldDuration = GameConfig.Rescue.HoldTime or 5
-			prompt.KeyboardKeyCode = Enum.KeyCode.E
-			prompt.RequiresLineOfSight = false
-			prompt.MaxActivationDistance = 8
-
-			prompt.Triggered:Connect(function(rescuer)
-				-- Ensure the round is still active and rescuer is eligible
-				if not RoundManager then
-					RoundManager = require(script.Parent.RoundManager)
-				end
-				if RoundManager.CurrentState ~= Enums.RoundState.Playing then return end
-				if PlayerManager:GetTeam(rescuer) ~= Enums.Team.Runner then return end
-				if PlayerManager:GetState(rescuer) ~= Enums.PlayerState.Alive then return end
-				-- Round Stats 
-				FreezeManager:UnfreezePlayer(player, rescuer)
-				if rescuer and rescuer.Parent then
-					NotificationManager:Send(player,
-					("You were rescued by %s!"):format(
-						rescuer.Name
-					), Enums.NotificationTarget.Gameplay)
-					NotificationManager:Send(rescuer,
-					("You rescued %s!"):format(
-						player.Name
-					), Enums.NotificationTarget.Gameplay)
-				end
-			end)
-
-			prompt.Parent = rootPart
-			activePrompts[player] = prompt
-		end
 	end
 
-	-- Notify RoundManager (lazy required)
-	if not RoundManager then
-		RoundManager = require(script.Parent.RoundManager)
+	------------------------------------------------
+	-- ACTUAL FREEZE
+	------------------------------------------------
+	-- FreezeModule handles:
+	--
+	-- movement
+	-- anchoring
+	-- ice
+	-- effects
+	-- animations
+	-- scripts
+	-- cleanup
+	--
+	------------------------------------------------
+
+	FreezeModule.Freeze(
+		player.Character,
+		{
+			Mode = mode,
+			Duration = duration,
+		}
+	)
+
+	------------------------------------------------
+	-- RESCUE PROMPT
+	------------------------------------------------
+
+	local character =
+		player.Character
+
+	local rootPart =
+		character
+		and character:FindFirstChild(
+			"HumanoidRootPart"
+		)
+
+	if rootPart then
+
+		------------------------------------------------
+		-- Remove old prompt
+		------------------------------------------------
+
+		if activePrompts[player] then
+
+			activePrompts[player]:Destroy()
+
+			activePrompts[player] = nil
+
+		end
+
+		------------------------------------------------
+		-- Only Rescue mode needs prompt
+		------------------------------------------------
+
+		if mode == "Rescue" then
+
+			local prompt =
+				Instance.new(
+					"ProximityPrompt"
+				)
+
+			prompt.ObjectText =
+				player.Name
+
+			prompt.ActionText =
+				"Rescue"
+
+			prompt.HoldDuration =
+				GameConfig.Rescue.HoldTime
+				or 5
+
+			prompt.KeyboardKeyCode =
+				Enum.KeyCode.E
+
+			prompt.RequiresLineOfSight =
+				false
+
+			prompt.MaxActivationDistance =
+				8
+
+			prompt.Triggered:Connect(
+				function(rescuer)
+
+					------------------------------------------------
+					-- Round check
+					------------------------------------------------
+
+					local round =
+						GetRoundManager()
+
+					if round.CurrentState
+						~= Enums.RoundState.Playing then
+
+						return
+					end
+
+					------------------------------------------------
+					-- Rescuer must be runner
+					------------------------------------------------
+
+					if PlayerManager:GetTeam(
+						rescuer
+					) ~= Enums.Team.Runner then
+
+						return
+					end
+
+					------------------------------------------------
+					-- Rescuer must be alive
+					------------------------------------------------
+
+					if PlayerManager:GetState(
+						rescuer
+					) ~= Enums.PlayerState.Alive then
+
+						return
+					end
+
+					------------------------------------------------
+					-- Rescue
+					------------------------------------------------
+
+					FreezeManager:UnfreezePlayer(
+						player,
+						rescuer
+					)
+
+					------------------------------------------------
+					-- Notifications
+					------------------------------------------------
+
+					if rescuer
+						and rescuer.Parent then
+
+						NotificationManager:Send(
+							player,
+							("You were rescued by %s!"):format(
+								rescuer.Name
+							),
+							Enums.NotificationTarget.Gameplay
+						)
+
+						NotificationManager:Send(
+							rescuer,
+							("You rescued %s!"):format(
+								player.Name
+							),
+							Enums.NotificationTarget.Gameplay
+						)
+
+					end
+
+				end
+			)
+
+			prompt.Parent =
+				rootPart
+
+			activePrompts[player] =
+				prompt
+
+		end
+
 	end
 
+	------------------------------------------------
+	-- ROUND STATS
+	------------------------------------------------
 
-	RoundStatsManager:Freeze(player)
-	RoundStatsManager:AddFrozenPlayer(freezer)
-	TaskManager:AddProgress(
-		freezer,
-		TaskEvents.PlayerFrozen,
-		1
+	RoundStatsManager:Freeze(
+		player
 	)
 
 	if freezer then
 
+		RoundStatsManager:AddFrozenPlayer(
+			freezer
+		)
+
+		TaskManager:AddProgress(
+			freezer,
+			TaskEvents.PlayerFrozen,
+			1
+		)
+
+	end
+
+	------------------------------------------------
+	-- HUNTER COOLDOWN
+	------------------------------------------------
+
+	if freezer then
+
 		local cooldown =
-			GameConfig.Hunter.FreezeCooldown or 3
+			GameConfig.Hunter.FreezeCooldown
+			or 3
 
 		FreezeCooldownUntil[freezer] =
-			os.clock() + cooldown
-		print("firing in server")
-		getRemote(RemoteIndex.FreezeCooldown):FireClient(
-			freezer,
-			cooldown
-		)
+			os.clock()
+			+ cooldown
+
+		local remote =
+			getRemote(
+				RemoteIndex.FreezeCooldown
+			)
+
+		if remote then
+
+			remote:FireClient(
+				freezer,
+				cooldown
+			)
+
+		end
+
 	end
+
+	------------------------------------------------
+	-- Frozen UI
+	------------------------------------------------
 
 	if RoundStatsManager:ShouldShowFrozenUI() then
-		FreezeEventManager:FirePlayerFrozen(player, freezer)
+
+		FreezeEventManager:FirePlayerFrozen(
+			player,
+			freezer
+		)
+
 	end
 
-	RoundManager:CheckWinCondition()
+	------------------------------------------------
+	-- Duration tracking
+	------------------------------------------------
+
+	if mode == "Duration" then
+
+		FreezeUntil[player] =
+			os.clock() + duration
+
+		task.delay(
+			duration,
+			function()
+
+				if not player
+					or not player.Parent then
+
+					return
+				end
+
+				if PlayerManager:GetState(
+					player
+				) ~= Enums.PlayerState.Frozen then
+
+					return
+				end
+
+				local freezeTime =
+					FreezeUntil[player]
+
+				if not freezeTime then
+					return
+				end
+
+				if os.clock()
+					< freezeTime then
+
+					return
+				end
+
+				self:UnfreezePlayer(
+					player,
+					nil,
+					true
+				)
+
+			end
+		)
+
+	end
+
+	------------------------------------------------
+	-- Win condition
+	------------------------------------------------
+
+	GetRoundManager():CheckWinCondition()
+
 end
 
--- Unfreeze a player and restore movement/appearance
-function FreezeManager:UnfreezePlayer(player: Player, rescuer: Player?)
-	-- Set state back to Alive
-	RoundStatsManager:Rescue(rescuer, player)
-	TaskManager:AddProgress(
-		rescuer,
-		TaskEvents.PlayerRescued,
-		1
+------------------------------------------------
+-- UNFREEZE PLAYER
+------------------------------------------------
+
+function FreezeManager:UnfreezePlayer(
+	player: Player,
+	rescuer: Player?,
+	isAutomatic: boolean?
+)
+
+	if not player
+		or not player.Parent then
+
+		return
+	end
+
+	------------------------------------------------
+	-- Must actually be frozen
+	------------------------------------------------
+
+	if PlayerManager:GetState(
+		player
+	) ~= Enums.PlayerState.Frozen then
+
+		return
+	end
+
+	------------------------------------------------
+	-- Clear duration
+	------------------------------------------------
+
+	FreezeUntil[player] = nil
+
+	------------------------------------------------
+	-- Rescue stats
+	------------------------------------------------
+	-- Automatic duration unfreeze does NOT
+	-- count as a rescue.
+
+	if not isAutomatic
+		and rescuer then
+
+		RoundStatsManager:Rescue(
+			rescuer,
+			player
+		)
+
+		TaskManager:AddProgress(
+			rescuer,
+			TaskEvents.PlayerRescued,
+			1
+		)
+
+	end
+
+	------------------------------------------------
+	-- Player state
+	------------------------------------------------
+
+	PlayerManager:SetState(
+		player,
+		Enums.PlayerState.Alive
 	)
 
-	PlayerManager:SetState(player, Enums.PlayerState.Alive)
-		if rescuer and rescuer.Parent then
-			NotificationManager:Broadcast(string.format("%s rescued %s!", rescuer.Name, player.Name), Enums.NotificationTarget.Gameplay)
-		end
-	-- Clean up ProximityPrompt
-	local prompt = activePrompts[player]
+	------------------------------------------------
+	-- Remove rescue prompt
+	------------------------------------------------
+
+	local prompt =
+		activePrompts[player]
+
 	if prompt then
+
 		prompt:Destroy()
+
 		activePrompts[player] = nil
+
 	end
 
-	local character = player.Character
-	if character then
-		local rootPart = character:FindFirstChild("HumanoidRootPart")
-		if rootPart and rootPart:IsA("BasePart") then
-			rootPart.Anchored = false
-		end
+	------------------------------------------------
+	-- ACTUAL UNFREEZE
+	------------------------------------------------
+	-- FreezeModule handles all cleanup.
 
-		local humanoid = character:FindFirstChildOfClass("Humanoid")
-		if humanoid then
-			humanoid.WalkSpeed = 16
-			humanoid.JumpPower = 50
-			humanoid.PlatformStand = false
-		end
+	if player.Character then
 
-		-- Restore original appearance
-		local appearance = originalAppearance[player]
-		if appearance then
-			for part, props in pairs(appearance) do
-				if part and part.Parent then
-					part.Color = props.Color
-					part.Material = props.Material
-				end
-			end
-			originalAppearance[player] = nil
-		end
+		FreezeModule.Unfreeze(
+			player.Character
+		)
+
 	end
 
-	-- Notify RoundManager so the win condition count is updated
-	if not RoundManager then
-		RoundManager = require(script.Parent.RoundManager)
+	------------------------------------------------
+	-- Rescue notification
+	------------------------------------------------
+
+	if not isAutomatic
+		and rescuer
+		and rescuer.Parent then
+
+		NotificationManager:Broadcast(
+			("%s rescued %s!"):format(
+				rescuer.Name,
+				player.Name
+			),
+			Enums.NotificationTarget.Gameplay
+		)
+
 	end
 
-	RoundManager:CheckWinCondition()
+	------------------------------------------------
+	-- Win condition
+	------------------------------------------------
+
+	GetRoundManager():CheckWinCondition()
+
 end
 
--- Unfreezes everyone in the server
+------------------------------------------------
+-- UNFREEZE ALL
+------------------------------------------------
+
 function FreezeManager:UnfreezeAll()
-	for _, player in ipairs(Players:GetPlayers()) do
-		self:UnfreezePlayer(player)
-		table.clear(FreezeCooldownUntil)
-	end
-end
 
--- Handle touch collisions
-function FreezeManager:HandleTouch(toucher: Player, otherPart: BasePart)
-	-- Get the player associated with otherPart
-	local target = Players:GetPlayerFromCharacter(otherPart.Parent)
-	if not target then
-		-- Fallback to look up model ancestor (accessories, etc.)
-		local character = otherPart:FindFirstAncestorOfClass("Model")
-		if character then
-			target = Players:GetPlayerFromCharacter(character)
+	for _, player in ipairs(
+		Players:GetPlayers()
+	) do
+
+		if PlayerManager:GetState(
+			player
+		) == Enums.PlayerState.Frozen then
+
+			self:UnfreezePlayer(
+				player,
+				nil,
+				true
+			)
+
 		end
+
 	end
 
-	if not target or target == toucher then
-		return
-	end
+	table.clear(
+		FreezeCooldownUntil
+	)
 
-	-- Checks:
-	-- 1. Is round playing?
-	if not RoundManager then
-		RoundManager = require(script.Parent.RoundManager)
-	end
-	if RoundManager.CurrentState ~= Enums.RoundState.Playing then
-		return
-	end
+	table.clear(
+		FreezeUntil
+	)
 
-	-- 2. Is toucher a Hunter?
-	if PlayerManager:GetTeam(toucher) ~= Enums.Team.Hunter then
-		return
-	end
-
-	-- 3. Is target a Runner?
-	if PlayerManager:GetTeam(target) ~= Enums.Team.Runner then
-		return
-	end
-
-	-- 4. Is target already frozen?
-	if PlayerManager:GetState(target) == Enums.PlayerState.Frozen then
-		return
-	end
-
-	if not self:IsFreezeReady(toucher) then
-		return
-	end
-
-	-- Freeze the runner!
-	self:FreezePlayer(target, toucher)
 end
 
--- Hook up touch listeners when character loads
-local function onCharacterAdded(player: Player, character: Model)
-	originalAppearance[player] = nil
+------------------------------------------------
+-- TOUCH
+------------------------------------------------
 
-	-- Clean up old ProximityPrompt if it exists
+function FreezeManager:HandleTouch(
+	toucher: Player,
+	otherPart: BasePart
+)
+
+	if not toucher
+		or not toucher.Parent then
+
+		return
+	end
+
+	------------------------------------------------
+	-- Find target
+	------------------------------------------------
+
+	local character =
+		otherPart
+		and otherPart:FindFirstAncestorOfClass(
+			"Model"
+		)
+
+	local target
+
+	if character then
+
+		target =
+			Players:GetPlayerFromCharacter(
+				character
+			)
+
+	end
+
+	if not target then
+		return
+	end
+
+	if target == toucher then
+		return
+	end
+
+	------------------------------------------------
+	-- Round check
+	------------------------------------------------
+
+	local round =
+		GetRoundManager()
+
+	if round.CurrentState
+		~= Enums.RoundState.Playing then
+
+		return
+	end
+
+	------------------------------------------------
+	-- Hunter check
+	------------------------------------------------
+
+	if PlayerManager:GetTeam(
+		toucher
+	) ~= Enums.Team.Hunter then
+
+		return
+	end
+
+	------------------------------------------------
+	-- Runner check
+	------------------------------------------------
+
+	if PlayerManager:GetTeam(
+		target
+	) ~= Enums.Team.Runner then
+
+		return
+	end
+
+	------------------------------------------------
+	-- Already frozen
+	------------------------------------------------
+
+	if PlayerManager:GetState(
+		target
+	) == Enums.PlayerState.Frozen then
+
+		return
+	end
+
+	------------------------------------------------
+	-- Cooldown
+	------------------------------------------------
+
+	if not self:IsFreezeReady(
+		toucher
+	) then
+
+		return
+	end
+
+	------------------------------------------------
+	-- MAIN GAME FREEZE
+	------------------------------------------------
+	-- Your normal game freeze is rescue-based.
+
+	self:FreezePlayer(
+		target,
+		toucher,
+		{
+			Mode = "Rescue",
+		}
+	)
+
+end
+
+------------------------------------------------
+-- CHARACTER ADDED
+------------------------------------------------
+
+local function onCharacterAdded(
+	player: Player,
+	character: Model
+)
+
+	------------------------------------------------
+	-- Remove old rescue prompt
+	------------------------------------------------
+
 	if activePrompts[player] then
+
 		activePrompts[player]:Destroy()
+
 		activePrompts[player] = nil
+
 	end
 
-	-- If they respawned while marked as frozen, reset their state to Alive
-	if PlayerManager:GetState(player) == Enums.PlayerState.Frozen then
-		PlayerManager:SetState(player, Enums.PlayerState.Alive)
+	------------------------------------------------
+	-- Reset frozen state after respawn
+	------------------------------------------------
+
+	if PlayerManager:GetState(
+		player
+	) == Enums.PlayerState.Frozen then
+
+		PlayerManager:SetState(
+			player,
+			Enums.PlayerState.Alive
+		)
+
 	end
 
-	local function connectPart(part: BasePart)
-		if not part:IsA("BasePart") then return end
-		part.Touched:Connect(function(otherPart)
-			FreezeManager:HandleTouch(player, otherPart)
-		end)
+	------------------------------------------------
+	-- Clear duration timer
+	------------------------------------------------
+
+	FreezeUntil[player] = nil
+
+	------------------------------------------------
+	-- Touch listeners
+	------------------------------------------------
+
+	local function connectPart(
+		part: BasePart
+	)
+
+		if not part:IsA("BasePart") then
+			return
+		end
+
+		part.Touched:Connect(
+			function(otherPart)
+
+				FreezeManager:HandleTouch(
+					player,
+					otherPart
+				)
+
+			end
+		)
+
 	end
 
-	for _, descendant in ipairs(character:GetDescendants()) do
-		connectPart(descendant)
+	------------------------------------------------
+
+	for _, descendant in ipairs(
+		character:GetDescendants()
+	) do
+
+		connectPart(
+			descendant
+		)
+
 	end
-	character.DescendantAdded:Connect(connectPart)
+
+	------------------------------------------------
+
+	character.DescendantAdded:Connect(
+		connectPart
+	)
+
 end
+
+------------------------------------------------
+-- INIT
+------------------------------------------------
 
 function FreezeManager:Init()
-	print("FreezeManager Initializing...")
 
-	-- Setup connections for existing players
-	for _, player in ipairs(Players:GetPlayers()) do
-		player.CharacterAdded:Connect(function(character)
-			onCharacterAdded(player, character)
-		end)
+	print(
+		"FreezeManager Initializing..."
+	)
+
+	------------------------------------------------
+	-- Existing players
+	------------------------------------------------
+
+	for _, player in ipairs(
+		Players:GetPlayers()
+	) do
+
+		player.CharacterAdded:Connect(
+			function(character)
+
+				onCharacterAdded(
+					player,
+					character
+				)
+
+			end
+		)
+
 		if player.Character then
-			task.spawn(onCharacterAdded, player, player.Character)
+
+			task.spawn(
+				onCharacterAdded,
+				player,
+				player.Character
+			)
+
 		end
+
 	end
 
-	-- Setup connections for new players
-	Players.PlayerAdded:Connect(function(player)
-		player.CharacterAdded:Connect(function(character)
-			onCharacterAdded(player, character)
-		end)
-	end)
+	------------------------------------------------
+	-- New players
+	------------------------------------------------
 
-		-- Re-check win condition whenever a player leaves
-	Players.PlayerRemoving:Connect(function(_player)
-		FreezeCooldownUntil[_player] = nil
-	end)
+	Players.PlayerAdded:Connect(
+		function(player)
+
+			player.CharacterAdded:Connect(
+				function(character)
+
+					onCharacterAdded(
+						player,
+						character
+					)
+
+				end
+			)
+
+		end
+	)
+
+	------------------------------------------------
+	-- Player leaving
+	------------------------------------------------
+
+	Players.PlayerRemoving:Connect(
+		function(player)
+
+			FreezeCooldownUntil[player] =
+				nil
+
+			FreezeUntil[player] =
+				nil
+
+			if activePrompts[player] then
+
+				activePrompts[player]:Destroy()
+
+				activePrompts[player] =
+					nil
+
+			end
+
+		end
+	)
 
 end
+
+------------------------------------------------
 
 return FreezeManager

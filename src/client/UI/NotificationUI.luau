@@ -199,7 +199,6 @@ function NotificationUI:ShowNotification(data)
 		data.Duration
 		or GameConfig.Game.NotificationDuration
 		or 5
-	print(duration)
 	task.delay(
 		duration,
 		function()

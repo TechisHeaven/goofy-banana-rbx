@@ -22,10 +22,10 @@ local CurrencyManager =
 local InventoryManager =
 	require(script.Parent.InventoryManager)
 
+local NotificationManager = require(script.Parent.NotificationManager)
+
 local RewardDisplay = require(Shared.Modules.RewardDisplay)
 
-local ShopConfig =
-    require(Shared.Config.ShopConfig)
 
 ------------------------------------------------
 -- Remotes
@@ -49,6 +49,7 @@ local DailyRewardManager = {}
 
 local PlayerData = {}
 local PremiumPlayers = {}
+local DailyRewardReminderShown = {}
 ------------------------------------------------
 -- Player Data
 ------------------------------------------------
@@ -72,6 +73,28 @@ local function GetPlayerData(player)
 	end
 
 	return data
+
+end
+
+------------------------------------------------
+-- Daily Reward Reminder
+------------------------------------------------
+
+local function SendDailyRewardReminder(player, day)
+
+	if DailyRewardReminderShown[player] == day then
+		return
+	end
+
+	DailyRewardReminderShown[player] = day
+
+	NotificationManager:Send(
+		player,
+				'<font color="#FFD43B"><b>DAILY REWARD READY!</b></font> ' ..
+				'<font color="#FFFFFF">Your Day ' ..
+				tostring(day) ..
+				' reward is waiting to be claimed.</font>'
+	)
 
 end
 
@@ -260,6 +283,17 @@ function DailyRewardManager:SendData(player)
 	local premium =
 		self:IsPremium(player)
 
+	local canClaim = self:CanClaim(player)
+
+	if canClaim then
+
+		SendDailyRewardReminder(
+			player,
+			data.CurrentDay
+		)
+
+	end
+
 	UpdateReward:FireClient(
 		player,
 		{
@@ -271,13 +305,13 @@ function DailyRewardManager:SendData(player)
 				premium,
 
 			CanClaim =
-				self:CanClaim(player),
+				canClaim,
 
 			Remaining =
 				self:GetRemaining(player),
 
 			NextClaimTime =
-				self:CanClaim(player)
+				canClaim
 					and 0
 					or (
 						data.LastUnlock
@@ -505,7 +539,7 @@ function DailyRewardManager:Init()
 		function(player)
 			PremiumPlayers[player] = nil
 			PlayerData[player] = nil
-
+			DailyRewardReminderShown[player] = nil
 		end
 	)
 

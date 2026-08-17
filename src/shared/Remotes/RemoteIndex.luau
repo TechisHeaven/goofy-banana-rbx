@@ -78,6 +78,12 @@ RemoteIndex.Events = {
 
 	LevelUp = "LevelUp",
 	RewardReceived="RewardReceived",
+
+	GameplayItemState = "GameplayItemState",
+
+	GameplayItemRequest = "GameplayItemRequest",
+
+	BananaPeelRequest = "BananaPeelRequest"
 }
 
 RemoteIndex.Functions = {

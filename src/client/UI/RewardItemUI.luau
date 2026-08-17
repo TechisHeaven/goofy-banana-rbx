@@ -21,7 +21,8 @@ local ConfettiModule =
 	require(
 		Shared.Modules.ConfettiModule
 	)
-
+local SoundUtil = require(Shared.Utils.SoundUtils)
+local ItemSound = ReplicatedStorage.Sounds.GameTresure
 
 ------------------------------------------------
 -- Player GUI
@@ -243,7 +244,7 @@ function RewardItemUI:ShowNext()
 	self:Render(reward)
 
 	self:AnimateItem()
-
+	SoundUtil:PlaySound(ItemSound, RewardFrame)
 	ConfettiModule:Play(
 		RewardFrame,
 		ConfettiContainer

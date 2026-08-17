@@ -23,6 +23,8 @@ local TaskController = require(script.Controllers.TaskController)
 local LevelUpController = require(script.Controllers.LevelUpController)
 local RewardItemController = require(script.Controllers.RewardItemController)
 local PopupController = require(script.Controllers.PopupController)
+local GameplayItemController = require(script.Controllers.GameplayItemController)
+local BananaPeelController= require(script.Controllers.BananaPeelController)
 
 ShopController:Init()
 CursorController:Init()
@@ -39,6 +41,8 @@ TaskController:Init()
 LevelUpController:Init()
 RewardItemController:Init()
 PopupController:Init()
+GameplayItemController:Init()
+BananaPeelController:Init()
 
 
 -- Wait for attributes to replicate

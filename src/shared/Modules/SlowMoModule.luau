@@ -6,6 +6,9 @@ local CurrentToken = 0
 local Animator
 local OriginalFOV
 local AnimationConnection
+local AnimationLoop
+
+local CurrentSpeed = 0.35
 
 local DEFAULT_DURATION = 3
 local DEFAULT_SPEED = 0.35
@@ -31,6 +34,37 @@ local function GetAnimator()
 	end
 
 	return humanoid:FindFirstChildOfClass("Animator")
+
+end
+
+------------------------------------------------
+-- Apply Slow Motion
+------------------------------------------------
+
+local function ApplyAnimationSpeed()
+
+	if not Active then
+		return
+	end
+
+	if not Animator then
+		return
+	end
+
+	for _, track in ipairs(
+		Animator:GetPlayingAnimationTracks()
+	) do
+
+		if track.IsPlaying then
+
+			track:AdjustSpeed(
+				CurrentSpeed
+			)
+
+		end
+
+	end
+
 end
 
 ------------------------------------------------
@@ -42,23 +76,36 @@ function SlowMo:Start(options)
 	options = options or {}
 
 	local duration =
-		options.Duration or DEFAULT_DURATION
+		options.Duration
+		or DEFAULT_DURATION
 
 	local speed =
-		options.Speed or DEFAULT_SPEED
+		options.Speed
+		or DEFAULT_SPEED
 
 	local fov =
-		options.FOV or DEFAULT_FOV
+		options.FOV
+		or DEFAULT_FOV
 
 	CurrentToken += 1
 
-	local token = CurrentToken
+	local token =
+		CurrentToken
+
+	------------------------------------------------
+	-- Stop previous SlowMo
+	------------------------------------------------
+
+	if Active then
+		self:Stop()
+	end
 
 	------------------------------------------------
 	-- Animator
 	------------------------------------------------
 
-	Animator = GetAnimator()
+	Animator =
+		GetAnimator()
 
 	if not Animator then
 		return
@@ -71,50 +118,78 @@ function SlowMo:Start(options)
 	local camera =
 		workspace.CurrentCamera
 
+	if not camera then
+		return
+	end
+
 	OriginalFOV =
 		camera.FieldOfView
 
 	------------------------------------------------
-	-- Activate
+	-- Settings
 	------------------------------------------------
 
-	Active = true
+	CurrentSpeed =
+		speed
+
+	Active =
+		true
 
 	------------------------------------------------
-	-- Slow currently playing animations
+	-- Immediately slow current animations
 	------------------------------------------------
 
-	for _, track in ipairs(
-		Animator:GetPlayingAnimationTracks()
-	) do
-
-		track:AdjustSpeed(speed)
-
-	end
+	ApplyAnimationSpeed()
 
 	------------------------------------------------
-	-- Slow every new animation
+	-- New animations
 	------------------------------------------------
 
 	AnimationConnection =
 		Animator.AnimationPlayed:Connect(
 			function(track)
 
-				if Active then
-					track:AdjustSpeed(speed)
+				if not Active then
+					return
 				end
+
+				track:AdjustSpeed(
+					CurrentSpeed
+				)
 
 			end
 		)
 
 	------------------------------------------------
+	-- Continuously enforce speed
+	------------------------------------------------
+	-- This handles animations that are
+	-- replaced/restarted by Roblox animation
+	-- controllers while SlowMo is active.
+
+	AnimationLoop =
+		task.spawn(function()
+
+			while Active
+				and token == CurrentToken do
+
+				ApplyAnimationSpeed()
+
+				task.wait(0.05)
+
+			end
+
+		end)
+
+	------------------------------------------------
 	-- Camera
 	------------------------------------------------
 
-	camera.FieldOfView = fov
+	camera.FieldOfView =
+		fov
 
 	------------------------------------------------
-	-- Stop automatically
+	-- Automatic stop
 	------------------------------------------------
 
 	task.delay(
@@ -140,7 +215,8 @@ function SlowMo:Stop()
 
 	CurrentToken += 1
 
-	Active = false
+	Active =
+		false
 
 	------------------------------------------------
 	-- Disconnect animation listener
@@ -149,9 +225,18 @@ function SlowMo:Stop()
 	if AnimationConnection then
 
 		AnimationConnection:Disconnect()
-		AnimationConnection = nil
+
+		AnimationConnection =
+			nil
 
 	end
+
+	------------------------------------------------
+	-- Stop animation loop
+	------------------------------------------------
+
+	AnimationLoop =
+		nil
 
 	------------------------------------------------
 	-- Restore animations
@@ -176,15 +261,26 @@ function SlowMo:Stop()
 	local camera =
 		workspace.CurrentCamera
 
-	if camera and OriginalFOV then
+	if camera
+		and OriginalFOV then
 
 		camera.FieldOfView =
 			OriginalFOV
 
 	end
 
-	Animator = nil
-	OriginalFOV = nil
+	------------------------------------------------
+	-- Clear
+	------------------------------------------------
+
+	Animator =
+		nil
+
+	OriginalFOV =
+		nil
+
+	CurrentSpeed =
+		DEFAULT_SPEED
 
 end
 

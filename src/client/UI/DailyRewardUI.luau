@@ -64,7 +64,6 @@ local function ClearRewards()
 
 end
 local function RenderReward(frame, rewardData)
-
 	if not rewardData then
 		frame.Visible = false
 		return
@@ -105,7 +104,7 @@ end
 function DailyRewardUI:Render(data)
 
     ClearRewards()
-
+    
     local currentReward
     for _,card in ipairs(data.Cards) do
 

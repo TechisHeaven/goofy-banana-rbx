@@ -66,6 +66,7 @@ function PopupManager:Open(Popup, Options : {CanClickOutsideToClose: boolean, Re
 	if self.IsAnimating then
 		return
 	end
+	
 	Options = Options or {}
 
 	self.CanClickOutsideToClose =
@@ -227,8 +228,7 @@ function PopupManager:Close(Popup, IsSwitching)
 	-- Reopen previous popup
 	if self.ReopenPreviousOnClose
 		and self.PreviousPopup then
-
-
+		-- self.Overlay.Visible = true
 		local previous =
 			self.PreviousPopup
 
@@ -240,7 +240,7 @@ function PopupManager:Close(Popup, IsSwitching)
 		self.IsAnimating = false
 
 		self:Open(previous)
-
+		return
 	end
 
 	-- Hide overlay only if nothing reopened

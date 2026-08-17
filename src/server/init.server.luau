@@ -15,7 +15,12 @@ local LoadOrder = {
 	"CoinManager",
 	"MonetizationManager",
 	"TaskManager",
+	"CosmeticManager",
+	"GameplayItemManager",
+	"BananaPeelManager",
 }
+
+
 
 
 local LoadedManagers = {}
@@ -50,3 +55,18 @@ for _, name in ipairs(LoadOrder) do
 end
 
 print("Loaded", #LoadedManagers, "Managers")
+
+
+
+local Players = game:GetService("Players")
+
+task.wait(8)
+
+local GameplayItemManager =
+	LoadedManagers["GameplayItemManager"]
+
+GameplayItemManager:Give(
+	Players:GetPlayers()[1],
+	"Banana"
+)
+-- GameplayItemManager:Select(Players:GetPlayers()[1], "Banana")
