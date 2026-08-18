@@ -587,13 +587,6 @@ function CosmeticManager:ApplyPart(
 		return
 	end
 
-	print(
-		"[CosmeticManager] Applying:",
-		partName,
-		"->",
-		cosmeticId
-	)
-
 	------------------------------------------------
 	-- Clone
 	------------------------------------------------
@@ -840,10 +833,6 @@ function CosmeticManager:RefreshSkin(
 	) do
 		if enabled then
 
-			print(
-				"[CosmeticManager] Applying Accessory:",
-				accessoryId
-			)
 
 			AccessoryManager:Equip(
 				player,
@@ -862,13 +851,7 @@ function CosmeticManager:RefreshSkin(
         config.Parts or {}
     ) do
 
-        print(
-            "[CosmeticManager] Body Part:",
-            partName,
-            "->",
-            cosmeticId
-        )
-
+  
         self:ApplyPart(
             player,
             character,

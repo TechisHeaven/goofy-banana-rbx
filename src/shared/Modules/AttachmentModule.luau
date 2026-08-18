@@ -92,14 +92,28 @@ function AttachmentModule:Attach(
 
 	if not attachment then
 
-		warn(
-			"[AttachmentModule] Missing attachment:",
+		attachment =
+			Instance.new("Attachment")
+
+		attachment.Name =
+			attachmentName
+
+		attachment.Position =
+			Vector3.zero
+
+		attachment.Orientation =
+			Vector3.zero
+
+		attachment.Parent =
+			bodyPart
+
+		print(
+			"[AttachmentModule] Created missing attachment:",
 			attachmentName,
 			"on",
 			attachTo
 		)
 
-		return false
 	end
 
 	------------------------------------------------

@@ -464,12 +464,12 @@ function RoundManager:CleanupRound()
 		LobbyManager:GetInMatchPlayers()
 
 	for _, player in ipairs(players) do
-
-		GameplayItemManager:Remove(
-			player,
-			"Banana"
+		
+		GameplayItemManager:ClearVisual(
+			player
 		)
-
+		local item = GameplayItemManager:GetItem(player)
+		GameplayItemManager:Remove(player, item)
 	end
 
 	LobbyManager:ReturnAllToLobby(

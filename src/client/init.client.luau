@@ -25,6 +25,7 @@ local RewardItemController = require(script.Controllers.RewardItemController)
 local PopupController = require(script.Controllers.PopupController)
 local GameplayItemController = require(script.Controllers.GameplayItemController)
 local BananaPeelController= require(script.Controllers.BananaPeelController)
+local CurrencyUIController = require(script.Controllers.CurrencyUIController)
 
 ShopController:Init()
 CursorController:Init()
@@ -43,6 +44,7 @@ RewardItemController:Init()
 PopupController:Init()
 GameplayItemController:Init()
 BananaPeelController:Init()
+CurrencyUIController:Init()
 
 
 -- Wait for attributes to replicate

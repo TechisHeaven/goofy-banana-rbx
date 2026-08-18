@@ -15,7 +15,7 @@ local PopupGui =
 
 local LevelUpFrame =
 	PopupGui.Overlay:WaitForChild("LevelUpFrame")
-print(LevelUpFrame)
+
 local LevelUpUI = {}
 
 ------------------------------------------------

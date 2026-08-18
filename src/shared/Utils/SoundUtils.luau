@@ -8,7 +8,6 @@ function SoundUtils:PlaySound(sound, parent, duration)
 
 	local soundClone = sound:Clone()
 	soundClone.Parent = parent
-    print(soundClone, parent)
 	soundClone:Play()
 
 	------------------------------------------------

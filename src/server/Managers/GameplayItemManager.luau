@@ -701,7 +701,7 @@ function GameplayItemManager:Remove(
 		end
 
 	end
-
+	
 	------------------------------------------------
 	-- Clear temporary state
 	------------------------------------------------

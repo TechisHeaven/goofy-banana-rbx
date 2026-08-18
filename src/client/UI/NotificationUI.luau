@@ -11,6 +11,9 @@ local GameGui =
 local PopupGui =
 	PlayerGui:WaitForChild("PopupGui")
 
+local SoundUtils = require(ReplicatedStorage.Shared.Utils.SoundUtils)
+local PopSound= ReplicatedStorage.Sounds.Pop
+
 local GameConfig =
 	require(
 		ReplicatedStorage.Shared.GameConfig
@@ -190,6 +193,7 @@ function NotificationUI:ShowNotification(data)
 		)
 
 	inTween:Play()
+	SoundUtils:PlaySound(PopSound, slot)
 
 	------------------------------------------------
 	-- Lifetime

@@ -53,7 +53,6 @@ function CurrencyUI:SetXP(xp, level)
 			level
 		)
 
-	print(progress)
 
 	XPBar.Size =
 		UDim2.new(

@@ -68,7 +68,6 @@ function OnDailyRewardUpdate(data)
 end
 
 function DailyRewardController:BuyPremium()
-	print("buy premium, MonetizationController")
 	MonetizationController:PurchaseGamePass(DailyRewardConfig.PremiumGamePassId)
 end
 
