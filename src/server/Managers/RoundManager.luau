@@ -137,7 +137,7 @@ function RoundManager:StartRound()
 		self.RoundPlayers
 	)
 	for _, player in ipairs(self.RoundPlayers) do
-
+		-- Remove it Later
 		GameplayItemManager:Give(
 			player,
 			"Banana"
@@ -163,8 +163,6 @@ function RoundManager:StartRound()
 		self.RoundPlayers,
 		self.CurrentHunter
 	)
-
-
 
 	FreezeManager:ApplyHunterCooldown(
 		self.CurrentHunter,
@@ -733,6 +731,11 @@ function RoundManager:AddLateJoiner(player)
 		player
 	)
 
+	GamemodeManager:OnPlayerAdded(
+		self:GetGamemodeContext(),
+		player
+	)
+	
 	TaskManager:PlayerLoaded(
 		player
 	)
@@ -759,6 +762,7 @@ function RoundManager:AddLateJoiner(player)
 		self.CurrentHunter
 	)
 
+	
 end
 
 ------------------------------------------------

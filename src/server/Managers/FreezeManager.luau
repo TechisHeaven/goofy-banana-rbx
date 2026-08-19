@@ -83,6 +83,7 @@ local remotes = {}
 ------------------------------------------------
 
 local FreezeCooldownUntil = {}
+local HunterFreezeReadyAt = {}
 
 ------------------------------------------------
 -- DURATION FREEZES
@@ -172,9 +173,28 @@ function FreezeManager:IsFreezeReady(
 	player: Player
 )
 
-	return self:GetFreezeCooldown(
-		player
-	) <= 0
+	------------------------------------------------
+	-- Post-freeze cooldown
+	------------------------------------------------
+
+	if self:GetFreezeCooldown(player) > 0 then
+		return false
+	end
+
+	------------------------------------------------
+	-- Initial hunter cooldown
+	------------------------------------------------
+
+	local readyAt =
+		HunterFreezeReadyAt[player]
+
+	if readyAt
+		and os.clock() < readyAt then
+
+		return false
+	end
+
+	return true
 
 end
 
@@ -198,11 +218,11 @@ function FreezeManager:ApplyHunterCooldown(
 
 	local cooldownTime =
 		duration
-		or (
-			GameConfig.Hunter
-			and GameConfig.Hunter.CooldownTime
-		)
+		or GameConfig.Hunter.CooldownTime
 		or 4
+	
+	HunterFreezeReadyAt[player] =
+		os.clock() + cooldownTime
 
 	task.delay(
 		cooldownTime,
@@ -789,6 +809,10 @@ function FreezeManager:UnfreezeAll()
 
 	table.clear(
 		FreezeUntil
+	)
+
+	table.clear(
+		HunterFreezeReadyAt
 	)
 
 end

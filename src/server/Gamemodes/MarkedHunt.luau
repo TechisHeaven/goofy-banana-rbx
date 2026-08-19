@@ -11,7 +11,17 @@ local Shared =
 
 local Enums =
 	require(Shared.Enums)
+local RemoteIndexData = require(Shared.Remotes.RemoteIndex)
+local RemoteIndex = RemoteIndexData.Events
+local Remotes = Shared.Remotes
 
+------------------------------------------------
+
+local MarkedPlayerChanged =
+	Remotes:WaitForChild(RemoteIndex.MarkedPlayerChanged)
+
+
+local NotificationManager = require(script.Parent.Parent.Managers.NotificationManager)
 
 ------------------------------------------------
 -- State
@@ -45,8 +55,8 @@ end
 
 function MarkedHunt:SelectNewMarkedPlayer(context)
 
-local players =
-	context.RoundStatsManager:GetActivePlayers()
+	local players =
+		context.RoundStatsManager:GetActivePlayers()
 
 	local candidates = {}
 
@@ -121,6 +131,25 @@ local players =
 				#candidates
 			)
 		]
+
+	for _, player in ipairs(players) do
+		MarkedPlayerChanged:FireClient(
+			player,
+			self.MarkedPlayer
+		)
+		NotificationManager:Send(
+			player,
+			'<font color="#FF4D4D"><b>'
+				.. self.MarkedPlayer.Name
+				.. '</b></font>'
+				.. ' is now '
+				.. '<font color="#FF4D4D"><b>MARKED!</b></font>'
+				.. ' Freeze them for '
+				.. '<font color="#FFD54A"><b>extra rewards!</b></font>'
+		)
+	end
+	
+
 
 	print(
 		"[MarkedHunt] New Marked Player:",
@@ -224,6 +253,30 @@ function MarkedHunt:OnPlayerRescued(
 	)
 end
 
+
+function MarkedHunt:OnPlayerAdded(context, player)
+	print(
+		"[MarkedHunt] Late joiner:",
+		player.Name
+	)
+	if not self.MarkedPlayer then
+		return
+	end
+
+	MarkedPlayerChanged:FireClient(
+		player,
+		self.MarkedPlayer
+	)
+	
+	print(
+		"[MarkedHunt] Sent current marked player to late joiner:",
+		player.Name,
+		"Marked:",
+		self.MarkedPlayer.Name
+	)
+
+end
+
 ------------------------------------------------
 -- Player Removed
 ------------------------------------------------
@@ -251,13 +304,26 @@ end
 ------------------------------------------------
 
 function MarkedHunt:End(context)
-
+	
 	print(
 		"[MarkedHunt] Ending. Marked Player:",
 		self.MarkedPlayer
 			and self.MarkedPlayer.Name
 			or "nil"
 	)
+
+	local players =
+		context.RoundStatsManager:GetActivePlayers()
+
+	for _, player in ipairs(players) do
+
+		MarkedPlayerChanged:FireClient(
+			player,
+			nil
+		)
+
+	end
+
 
 end
 

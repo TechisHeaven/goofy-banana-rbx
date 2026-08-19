@@ -85,6 +85,8 @@ RemoteIndex.Events = {
 
 	BananaPeelRequest = "BananaPeelRequest",
 	RoundStatsUpdate = "RoundStatsUpdate",
+
+	MarkedPlayerChanged = "MarkedPlayerChanged",
 }
 
 RemoteIndex.Functions = {

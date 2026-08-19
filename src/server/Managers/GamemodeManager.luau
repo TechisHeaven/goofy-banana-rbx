@@ -232,6 +232,32 @@ function GamemodeManager:OnPlayerRescued(context, player, rescuer)
 	end
 end
 
+function GamemodeManager:OnPlayerAdded(context, player)
+
+	print(
+		"[GamemodeManager] Player Added:",
+		player.Name,
+		"Mode:",
+		self.CurrentModeName
+	)
+
+	local mode = self.CurrentMode
+
+	if not mode then
+		return
+	end
+
+	if mode.OnPlayerAdded then
+		mode:OnPlayerAdded(
+			context,
+			player
+		)
+	end
+
+end
+
+
+
 ------------------------------------------------
 -- Player Removed
 ------------------------------------------------
