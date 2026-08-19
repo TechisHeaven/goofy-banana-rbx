@@ -18,7 +18,7 @@ local ServerScriptService = game:GetService("ServerScriptService")
 local GamemodesFolder =
 	ServerScriptService.Server
 		:WaitForChild("Gamemodes")
-
+local NotificationManager = require(script.Parent.NotificationManager)
 local GamemodeManager = {}
 
 ------------------------------------------------
@@ -26,9 +26,9 @@ local GamemodeManager = {}
 ------------------------------------------------
 
 local AVAILABLE_MODES = {
-	-- "ClassicFreeze",
+	"ClassicFreeze",
 	"MarkedHunt",
-	-- "Infected",
+	"Infected",
 }
 
 ------------------------------------------------
@@ -161,7 +161,7 @@ function GamemodeManager:StartRound(context)
 	if mode.Start then
 		mode:Start(context)
 	end
-
+	NotificationManager:Broadcast('Mode: ' .. modeName)
 	print(
 		"[GamemodeManager] Started:",
 		modeName

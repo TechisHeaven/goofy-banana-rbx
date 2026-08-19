@@ -87,6 +87,8 @@ RemoteIndex.Events = {
 	RoundStatsUpdate = "RoundStatsUpdate",
 
 	MarkedPlayerChanged = "MarkedPlayerChanged",
+
+	InfectedPlayerChanged = "InfectedPlayerChanged",
 }
 
 RemoteIndex.Functions = {

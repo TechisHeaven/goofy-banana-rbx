@@ -224,18 +224,17 @@ function FreezeManager:ApplyHunterCooldown(
 	HunterFreezeReadyAt[player] =
 		os.clock() + cooldownTime
 
-	task.delay(
-		cooldownTime,
-		function()
+	local FreezeCooldown =
+		getRemote(
+			RemoteIndex.FreezeCooldown
+		)
 
-			if not player
-				or not player.Parent then
-
-				return
-			end
-
-		end
-	)
+	if FreezeCooldown then
+		FreezeCooldown:FireClient(
+			player,
+			cooldownTime
+		)
+	end
 
 end
 
@@ -641,7 +640,10 @@ function FreezeManager:FreezePlayer(
 	-- Win condition
 	------------------------------------------------
 
-	GetRoundManager():CheckWinCondition()
+	if not GamemodeManager:IsMode(Enums.Modes.Infected) then
+		print("checking-----------------------")
+		GetRoundManager():CheckWinCondition()
+	end
 
 end
 

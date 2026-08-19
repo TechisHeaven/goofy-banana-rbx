@@ -102,7 +102,7 @@ local function createNameTag(
 		head
 
 	billboard.Size =
-		UDim2.fromOffset(180, 40)
+		UDim2.fromScale(5, 1)
 
 	billboard.StudsOffset =
 		Vector3.new(0, 3, 0)
@@ -150,6 +150,7 @@ local function createNameTag(
 		Enum.Font.GothamBold
 
 	label.TextScaled = true
+	label.TextSize = 18
 
 	label.Parent =
 		billboard

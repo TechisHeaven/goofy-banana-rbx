@@ -69,24 +69,38 @@ end
 function RoundEventManager:FireRoundEnded(players, data)
     local RoundEndedRemote = getRemote(RemoteIndex.RoundEnded)
 
+
+	local winningTeam
+
+	if data.winner == "Hunter" then
+
+		winningTeam =
+			Enums.Team.Hunter
+
+	elseif data.winner == "Runners" then
+
+		winningTeam =
+			Enums.Team.Runner
+
+	end
+
+
     for _,player in ipairs(players) do
 
-        local team = PlayerManager:GetTeam(player)
+        local team =  RoundStatsManager:GetOriginalTeam(player)
 	    local stats = RoundStatsManager:GetPlayerStats(player)
+
+
+		if not stats then
+			continue
+		end
     ------------------------------------------------
 		-- Determine winner
 		------------------------------------------------
         
-		local won =
-			(
-				data.winner == "Hunter"
-				and team == Enums.Team.Hunter
-			)
-			or
-			(
-				data.winner == "Runners"
-				and team == Enums.Team.Runner
-			)
+        local won =
+                winningTeam ~= nil
+                and team == winningTeam
 
         if won then
 
@@ -113,8 +127,8 @@ function RoundEventManager:FireRoundEnded(players, data)
             hunter = data.hunter,
             stats = stats,
         })
-        RoundStatsManager:EndRound()
     end
+    RoundStatsManager:EndRound()
 
 end
 

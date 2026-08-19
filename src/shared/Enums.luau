@@ -12,6 +12,7 @@ Enums.PlayerState = {
     Alive = "Alive",
     Frozen = "Frozen",
     Rescuing = "Rescuing",
+    Infected = "Infected"
 }
 
 Enums.Team = {
@@ -30,6 +31,13 @@ Enums.NotificationTarget = {
 	Gameplay = "Gameplay",    -- GameGui
     Default = "Overlay",      -- Default to Overlay
 
+}
+
+
+Enums.Modes = {
+    ClassicFreeze = "ClassicFreeze",
+    MarkedHunt = "MarkedHunt",
+    Infected = "Infected"
 }
 
 return Enums

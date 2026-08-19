@@ -54,6 +54,10 @@ function RoundStatsManager:StartRound(players, hunter)
                 and Enums.Team.Hunter
                 or Enums.Team.Runner,
 
+			OriginalTeam = player == hunter
+				and Enums.Team.Hunter
+				or Enums.Team.Runner,
+
             Alive = player ~= hunter,
 
             Frozen = false,
@@ -93,6 +97,18 @@ function RoundStatsManager:ResetRound()
 end
 
 
+function RoundStatsManager:GetOriginalTeam(player)
+
+    local stats = PlayerStats[player]
+
+    if not stats then
+        return nil
+    end
+
+    return stats.OriginalTeam
+
+end
+
 
 function RoundStatsManager:GetPlayerStats(player)
     return PlayerStats[player]
@@ -109,6 +125,18 @@ end
 function RoundStatsManager:ShouldShowFrozenUI()
 
 	return Round.AliveRunners >= 2
+
+end
+
+function RoundStatsManager:AddMVPScore(player, amount)
+
+	local stats = PlayerStats[player]
+
+	if not stats then
+		return
+	end
+
+	stats.MVPScore += amount
 
 end
 
@@ -442,6 +470,22 @@ function RoundStatsManager:SetWinner(winner)
 	Round.Winner = winner
 
 end
+
+
+
+function RoundStatsManager:SetTeam(player, team)
+
+	local stats = PlayerStats[player]
+
+	if not stats then
+		return
+	end
+
+	stats.Team = team
+
+end
+
+
 
 function RoundStatsManager:GetWinner()
 

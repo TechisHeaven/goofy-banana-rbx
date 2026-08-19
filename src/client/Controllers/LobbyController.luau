@@ -58,16 +58,9 @@ end
 
 local function onPlayPressed()
 
-	print("Play pressed")
-	print("isQueued =", isQueued)
-	print("isInMatch =", isInMatch)
-
 	if isQueued or isInMatch then
-		print("Blocked from joining")
 		return
 	end
-
-	print("Firing RequestJoinQueue")
 
 	getRemote(RemoteIndex.RequestJoinQueue):FireServer()
 
@@ -77,7 +70,6 @@ end
 
 local function onCancelPressed()
 	if not isQueued then return end
-	print("LobbyController: Requesting leave queue")
 	getRemote(RemoteIndex.RequestLeaveQueue):FireServer()
 	setQueued(false)
 end
@@ -111,7 +103,6 @@ end
 
 --- RoundStarting — intermission has begun for queued players
 local function onRoundStarting(seconds: number)
-	print(string.format("LobbyController: Round starting in %ds!", seconds))
 	setQueued(true)
 	LobbyUI:ShowCountdown(seconds)
 end
@@ -139,7 +130,6 @@ end
 
 --- ReturnToLobby — round over, restore lobby UI
 local function onReturnToLobby()
-	print("LobbyController: Returning to lobby.")
 	isInMatch = false
 	setQueued(false)
 	LobbyUI:SetQueued(false)
@@ -151,7 +141,6 @@ local function onShowWinnerScreen(info)
 	if not info then info = {} end
 	local winnerTeam = info.winnerTeam or info.winner or "Unknown"
 	local hunterName = info.hunterName or "Unknown"
-	print(string.format("LobbyController: Winner screen — %s", winnerTeam))
 	LobbyUI:ShowWinnerScreen({
 		winnerTeam = winnerTeam,
 		hunterName = hunterName,

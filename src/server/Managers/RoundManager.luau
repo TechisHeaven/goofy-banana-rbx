@@ -26,6 +26,12 @@ local CoinManager = require(script.Parent.CoinManager)
 local GamemodeManager =
 	require(script.Parent.GamemodeManager)
 
+local PromptUtil =
+	require(
+		Shared.Utils.PromptUtil
+	)
+
+	
 local RoundManager = {}
 
 ------------------------------------------------
@@ -484,6 +490,9 @@ end
 ------------------------------------------------
 
 function RoundManager:CleanupRound()
+
+	PromptUtil:ClearAll()
+	
 	GamemodeManager:Cleanup(
 		self:GetGamemodeContext()
 	)

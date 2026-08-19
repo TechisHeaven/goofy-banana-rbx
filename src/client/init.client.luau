@@ -27,6 +27,7 @@ local GameplayItemController = require(script.Controllers.GameplayItemController
 local BananaPeelController= require(script.Controllers.BananaPeelController)
 local CurrencyUIController = require(script.Controllers.CurrencyUIController)
 local MarkedTargetController= require(script.Controllers.MarkedTargetController)
+local InfectedController = require(script.Controllers.InfectedController)
 
 ShopController:Init()
 CursorController:Init()
@@ -47,6 +48,7 @@ GameplayItemController:Init()
 BananaPeelController:Init()
 CurrencyUIController:Init()
 MarkedTargetController:Init()
+InfectedController:Init()
 
 -- Wait for attributes to replicate
 if not LocalPlayer:GetAttribute("Team") then
