@@ -45,6 +45,9 @@ local NotificationManager =
 local RoundStatsManager =
 	require(script.Parent.RoundStatsManager)
 
+local GamemodeManager =
+	require(script.Parent.GamemodeManager)
+
 local TaskManager =
 	require(script.Parent.TaskManager)
 
@@ -506,6 +509,22 @@ function FreezeManager:FreezePlayer(
 	end
 
 	------------------------------------------------
+	-- GAMEMODE EVENT
+	------------------------------------------------
+
+	local round = GetRoundManager()
+	print(
+	"[FreezeManager] Sending OnPlayerFrozen:",
+	player,
+	"Freezer:",
+	freezer and freezer.Name or "nil"
+)
+	GamemodeManager:OnPlayerFrozen(
+		round:GetGamemodeContext(),
+		player,
+		freezer
+	)
+	------------------------------------------------
 	-- HUNTER COOLDOWN
 	------------------------------------------------
 
@@ -661,6 +680,22 @@ function FreezeManager:UnfreezePlayer(
 
 	end
 
+	------------------------------------------------
+	-- GAMEMODE EVENT
+	------------------------------------------------
+
+	local round = GetRoundManager()
+	print(
+	"[FreezeManager] Sending OnPlayerRescued:",
+		player,
+		"Rescuer:",
+		rescuer
+	)
+	GamemodeManager:OnPlayerRescued(
+		round:GetGamemodeContext(),
+		player,
+		rescuer
+	)
 	------------------------------------------------
 	-- Player state
 	------------------------------------------------

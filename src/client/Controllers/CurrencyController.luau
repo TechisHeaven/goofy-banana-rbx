@@ -14,16 +14,18 @@ local RemoteIndexData =
 local RemoteIndex =
 	RemoteIndexData.Events
 
+local Remotes = Shared.Remotes
+
 ------------------------------------------------
 
-local Remotes =
-	Shared:WaitForChild("Remotes")
+local UpdateCurrency =
+	Remotes:WaitForChild(RemoteIndex.UpdateCurrency)
 
-local function GetRemote(name)
+local RoundStatsUpdate = Remotes:WaitForChild(RemoteIndex.RoundStatsUpdate)
 
-	return Remotes:WaitForChild(name)
+local UIManager = require(script.Parent.Parent.manager.UImanager)
+------------------------------------------------
 
-end
 
 ------------------------------------------------
 
@@ -46,9 +48,20 @@ function CurrencyController:Init()
 
 	CurrencyUI:Init()
 
-	GetRemote(RemoteIndex.UpdateCurrency)
-		.OnClientEvent
+	UpdateCurrency.OnClientEvent
 		:Connect(OnCurrencyUpdate)
+
+	RoundStatsUpdate.OnClientEvent:Connect(
+		function(statName, value)
+
+			if statName == "Coins" then
+
+				UIManager:SetRoundCoins(value)
+
+			end
+
+		end
+	)
 
 end
 

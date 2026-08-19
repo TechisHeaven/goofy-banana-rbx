@@ -15,7 +15,9 @@ local TweenService = game:GetService("TweenService")
 local TimerLabel = GameGui.Center.Timer.TimerValue
 local RoleLabel = GameGui.Center.Role.RoleLabel
 local NotificationsContainer = GameGui.Right.Notifications
-local FrozenCounter = GameGui.Right.Frozen.Title
+local FrozenCounter = GameGui.Right.FrozenFrame.Frozen.Title
+local RoundCoinsLabel =
+	GameGui.Right.RoundStats.CurrencyFrame.Coins.Amount
 
 
 function UIManager:ShowLobby()
@@ -26,6 +28,30 @@ end
 function UIManager:ShowGame()
 	LobbyGui.Enabled = false
 	GameGui.Enabled = true
+end
+
+
+function UIManager:SetRoundCoins(coins)
+
+	coins = tonumber(coins) or 0
+
+	RoundCoinsLabel.Text =
+		self:Format(coins)
+
+end
+
+function UIManager:Format(amount)
+
+	if amount >= 1000000 then
+		return string.format("%.1fM", amount / 1000000)
+	end
+
+	if amount >= 10000 then
+		return string.format("%.1fK", amount / 1000)
+	end
+
+	return tostring(amount)
+
 end
 
 function UIManager:SetGameState(inGame: boolean)

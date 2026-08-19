@@ -23,6 +23,8 @@ local TaskManager = require(script.Parent.TaskManager)
 local TaskEvents = require(Shared.EnumsEvents.TaskEvents)
 
 local CoinManager = require(script.Parent.CoinManager)
+local GamemodeManager =
+	require(script.Parent.GamemodeManager)
 
 local RoundManager = {}
 
@@ -34,6 +36,30 @@ RoundManager.CurrentState = Enums.RoundState.Waiting
 RoundManager.LastWinner = nil
 RoundManager.TimeRemaining = 0
 RoundManager.CurrentHunter = nil
+
+
+
+------------------------------------------------
+-- Gamemode Context
+------------------------------------------------
+
+function RoundManager:GetGamemodeContext()
+
+	return {
+		RoundManager = self,
+
+		Players = self.RoundPlayers,
+
+		Hunter = self.CurrentHunter,
+
+		PlayerManager = PlayerManager,
+		FreezeManager = FreezeManager,
+		RoundStatsManager = RoundStatsManager,
+		RoundEventManager = RoundEventManager,
+	}
+
+end
+
 
 ------------------------------------------------
 -- Waiting
@@ -182,6 +208,9 @@ function RoundManager:StartRound()
 	self.TimeRemaining =
 		GameConfig.Round.RoundTime
 
+	GamemodeManager:StartRound(
+		self:GetGamemodeContext()
+	)
 end
 
 ------------------------------------------------
@@ -361,6 +390,10 @@ function RoundManager:EndRound()
 	self.CurrentState =
 		Enums.RoundState.Ending
 
+	GamemodeManager:EndRound(
+		self:GetGamemodeContext()
+	)
+
 	FreezeManager:UnfreezeAll()
 
 	LobbyManager:UpdateMatchStatus(
@@ -453,7 +486,10 @@ end
 ------------------------------------------------
 
 function RoundManager:CleanupRound()
-
+	GamemodeManager:Cleanup(
+		self:GetGamemodeContext()
+	)
+	
 	CoinManager:StopRound()
 
 	CursorController:EnterLobby()
@@ -764,7 +800,10 @@ function RoundManager:Init()
 
 	Players.PlayerRemoving:Connect(
 		function(player)
-
+			GamemodeManager:OnPlayerRemoved(
+				self:GetGamemodeContext(),
+				player
+			)
 			RoundStatsManager:RemovePlayer(
 				player
 			)

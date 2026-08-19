@@ -7,6 +7,16 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage.Shared
 local Enums = require(Shared.Enums)
 
+local RemoteIndexData = require(Shared.Remotes.RemoteIndex)
+local RemoteIndex = RemoteIndexData.Events
+
+
+local Remotes = Shared.Remotes
+
+------------------------------------------------
+
+local RoundStatsUpdate =
+	Remotes:WaitForChild(RemoteIndex.RoundStatsUpdate)
 
 
 
@@ -114,6 +124,12 @@ function RoundStatsManager:AddCoins(player, amount)
     stats.Coins += amount
     stats.MVPScore += amount
 
+	RoundStatsUpdate:FireClient(
+		player,
+		"Coins",
+		stats.Coins,
+		amount
+	)
 end
 
 function RoundStatsManager:AddFrozenPlayer(player)
@@ -157,6 +173,24 @@ function RoundStatsManager:AddLateJoiner(player)
 	Round.AliveRunners += 1
 
 end
+
+function RoundStatsManager:GetActivePlayers()
+
+	local players = {}
+
+	for player, stats in pairs(PlayerStats) do
+
+		if stats then
+			table.insert(players, player)
+		end
+
+	end
+
+	return players
+
+end
+
+
 
 function RoundStatsManager:RemovePlayer(player)
 

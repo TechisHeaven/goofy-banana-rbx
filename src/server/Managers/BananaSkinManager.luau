@@ -7,8 +7,6 @@ local ReplicatedStorage =
 ------------------------------------------------
 -- CONFIG
 ------------------------------------------------
-print(ReplicatedStorage.Shared.Config)
-print(ReplicatedStorage.Shared.Config.BananaSkinVisualConfig)
 local BananaSkinVisualConfig = require(ReplicatedStorage.Shared.Config.BananaSkinVisualConfig)
 
 ------------------------------------------------
@@ -75,7 +73,6 @@ function BananaSkinManager:GetEquipped(
 	if not equipped then
 		return nil
 	end
-	print(equipped.BananaSkins)
 	return equipped.BananaSkins
 
 end
@@ -284,7 +281,6 @@ function BananaSkinManager:Apply(
 	if not bananaVisual then
 		return false
 	end
-	print("BananaSkinManager", skinId)
 	------------------------------------------------
 	-- Get equipped skin
 	------------------------------------------------
@@ -445,10 +441,6 @@ function BananaSkinManager:Apply(
 
 	end
 
-	print(
-		"[BananaSkinManager] Applied:",
-		skinId
-	)
 
 	return true
 

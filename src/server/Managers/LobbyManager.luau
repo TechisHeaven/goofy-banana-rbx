@@ -127,7 +127,6 @@ function LobbyManager:AddToQueue(player: Player)
 	lobbyStates[player] = Enums.PlayerLobbyState.Queued
 	player:SetAttribute("LobbyState", Enums.PlayerLobbyState.Queued)
 	table.insert(queue, player)
-	print(string.format("LobbyManager: %s joined queue (%d queued)", player.Name, #queue))
 	self:BroadcastStatus()
 end
 
@@ -144,7 +143,6 @@ function LobbyManager:RemoveFromQueue(player: Player)
 		lobbyStates[player] = Enums.PlayerLobbyState.InLobby
 		player:SetAttribute("LobbyState", Enums.PlayerLobbyState.InLobby)
 	end
-	print(string.format("LobbyManager: %s left queue (%d queued)", player.Name, #queue))
 	self:BroadcastStatus()
 end
 
@@ -302,7 +300,6 @@ local function onPlayerAdded(player: Player)
 	lobbyStates[player] = Enums.PlayerLobbyState.InLobby
 	
 	player:SetAttribute("LobbyState", Enums.PlayerLobbyState.InLobby)
-	print(string.format("LobbyManager: %s registered (InLobby)", player.Name))
 
 	-- Send them the current status immediately
 	task.defer(function()
@@ -317,7 +314,6 @@ local function onPlayerRemoving(player: Player)
 	end
 	inMatchSet[player]  = nil
 	lobbyStates[player] = nil
-	print(string.format("LobbyManager: %s removed", player.Name))
 	LobbyManager:BroadcastStatus()
 end
 
@@ -407,13 +403,10 @@ function LobbyManager:Init()
 
 	remotes[RemoteIndex.Events.RequestJoinQueue].OnServerEvent:Connect(function(player)
 
-		print(string.format("LobbyManager: RequestJoinQueue from %s", player.Name))
 
 		if LobbyManager.OnJoinRequest then
-			print("Using custom join request")
 			LobbyManager.OnJoinRequest(player)
 		else
-			print("Default queue")
 			self:AddToQueue(player)
 		end
 
@@ -425,7 +418,6 @@ function LobbyManager:Init()
 	-- end)
 	remotes[RemoteIndex.Events.RequestLeaveQueue].OnServerEvent:Connect(function(player)
 
-		print(string.format("LobbyManager: RequestLeaveQueue from %s", player.Name))
 
 		-- Player is queued
 		if self:IsQueued(player) then
