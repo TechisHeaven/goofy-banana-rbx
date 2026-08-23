@@ -28,6 +28,9 @@ local BananaPeelController= require(script.Controllers.BananaPeelController)
 local CurrencyUIController = require(script.Controllers.CurrencyUIController)
 local MarkedTargetController= require(script.Controllers.MarkedTargetController)
 local InfectedController = require(script.Controllers.InfectedController)
+local RoundInfoController = require(script.Controllers.RoundInfoController)
+local HelpSignalController = require(script.Controllers.HelpSignalController)
+local HunterEntryController= require(script.Controllers.HunterEntryController)
 
 ShopController:Init()
 CursorController:Init()
@@ -49,6 +52,9 @@ BananaPeelController:Init()
 CurrencyUIController:Init()
 MarkedTargetController:Init()
 InfectedController:Init()
+RoundInfoController:Init()
+HelpSignalController:Init()
+HunterEntryController:Init()
 
 -- Wait for attributes to replicate
 if not LocalPlayer:GetAttribute("Team") then

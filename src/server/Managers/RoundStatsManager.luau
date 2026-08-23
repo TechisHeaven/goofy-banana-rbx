@@ -175,6 +175,7 @@ end
 function RoundStatsManager:AddLateJoiner(player)
 
 	PlayerStats[player] = {
+		OriginalTeam = Enums.Team.Runner,
 
 		Team = Enums.Team.Runner,
 
@@ -298,16 +299,12 @@ function RoundStatsManager:GetTopCoins()
 
 end
 
-function RoundStatsManager:GetMVPRunner()
+function RoundStatsManager:GetMVP()
 
 	local bestPlayer
 	local bestScore = -math.huge
 
 	for player, stats in pairs(PlayerStats) do
-
-		if stats.Team ~= Enums.Team.Runner then
-			continue
-		end
 
 		if stats.MVPScore > bestScore then
 

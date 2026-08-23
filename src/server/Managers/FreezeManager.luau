@@ -641,7 +641,6 @@ function FreezeManager:FreezePlayer(
 	------------------------------------------------
 
 	if not GamemodeManager:IsMode(Enums.Modes.Infected) then
-		print("checking-----------------------")
 		GetRoundManager():CheckWinCondition()
 	end
 

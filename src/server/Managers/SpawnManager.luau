@@ -3,6 +3,20 @@ local SpawnManager = {}
 local Workspace = game:GetService("Workspace")
 local Players = game:GetService("Players")
 
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+local RemoteIndexData = require(Shared.Remotes.RemoteIndex)
+local RemoteIndex = RemoteIndexData.Events
+
+local RemoteManager =
+	require(script.Parent.RemoteManager)
+
+local HunterEntry =
+	RemoteManager:GetEvent(
+		RemoteIndex.HunterEntry
+	)
+
 -- Helper function to resolve maps folder and spawn point folders
 local function getMapSpawns()
 	local mapsFolder = Workspace:FindFirstChild("Maps")
@@ -62,7 +76,29 @@ function SpawnManager:TeleportPlayers(activePlayers: {Player}, hunter: Player)
 	if hunterSpawn and hunterSpawn:IsA("BasePart") then
 		print(string.format("SpawnManager: Teleporting hunter %s to %s", hunter.Name, hunterSpawn.Name))
 		task.spawn(function()
-			teleportPlayer(hunter, hunterSpawn.CFrame)
+			local hunterCFrame =
+			hunterSpawn.CFrame
+			* CFrame.Angles(0, math.rad(180), 0)
+			teleportPlayer(
+				hunter,
+				hunterCFrame
+			)
+
+			------------------------------------------------
+			-- Teleport is finished
+			-- Now tell clients to play Hunter Entry
+			------------------------------------------------
+			-- HunterEntry:FireAllClients(hunter)
+
+			for _, player in ipairs(activePlayers) do
+				if player and player.Parent == Players then
+					HunterEntry:FireClient(
+						player,
+						hunter
+					)
+				end
+			end
+
 		end)
 	else
 		warn("SpawnManager: HunterSpawn not found in HunterSpawnPoints!")

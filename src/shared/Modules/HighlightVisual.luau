@@ -6,7 +6,7 @@ local HighlightVisual = {}
 
 local DEFAULT_FILL_COLOR = Color3.fromRGB(255, 60, 60)
 local DEFAULT_OUTLINE_COLOR = Color3.fromRGB(255, 255, 255)
-
+local DEFAULT_NAME = "MarkedTargetHighlight"
 ------------------------------------------------
 -- Create
 ------------------------------------------------
@@ -27,7 +27,7 @@ function HighlightVisual.Create(
 	------------------------------------------------
 
 	local existing =
-		parent:FindFirstChild("MarkedTargetHighlight")
+		parent:FindFirstChild(DEFAULT_NAME)
 
 	if existing then
 		existing:Destroy()
@@ -44,7 +44,7 @@ function HighlightVisual.Create(
 		Instance.new("Highlight")
 
 	highlight.Name =
-		"MarkedTargetHighlight"
+		options.Name or DEFAULT_NAME
 
 	highlight.Adornee =
 		options.Adornee or parent
@@ -82,16 +82,14 @@ end
 ------------------------------------------------
 
 function HighlightVisual.Remove(parent)
-
+	print(parent)
 	if not parent then
 		return
 	end
 
 	local highlight =
-		parent:FindFirstChild(
-			"MarkedTargetHighlight"
-		)
-
+		parent:FindFirstChild(DEFAULT_NAME)
+	print("hightlightname", highlight)
 	if highlight then
 		highlight:Destroy()
 	end

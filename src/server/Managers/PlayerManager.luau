@@ -57,7 +57,6 @@ function PlayerManager:SetState(player: Player, state: string)
 	if data then
 		data.State = state
 		player:SetAttribute("State", state)
-		print(string.format("PlayerManager: Set %s's state to %s", player.Name, state))
 	else
 		warn(string.format("PlayerManager: Attempted to set state for unregistered player %s", player.Name))
 	end

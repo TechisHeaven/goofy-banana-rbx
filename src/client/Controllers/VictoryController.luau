@@ -6,7 +6,7 @@ local VictoryAnimations = require(
 	Shared.Modules.VictoryAnimationsModule
 )
 local AnimsFolder = ReplicatedStorage.CinematicAnimations
-
+local GameConfig = require(Shared.GameConfig)
 local RunService = game:GetService("RunService")
 
 local RemoteIndexData = require(Shared.Remotes.RemoteIndex)
@@ -43,80 +43,6 @@ end
 
 
 
--- function animPlayer:PlayAnimation(char: Model)
-	
--- 	-- Get animator and humanoidrootpart
-	
--- 	local hum = char:FindFirstChildOfClass("Humanoid")
--- 	local animator = hum:FindFirstChildOfClass("Animator")
--- 	local hrp = char:FindFirstChild("HumanoidRootPart")
-	
--- 	-- Make character unable to move
-	
--- 	hum.WalkSpeed = 0
--- 	hum.JumpPower = 0
--- 	hum.AutoRotate = false
-	
--- 	-- Gets the camera rig
-	
--- 	local camRig = camRig:Clone()
--- 	local camPart = camRig:FindFirstChild("Cam")
--- 	local camHRP = camRig:FindFirstChild("HumanoidRootPart")
--- 	local animationController = camRig:FindFirstChildOfClass("AnimationController")
--- 	local camAnimator = animationController:FindFirstChildOfClass("Animator")
--- 	camRig.Parent = workspace
-	
--- 	-- Load the tracks
-	
--- 	local humTrack = animator:LoadAnimation(humAnim)
--- 	local camTrack = camAnimator:LoadAnimation(camAnim)
-	
--- 	-- Positions the rig correctly
-	
--- 	camRig:PivotTo(hrp.CFrame)
-	
--- 	-- Weld the two humanoidRootParts together
-	
--- 	local weld = Instance.new("WeldConstraint")
--- 	weld.Part0 = hrp
--- 	weld.Part1 = camHRP
--- 	weld.Parent = camHRP
-	
--- 	-- Make player's camera follow the rig's camera
-	
--- 	local cam = workspace.CurrentCamera
-	
--- 	cam.CameraType = Enum.CameraType.Scriptable
-	
--- 	local connection: RBXScriptConnection = runService.RenderStepped:Connect(function()
-
--- 		cam.CFrame = camPart.CFrame
-
--- 	end)
-	
--- 	-- Play the tracks
-	
--- 	humTrack:Play(0)
--- 	camTrack:Play(0)
-	
--- 	-- Wait for the animation to end
-	
--- 	task.wait(humTrack.Length)
-	
--- 	-- Return everything to normal
-	
--- 	camRig:Destroy()
-	
--- 	connection:Disconnect()
-	
--- 	cam.CameraType = Enum.CameraType.Custom
-	
--- 	hum.WalkSpeed = 16
--- 	hum.JumpPower = 7.2
--- 	hum.AutoRotate = true
-
-	
--- end
 function VictoryController:PlayCutScene(model, poseName, options)
 	options = options or {}
 
@@ -274,18 +200,76 @@ function VictoryController:PlayAnimation(model, poseName)
 end
 
 
-
 function VictoryController:Play(data)
-	local player = Players.LocalPlayer
-	local character = player.Character or player.CharacterAdded:Wait()
+	if not data then
+		warn("[VictoryController] Missing victory data")
+		return
+	end
+	------------------------------------------------
+	-- GET WINNER
+	------------------------------------------------
 
-	local spawnPart = workspace.VictoryStage:WaitForChild("WinnerSpawn")
+	local winner = data.Winner
+
+	if typeof(winner) ~= "Instance"
+		or not winner:IsA("Player") then
+
+		warn(
+			"[VictoryController] Invalid winner:",
+			winner
+		)
+
+		return
+	end
+
+
+
+	local character =
+		winner.Character
+
+	if not character then
+
+		character =
+			winner.CharacterAdded:Wait()
+
+	end
+
+	if not character then
+		warn(
+			"[VictoryController] Winner character not found:",
+			winner.Name
+		)
+
+		return
+	end
+
+
+
+	local victoryStage =
+		workspace:FindFirstChild("VictoryStage")
+
+	if not victoryStage then
+		warn("[VictoryController] VictoryStage not found")
+		return
+	end
+
+	local spawnPart =
+		victoryStage:FindFirstChild("WinnerSpawn")
+
+	if not spawnPart then
+		warn("[VictoryController] WinnerSpawn not found")
+		return
+	end
+
 
 	-- Allow cloning
 	character.Archivable = true
 	local clone = character:Clone()
 	character.Archivable = false
-
+	if not clone then
+			warn("[VictoryController] Failed to clone winner")
+			return
+		end
 	clone.Name = "VictoryCharacter"
 
 	for _, obj in ipairs(clone:GetDescendants()) do
@@ -301,13 +285,21 @@ local humanoid = clone:WaitForChild("Humanoid")
 
 	local head = clone:WaitForChild("Head")
 
+	local markerName = "PlayerNameTag"
+
+	local existing =
+		head:FindFirstChild(markerName)
+
+	if existing then
+		existing:Destroy()
+	end
+
 	local template = ReplicatedStorage.UI:WaitForChild("VictoryNameTag")
 	local tag = template:Clone()
 	-- Ensure Winner is a string (Player instance -> use Name)
 	local winnerName = (type(data.Winner) == "table" and data.Winner.Name) or tostring(data.Winner)
 	tag.NameLabel.Text = winnerName ~= "nil" and winnerName or "OG PLAYER"
 	tag.TitleLabel.Text = "MVP"
-
 	tag.Parent = head
 
 	-- Make it a display model
@@ -327,7 +319,12 @@ local humanoid = clone:WaitForChild("Humanoid")
 	-- Teleport after parenting
 	local offset = humanoid.HipHeight + hrp.Size.Y / 2
 	clone:PivotTo(spawnPart.CFrame * CFrame.new(0, offset, 0))
+	if humanoid and humanoid.Parent then
 
+		hrp.AssemblyLinearVelocity = Vector3.zero
+		hrp.AssemblyAngularVelocity = Vector3.zero
+
+	end
 	-- One frame later, force it again
 	task.wait()
 
@@ -340,9 +337,8 @@ local humanoid = clone:WaitForChild("Humanoid")
 	local pose = data.Pose or "Default"
 
 	-- local track = self:PlayAnimation(clone, pose)
-	local track = self:PlayCutScene(clone, pose, {ResetCamera = false, FOV = 110})
-
-	task.wait(5)
+	local track = self:PlayCutScene(clone, pose, {ResetCamera = false, FOV = GameConfig.Game.VictoryCutSceneFOV or 110})
+	task.wait(GameConfig.Game.VictoryPoseDuration or 5)
 
 	if track then
 		track:Stop()

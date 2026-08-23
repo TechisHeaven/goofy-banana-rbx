@@ -18,6 +18,7 @@ Enums.PlayerState = {
 Enums.Team = {
     Hunter = "Hunter",
     Runner = "Runner",
+    Infected = "Infected",
 }
 
 Enums.PlayerLobbyState = {

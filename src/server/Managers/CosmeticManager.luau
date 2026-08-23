@@ -26,7 +26,13 @@ local SkinVisualConfig =
 			.SkinVisualConfig
 	)
 
-	
+local BananaSkinVisualConfig =
+	require(
+		ReplicatedStorage
+			.Shared
+			.Config
+			.BananaSkinVisualConfig
+	)
 
 ------------------------------------------------
 -- FOLDERS
@@ -37,7 +43,8 @@ local Cosmetics =
 
 local SkinsFolder =
 	Cosmetics:WaitForChild("Skins")
-
+local BananaSkinsFolder =
+	Cosmetics:WaitForChild("BananaSkins")
 ------------------------------------------------
 -- MANAGER
 ------------------------------------------------
@@ -864,6 +871,364 @@ function CosmeticManager:RefreshSkin(
 
 end
 
+
+------------------------------------------------
+-- BANANA SKINS
+------------------------------------------------
+
+function CosmeticManager:GetEquippedBananaSkin(player)
+
+	local profile =
+		GetProfile(player)
+
+	if not profile then
+		return nil
+	end
+
+	local inventory =
+		profile.Inventory
+
+	if not inventory then
+		return nil
+	end
+
+	local equipped =
+		inventory.Equipped
+
+	if not equipped then
+		return nil
+	end
+
+	return equipped.BananaSkins
+
+end
+
+
+------------------------------------------------
+-- GET BANANA SKIN CONFIG
+------------------------------------------------
+
+function CosmeticManager:GetBananaSkinConfig(
+	skinId
+)
+
+	if not skinId then
+		return nil
+	end
+
+	return BananaSkinVisualConfig[skinId]
+
+end
+
+
+------------------------------------------------
+-- GET BANANA SKIN MODEL
+------------------------------------------------
+
+function CosmeticManager:GetBananaSkinModel(
+	skinId
+)
+
+	local config =
+		self:GetBananaSkinConfig(
+			skinId
+		)
+
+	if not config then
+
+		warn(
+			"[CosmeticManager] Missing banana skin config:",
+			skinId
+		)
+
+		return nil
+	end
+
+	local skinFolder =
+		BananaSkinsFolder:FindFirstChild(
+			skinId
+		)
+
+	if not skinFolder then
+
+		warn(
+			"[CosmeticManager] Missing banana skin folder:",
+			skinId
+		)
+
+		return nil
+	end
+
+	local model =
+		skinFolder:FindFirstChild(
+			config.Model
+		)
+
+	if not model then
+
+		warn(
+			"[CosmeticManager] Missing banana skin model:",
+			config.Model,
+			"inside",
+			skinId
+		)
+
+		return nil
+	end
+
+	return model
+
+end
+
+
+------------------------------------------------
+-- GET MAIN PART
+------------------------------------------------
+
+local function GetBananaMain(
+	visual
+)
+
+	if visual:IsA("BasePart") then
+		return visual
+	end
+
+	if not visual:IsA("Model") then
+		return nil
+	end
+
+	if visual.PrimaryPart then
+		return visual.PrimaryPart
+	end
+
+	local main =
+		visual:FindFirstChild(
+			"Main",
+			true
+		)
+
+	if main and main:IsA("BasePart") then
+		return main
+	end
+
+	return visual:FindFirstChildWhichIsA(
+		"BasePart",
+		true
+	)
+
+end
+
+
+------------------------------------------------
+-- CLEAR BANANA SKIN
+------------------------------------------------
+
+function CosmeticManager:ClearBananaSkin(
+	bananaVisual
+)
+
+	if not bananaVisual then
+		return
+	end
+
+	for _, object in ipairs(
+		bananaVisual:GetDescendants()
+	) do
+
+		if object:GetAttribute(
+			"BananaSkinVisual"
+		) == true then
+
+			object:Destroy()
+
+		end
+
+	end
+
+end
+
+
+------------------------------------------------
+-- REFRESH BANANA SKIN
+------------------------------------------------
+
+function CosmeticManager:RefreshBananaSkin(
+	player,
+	bananaVisual
+)
+
+	if not bananaVisual then
+		return false
+	end
+
+	------------------------------------------------
+	-- EQUIPPED SKIN
+	------------------------------------------------
+
+	local skinId =
+		self:GetEquippedBananaSkin(
+			player
+		)
+
+	------------------------------------------------
+	-- CLEAR CURRENT
+	------------------------------------------------
+
+	self:ClearBananaSkin(
+		bananaVisual
+	)
+
+	------------------------------------------------
+	-- NO SKIN
+	------------------------------------------------
+
+	if not skinId then
+		return true
+	end
+
+	------------------------------------------------
+	-- SOURCE
+	------------------------------------------------
+
+	local source =
+		self:GetBananaSkinModel(
+			skinId
+		)
+
+	if not source then
+		return false
+	end
+
+	------------------------------------------------
+	-- BANANA MAIN
+	------------------------------------------------
+
+	local bananaMain =
+		GetBananaMain(
+			bananaVisual
+		)
+
+	if not bananaMain then
+
+		warn(
+			"[CosmeticManager] Banana has no Main part"
+		)
+
+		return false
+	end
+
+	------------------------------------------------
+	-- CLONE
+	------------------------------------------------
+
+	local visual =
+		source:Clone()
+
+	visual.Name =
+		"BananaSkinVisual"
+
+	visual:SetAttribute(
+		"BananaSkinVisual",
+		true
+	)
+
+	visual.Parent =
+		bananaVisual
+
+	------------------------------------------------
+	-- PREPARE
+	------------------------------------------------
+
+	if visual:IsA("BasePart") then
+
+		PreparePart(
+			visual
+		)
+
+	else
+
+		for _, object in ipairs(
+			visual:GetDescendants()
+		) do
+
+			if object:IsA("BasePart") then
+				PreparePart(object)
+			end
+
+		end
+
+	end
+
+	------------------------------------------------
+	-- SKIN MAIN
+	------------------------------------------------
+
+	local skinMain =
+		GetBananaMain(
+			visual
+		)
+
+	if not skinMain then
+
+		warn(
+			"[CosmeticManager] Banana skin has no Main:",
+			skinId
+		)
+
+		visual:Destroy()
+
+		return false
+	end
+
+	------------------------------------------------
+	-- POSITION
+	------------------------------------------------
+
+	if visual:IsA("Model") then
+
+		visual:PivotTo(
+			bananaMain.CFrame
+		)
+
+	else
+
+		visual.CFrame =
+			bananaMain.CFrame
+
+	end
+
+	------------------------------------------------
+	-- WELD
+	------------------------------------------------
+
+	local weld =
+		Instance.new("WeldConstraint")
+
+	weld.Name =
+		"BananaSkinWeld"
+
+	weld.Part0 =
+		bananaMain
+
+	weld.Part1 =
+		skinMain
+
+	weld.Parent =
+		skinMain
+
+	------------------------------------------------
+	-- HIDE ORIGINAL BANANA
+	------------------------------------------------
+
+	if bananaMain ~= skinMain then
+		bananaMain.Transparency = 1
+	end
+
+	return true
+
+end
+
+
 ------------------------------------------------
 -- UNIVERSAL REFRESH
 ------------------------------------------------
@@ -884,7 +1249,7 @@ function CosmeticManager:Refresh(
 		)
 
 	elseif category == "BananaSkins" then
-
+		
 		-- Later
 		-- self:RefreshBananaSkin(player)
 

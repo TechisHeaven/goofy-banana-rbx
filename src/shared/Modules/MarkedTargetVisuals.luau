@@ -11,10 +11,17 @@ local HighlightVisual =
 			:WaitForChild("HighlightVisual")
 	)
 
+local MarkerUtil =
+	require(
+		Shared
+			:WaitForChild("Utils")
+			:WaitForChild("MarkerUtil")
+	)
+
 local MarkedTargetVisuals = {}
 
 ------------------------------------------------
--- State
+-- STATE
 ------------------------------------------------
 
 MarkedTargetVisuals.CurrentTarget = nil
@@ -23,7 +30,7 @@ MarkedTargetVisuals.Highlight = nil
 MarkedTargetVisuals.NameTag = nil
 
 ------------------------------------------------
--- Configuration
+-- CONFIGURATION
 ------------------------------------------------
 
 local HIGHLIGHT_SETTINGS = {
@@ -50,117 +57,45 @@ local HIGHLIGHT_SETTINGS = {
 }
 
 ------------------------------------------------
--- Remove Name Tag
+-- NAME TAG SETTINGS
 ------------------------------------------------
 
-local function removeNameTag(character)
+local NAME_TAG_SETTINGS = {
 
-	if not character then
-		return
-	end
+	Name = "MarkedTargetNameTag",
 
-	local tag =
-		character:FindFirstChild(
-			"MarkedTargetNameTag"
-		)
+	Text = "MARKED",
 
-	if tag then
-		tag:Destroy()
-	end
-
-end
-
-------------------------------------------------
--- Create Name Tag
-------------------------------------------------
-
-local function createNameTag(
-	character,
-	player
-)
-
-	local head =
-		character:FindFirstChild("Head")
-
-	if not head then
-		return nil
-	end
-
-	removeNameTag(character)
-
-	------------------------------------------------
-	-- Billboard
-	------------------------------------------------
-
-	local billboard =
-		Instance.new("BillboardGui")
-
-	billboard.Name =
-		"MarkedTargetNameTag"
-
-	billboard.Adornee =
-		head
-
-	billboard.Size =
-		UDim2.fromScale(5, 1)
-
-	billboard.StudsOffset =
-		Vector3.new(0, 3, 0)
-
-	billboard.AlwaysOnTop = true
-
-	billboard.Parent =
-		character
-
-	------------------------------------------------
-	-- Text
-	------------------------------------------------
-
-	local label =
-		Instance.new("TextLabel")
-
-	label.Name =
-		"Name"
-
-	label.Size =
-		UDim2.fromScale(1, 1)
-
-	label.BackgroundTransparency = 1
-
-	label.Text =
-		player.DisplayName
-
-	label.TextColor3 =
+	TextColor =
 		Color3.fromRGB(
 			255,
-			70,
-			70
-		)
+			200,
+			50
+		),
 
-	label.TextStrokeColor3 =
-		Color3.fromRGB(
+	TextSize = 20,
+
+	Size =
+		UDim2.fromOffset(
+			140,
+			45
+		),
+
+	StudsOffset =
+		Vector3.new(
 			0,
-			0,
+			3,
 			0
-		)
+		),
 
-	label.TextStrokeTransparency = 0.25
+	AlwaysOnTop = true,
 
-	label.Font =
-		Enum.Font.GothamBold
+	MaxDistance = 999999,
 
-	label.TextScaled = true
-	label.TextSize = 18
-
-	label.Parent =
-		billboard
-
-	return billboard
-
-end
+}
 
 ------------------------------------------------
--- Clear
+-- CLEAR
 ------------------------------------------------
 
 function MarkedTargetVisuals:Clear()
@@ -175,14 +110,19 @@ function MarkedTargetVisuals:Clear()
 			self.CurrentCharacter
 		)
 
-		removeNameTag(
-			self.CurrentCharacter
+		------------------------------------------------
+		-- Remove name tag
+		------------------------------------------------
+
+		MarkerUtil.Remove(
+			self.CurrentCharacter,
+			NAME_TAG_SETTINGS.Name
 		)
 
 	end
 
 	------------------------------------------------
-	-- Reset
+	-- Reset state
 	------------------------------------------------
 
 	self.CurrentTarget = nil
@@ -193,7 +133,7 @@ function MarkedTargetVisuals:Clear()
 end
 
 ------------------------------------------------
--- Show
+-- SHOW
 ------------------------------------------------
 
 function MarkedTargetVisuals:Show(
@@ -212,6 +152,10 @@ function MarkedTargetVisuals:Show(
 
 	self.CurrentTarget =
 		player
+
+	------------------------------------------------
+	-- Character
+	------------------------------------------------
 
 	local character =
 		player.Character
@@ -245,10 +189,14 @@ function MarkedTargetVisuals:Show(
 	------------------------------------------------
 
 	self.NameTag =
-		createNameTag(
+		MarkerUtil.Create(
 			character,
-			player
+			NAME_TAG_SETTINGS
 		)
+
+	------------------------------------------------
+	-- Debug
+	------------------------------------------------
 
 	print(
 		"[MarkedTargetVisuals] Showing target:",
@@ -258,7 +206,7 @@ function MarkedTargetVisuals:Show(
 end
 
 ------------------------------------------------
--- Hide
+-- HIDE
 ------------------------------------------------
 
 function MarkedTargetVisuals:Hide()

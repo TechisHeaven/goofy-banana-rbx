@@ -14,12 +14,19 @@
 -- It should modify/respond to the round when necessary.
 
 local ServerScriptService = game:GetService("ServerScriptService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local GamemodesFolder =
 	ServerScriptService.Server
 		:WaitForChild("Gamemodes")
 local NotificationManager = require(script.Parent.NotificationManager)
 local GamemodeManager = {}
+local Shared = ReplicatedStorage.Shared
+
+local RemoteIndexData = require(Shared.Remotes.RemoteIndex)
+local Remotes = Shared.Remotes
+local RemoteIndex = RemoteIndexData.Events
+local RoundInfo = Remotes:WaitForChild(RemoteIndex.RoundInfo)
 
 ------------------------------------------------
 -- Configuration
@@ -162,6 +169,21 @@ function GamemodeManager:StartRound(context)
 		mode:Start(context)
 	end
 	NotificationManager:Broadcast('Mode: ' .. modeName)
+
+
+
+
+	for _, player in ipairs(context.Players) do
+
+		RoundInfo:FireClient(
+			player,
+			{
+				Mode = self.CurrentModeName,
+				DisplayName = mode.DisplayName or self.CurrentModeName,
+			}
+		)
+
+	end
 	print(
 		"[GamemodeManager] Started:",
 		modeName

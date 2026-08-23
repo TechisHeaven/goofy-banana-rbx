@@ -62,8 +62,10 @@ RemoteIndex.Events = {
 	RequestUnequip = "RequestUnequip",
 	UpdateInventory = "UpdateInventory",
 
-
+	-- Animations Emote
 	PlayVictory = "PlayVictory",
+	HunterEntry = "HunterEntry",
+	---------
 	GetDailyReward = "GetDailyReward",
 
  	UpdateCurrency = "UpdateCurrency",
@@ -89,6 +91,12 @@ RemoteIndex.Events = {
 	MarkedPlayerChanged = "MarkedPlayerChanged",
 
 	InfectedPlayerChanged = "InfectedPlayerChanged",
+
+	RoundInfo = "RoundInfo",
+
+	HelpSignal = "HelpSignal",
+	
+
 }
 
 RemoteIndex.Functions = {

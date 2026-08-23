@@ -82,6 +82,7 @@ local function onUpdateLobbyStatus(payload)
 	if not isInMatch then
 		syncLobbyStateFromServer()
 	end
+
 	LobbyUI:UpdateStatus(payload)
 
 	-- Update the in-game timer

@@ -46,12 +46,14 @@ function VictoryManager:Init()
 	-- end)
 end
 
-function VictoryManager:Play(winnerPlayer)
+function VictoryManager:Play(winnerPlayer, players)
 	if not winnerPlayer then
 		return
 	end
+	if not players or #players == 0 then
+			return
+		end
 
-	print("winner player:", winnerPlayer)
 	local equippedPose =
 		InventoryManager:GetEquipped(
 			winnerPlayer,
@@ -66,11 +68,16 @@ function VictoryManager:Play(winnerPlayer)
 		winnerPlayer,
 		equippedPose
 	)
+	for _, player in ipairs(players) do
+				if player and player.Parent == Players then
+					print(PlayVictoryRemote)
+					PlayVictoryRemote:FireClient(
+						player,
+						data
+					)
+				end
+			end
 
-	print("winner player data:", data)
-	
-
-	PlayVictoryRemote:FireAllClients(data)
 end
 
 return VictoryManager

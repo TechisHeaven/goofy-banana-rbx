@@ -31,7 +31,7 @@ function CursorController:Init()
 			return
 		end
 
-		if input.KeyCode == Enum.KeyCode.X then
+		if input.KeyCode == Enum.KeyCode.LeftControl or input.KeyCode == Enum.KeyCode.X then
 			self:SetLocked(not self.Locked)
 		end
 

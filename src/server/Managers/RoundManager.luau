@@ -445,9 +445,10 @@ function RoundManager:EndRound()
 	------------------------------------------------
 
 	if self.VictoryPlayer then
-
+		print("victoryPlayer", self.VictoryPlayer)
 		VictoryManager:Play(
-			self.VictoryPlayer
+			self.VictoryPlayer,
+			players
 		)
 
 	end
@@ -586,13 +587,14 @@ end
 
 function RoundManager:DetermineVictoryPlayer()
 
-	if self.LastWinner == "Hunter" then
-
-		return self.CurrentHunter
-
+	if self.CurrentMode == "Infected" then
+		return RoundStatsManager:GetMVP()
 	end
 
-	return RoundStatsManager:GetMVPRunner()
+	if self.LastWinner == "Hunter" then
+		return self.CurrentHunter
+	end
+	return RoundStatsManager:GetMVP()
 
 end
 

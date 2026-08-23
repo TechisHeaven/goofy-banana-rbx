@@ -8,6 +8,9 @@ return {
         AllowLateJoin = true,
         LateJoinCutoff = 30,
         DefaultVictoryWinDuration = 5,
+        HelpSignalCooldown = 15,
+        HelpSignalDuration = 8,
+        HelpSignalMaxDistance = 9999
     },
 
     Rescue = {
@@ -28,6 +31,8 @@ return {
 
     Game = {
         ResultScreenDuration = 10,      -- how long to show the result screen (seconds)
+        VictoryPoseDuration = 5,
+        VictoryCutSceneFOV = 110,
         NotificationDuration = 5,      -- how long to show notifications (seconds)
         FreezeDuration = 5,              -- how long a player is frozen (seconds)
         MaxCoinActive = 3,

@@ -1,7 +1,8 @@
 local Managers = script.Managers
 local LoadOrder = {
-	"LobbyManager",        -- Creates all remotes first
+	"RemoteManager",  -- Creates all remotes first
 	"ProfileManager",
+	"LobbyManager",
 	"PlayerManager",
 	"InventoryManager",
 	"ShopManager",
@@ -18,6 +19,8 @@ local LoadOrder = {
 	"CosmeticManager",
 	"GameplayItemManager",
 	"BananaPeelManager",
+	"HelpSignalManager",
+	"CharacterAppearanceManager",
 }
 
 

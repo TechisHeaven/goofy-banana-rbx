@@ -18,7 +18,12 @@ local RemoteIndex = require(Shared.Remotes.RemoteIndex)
 
 local SpawnManager  = require(script.Parent.SpawnManager)
 local PlayerManager = require(script.Parent.PlayerManager)
--- local PopupModule = require(Shared.Modules.PopupModule)
+
+
+-- local Shared = ReplicatedStorage:WaitForChild("Shared")
+-- local RemoteIndexData = require(Shared.Remotes.RemoteIndex)
+-- local RemoteIndex = RemoteIndexData.Events
+
 
 local LobbyManager = {}
 
@@ -29,8 +34,6 @@ local lobbyStates: {[Player]: string} = {}  -- per-player lobby state
 local inMatchSet:  {[Player]: boolean} = {} -- fast lookup for in-match players
 
 -- Cached remote references (filled in Init)
-local remotesFolder = nil
-local remotes: { [string]: RemoteEvent } = {}
 
 -- Current match status for broadcasting
 local matchStatus = {
@@ -41,12 +44,6 @@ local matchStatus = {
 LobbyManager.OnJoinRequest = nil
 
 -- ─── Helpers ─────────────────────────────────────────────────────────────────
-
-local function getRemote(name: string): RemoteEvent?
-	if remotes[name] then return remotes[name] end
-	warn("LobbyManager: Remote '" .. name .. "' not cached yet")
-	return nil
-end
 
 local function isInQueue(player: Player): boolean
 	for _, p in ipairs(queue) do
@@ -169,7 +166,7 @@ function LobbyManager:ReturnAllToLobby(players: {Player})
 			lobbyStates[player] = Enums.PlayerLobbyState.InLobby
 			player:SetAttribute("LobbyState", Enums.PlayerLobbyState.InLobby)
 
-			local re = getRemote(RemoteIndex.Events.ReturnToLobby)
+			local re = 	Shared.Remotes:WaitForChild(RemoteIndex.Events.ReturnToLobby)
 			if re then re:FireClient(player) end
 		end
 	end
@@ -207,25 +204,9 @@ function LobbyManager:AutoRequeue(players: {Player})
 	end)
 end
 
---- Fires ShowWinnerScreen to all in-match players.
--- function LobbyManager:FireWinnerScreen(winner: string, hunterName: string?, rewardPreview: string?)
--- 	local re = getRemote(RemoteIndex.ShowWinnerScreen)
--- 	if not re then return end
--- 	local data = {
--- 		winnerTeam = winner,
--- 		hunterName = hunterName or "Unknown",
--- 		winner = winner,
--- 		rewardPreview = rewardPreview or "XP +15\nCoins +8",
--- 	}
--- 	for player, _ in pairs(inMatchSet) do
--- 		if player and player.Parent then
--- 			re:FireClient(player, data)
--- 		end
--- 	end
--- end
 function LobbyManager:FireWinnerScreen(data)
 
-	local remote = getRemote(RemoteIndex.Events.ShowWinnerScreen)
+	local remote = Shared.Remotes:WaitForChild(RemoteIndex.Events.ShowWinnerScreen)
 	if not remote then
 		return
 	end
@@ -256,13 +237,13 @@ end
 
 --- Broadcasts the current match status to every connected client.
 function LobbyManager:BroadcastStatus()
-	local re = getRemote(RemoteIndex.Events.UpdateLobbyStatus)
+	local re = Shared.Remotes:WaitForChild(RemoteIndex.Events.UpdateLobbyStatus)
 	if not re then return end
 	re:FireAllClients(buildStatusPayload())
 end
 
 function LobbyManager:FireTeleportToArena(players: {Player}, hunter: Player)
-	local re = getRemote(RemoteIndex.Events.TeleportToArena)
+	local re = Shared.Remotes:WaitForChild(RemoteIndex.Events.TeleportToArena)
 	if not re then
 		return
 	end
@@ -303,7 +284,7 @@ local function onPlayerAdded(player: Player)
 
 	-- Send them the current status immediately
 	task.defer(function()
-		local re = getRemote(RemoteIndex.Events.UpdateLobbyStatus)
+		local re = Shared.Remotes:WaitForChild(RemoteIndex.Events.UpdateLobbyStatus)
 		if re then re:FireClient(player, buildStatusPayload()) end
 	end)
 end
@@ -322,86 +303,9 @@ end
 function LobbyManager:Init()
 	print("LobbyManager Initializing...")
 
-	local shared = ReplicatedStorage:WaitForChild("Shared")
-	remotesFolder = shared:WaitForChild("Remotes")
 
 
-	-- Cache (or create) each RemoteEvent listed in RemoteIndex
-	-- for _, name in pairs(RemoteIndex) do
-	-- 	local existing = remotesFolder:FindFirstChild(name)
-	-- 	if existing and existing:IsA("RemoteEvent") then
-	-- 		remotes[name] = existing
-	-- 	else
-	-- 		local re   = Instance.new("RemoteEvent")
-	-- 		re.Name    = name
-	-- 		re.Parent  = remotesFolder
-	-- 		remotes[name] = re
-	-- 	end
-	-- end
-
-	------------------------------------------------
-	-- Remote Events
-	------------------------------------------------
-
-	for _, name in pairs(RemoteIndex.Events) do
-
-		local remote = remotesFolder:FindFirstChild(name)
-		if remote and remote:IsA("RemoteEvent") then
-
-			remotes[name] = remote
-
-		else
-
-			remote = Instance.new("RemoteEvent")
-			remote.Name = name
-			remote.Parent = remotesFolder
-
-			remotes[name] = remote
-
-		end
-
-	end
-
-	------------------------------------------------
-	-- Remote Functions
-	------------------------------------------------
-
-	for _, name in pairs(RemoteIndex.Functions) do
-
-		local remote = remotesFolder:FindFirstChild(name)
-
-		if remote and remote:IsA("RemoteFunction") then
-
-			remotes[name] = remote
-
-		else
-
-			remote = Instance.new("RemoteFunction")
-			remote.Name = name
-			remote.Parent = remotesFolder
-
-			remotes[name] = remote
-
-		end
-
-	end
-
-	-- Client → server: player pressed Play
-	-- remotes[RemoteIndex.RequestJoinQueue].OnServerEvent:Connect(function(player)
-	-- 	print(string.format("LobbyManager: RequestJoinQueue from %s", player.Name))
-	-- 	-- self:AddToQueue(player)
-	-- 	if RoundManager:CanLateJoin() then
-
-	-- 		RoundManager:AddLateJoiner(player)
-
-	-- 	else
-
-	-- 		self:AddToQueue(player)
-
-	-- 	end
-	-- end)
-
-	remotes[RemoteIndex.Events.RequestJoinQueue].OnServerEvent:Connect(function(player)
+	Shared.Remotes:WaitForChild(RemoteIndex.Events.RequestJoinQueue).OnServerEvent:Connect(function(player)
 
 
 		if LobbyManager.OnJoinRequest then
@@ -416,7 +320,7 @@ function LobbyManager:Init()
 	-- 	print(string.format("LobbyManager: RequestLeaveQueue from %s", player.Name))
 	-- 	self:RemoveFromQueue(player)
 	-- end)
-	remotes[RemoteIndex.Events.RequestLeaveQueue].OnServerEvent:Connect(function(player)
+	Shared.Remotes:WaitForChild(RemoteIndex.Events.RequestLeaveQueue).OnServerEvent:Connect(function(player)
 
 
 		-- Player is queued
