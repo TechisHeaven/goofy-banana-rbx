@@ -28,7 +28,6 @@ local RemoteIndexData =
 
 local RemoteIndex =
 	RemoteIndexData.Events
-
 ------------------------------------------------
 -- MANAGERS
 ------------------------------------------------
@@ -36,9 +35,14 @@ local RemoteIndex =
 local PlayerManager =
 	require(script.Parent.PlayerManager)
 
+local InventoryManager= require(script.Parent.InventoryManager)
+
 local FreezeEventManager =
 	require(script.Parent.FreezeEventManager)
-
+local AnimationEffectManager =
+	require(
+		ReplicatedStorage.Shared.Modules.AnimationEffectManager
+	)
 local NotificationManager =
 	require(script.Parent.NotificationManager)
 
@@ -77,6 +81,11 @@ local RoundManager = nil
 ------------------------------------------------
 
 local remotes = {}
+-- local RescueCinematic =
+-- 	getRemote(
+-- 		RemoteIndex.RescueCinematic
+-- 	)
+
 
 ------------------------------------------------
 -- COOLDOWN
@@ -126,7 +135,85 @@ local function getRemote(name: string)
 
 	return nil
 end
+local RescueCinematic =
+	getRemote(RemoteIndex.RescueCinematic)
+------------------------------------------------
+-- RESCUE ANIMATION
+------------------------------------------------
 
+local RESCUE_ANIMATION_NAME = "PunchAnimation"
+
+
+------------------------------------------------
+-- FACE EACH OTHER
+------------------------------------------------
+
+local function FaceEachOther(rescuer, frozenPlayer)
+
+	local rescuerCharacter =
+		rescuer.Character
+
+	local frozenCharacter =
+		frozenPlayer.Character
+
+	if not rescuerCharacter
+		or not frozenCharacter then
+		return
+	end
+
+	local rescuerHRP =
+		rescuerCharacter:FindFirstChild(
+			"HumanoidRootPart"
+		)
+
+	local frozenHRP =
+		frozenCharacter:FindFirstChild(
+			"HumanoidRootPart"
+		)
+
+	if not rescuerHRP
+		or not frozenHRP then
+		return
+	end
+
+	------------------------------------------------
+	-- Keep their current Y positions.
+	-- Only rotate them horizontally.
+	------------------------------------------------
+
+	local rescuerPosition =
+		rescuerHRP.Position
+
+	local frozenPosition =
+		frozenHRP.Position
+
+	local rescuerTarget =
+		Vector3.new(
+			frozenPosition.X,
+			rescuerPosition.Y,
+			frozenPosition.Z
+		)
+
+	local frozenTarget =
+		Vector3.new(
+			rescuerPosition.X,
+			frozenPosition.Y,
+			rescuerPosition.Z
+		)
+
+	rescuerHRP.CFrame =
+		CFrame.lookAt(
+			rescuerPosition,
+			rescuerTarget
+		)
+
+	frozenHRP.CFrame =
+		CFrame.lookAt(
+			frozenPosition,
+			frozenTarget
+		)
+
+end
 ------------------------------------------------
 -- ROUND MANAGER
 ------------------------------------------------
@@ -238,10 +325,128 @@ function FreezeManager:ApplyHunterCooldown(
 
 end
 
+local function IsValidRescue(
+	rescuer,
+	frozenPlayer
+)
+
+	if not rescuer
+		or not rescuer.Parent
+	then
+		return false
+	end
+
+	if not frozenPlayer
+		or not frozenPlayer.Parent
+	then
+		return false
+	end
+
+	------------------------------------------------
+	-- Cannot rescue yourself
+	------------------------------------------------
+
+	if rescuer == frozenPlayer then
+		return false
+	end
+
+	------------------------------------------------
+	-- Round must be playing
+	------------------------------------------------
+
+	local round =
+		GetRoundManager()
+
+	if round.CurrentState
+		~= Enums.RoundState.Playing
+	then
+		return false
+	end
+
+	------------------------------------------------
+	-- Rescuer must be runner
+	------------------------------------------------
+
+	if PlayerManager:GetTeam(
+		rescuer
+	) ~= Enums.Team.Runner then
+		return false
+	end
+
+	------------------------------------------------
+	-- Rescuer must be alive
+	------------------------------------------------
+
+	if PlayerManager:GetState(
+		rescuer
+	) ~= Enums.PlayerState.Alive
+	then
+		return false
+	end
+
+	------------------------------------------------
+	-- Target must be frozen
+	------------------------------------------------
+
+	if PlayerManager:GetState(
+		frozenPlayer
+	) ~= Enums.PlayerState.Frozen
+	then
+		return false
+	end
+
+	------------------------------------------------
+	-- Both characters must exist
+	------------------------------------------------
+
+	local rescuerCharacter =
+		rescuer.Character
+
+	local frozenCharacter =
+		frozenPlayer.Character
+
+	if not rescuerCharacter
+		or not frozenCharacter
+	then
+		return false
+	end
+
+	local rescuerRoot =
+		rescuerCharacter:FindFirstChild(
+			"HumanoidRootPart"
+		)
+
+	local frozenRoot =
+		frozenCharacter:FindFirstChild(
+			"HumanoidRootPart"
+		)
+
+	if not rescuerRoot
+		or not frozenRoot
+	then
+		return false
+	end
+
+	------------------------------------------------
+	-- Distance validation
+	------------------------------------------------
+
+	local distance =
+		(
+			rescuerRoot.Position
+			- frozenRoot.Position
+		).Magnitude
+
+	if distance > GameConfig.Rescue.RescueDistance then
+		return false
+	end
+
+	return true
+
+end
 ------------------------------------------------
 -- FREEZE PLAYER
 ------------------------------------------------
-
 function FreezeManager:FreezePlayer(
 	player: Player,
 	freezer: Player?,
@@ -389,7 +594,7 @@ function FreezeManager:FreezePlayer(
 			activePrompts[player] = nil
 
 		end
-
+		
 		------------------------------------------------
 		-- Only Rescue mode needs prompt
 		------------------------------------------------
@@ -418,13 +623,39 @@ function FreezeManager:FreezePlayer(
 				false
 
 			prompt.MaxActivationDistance =
-				8
+				6
+			
+			------------------------------------------------
+			-- HOLD START
+			------------------------------------------------
 
-			prompt.Triggered:Connect(
+			prompt.PromptButtonHoldBegan:Connect(
 				function(rescuer)
+			
+
+				if not IsValidRescue(rescuer, player) then
+					print("[RESCUE DEBUG] HOLD BEGIN INVALID")
+					return
+				end
+					------------------------------------------------
+					-- EQUIPPED RESCUE EFFECT
+					------------------------------------------------
+
+					local effectName =
+						InventoryManager:GetEquipped(
+							rescuer,
+							"RescueEffects"
+						)
+
+					-- No rescue effect equipped
+					-- -> normal rescue behavior
+					if not effectName then
+						-- effectName = "DefaultPunch"
+						return
+					end
 
 					------------------------------------------------
-					-- Round check
+					-- ROUND CHECK
 					------------------------------------------------
 
 					local round =
@@ -432,68 +663,225 @@ function FreezeManager:FreezePlayer(
 
 					if round.CurrentState
 						~= Enums.RoundState.Playing then
-
 						return
 					end
 
 					------------------------------------------------
-					-- Rescuer must be runner
+					-- RESCUER CHECK
 					------------------------------------------------
 
-					if PlayerManager:GetTeam(
-						rescuer
-					) ~= Enums.Team.Runner then
+					if PlayerManager:GetTeam(rescuer)
+						~= Enums.Team.Runner then
+						return
+					end
 
+					if PlayerManager:GetState(rescuer)
+						~= Enums.PlayerState.Alive then
 						return
 					end
 
 					------------------------------------------------
-					-- Rescuer must be alive
+					-- TARGET CHECK
 					------------------------------------------------
 
-					if PlayerManager:GetState(
-						rescuer
-					) ~= Enums.PlayerState.Alive then
-
+					if PlayerManager:GetState(player)
+						~= Enums.PlayerState.Frozen then
 						return
 					end
 
 					------------------------------------------------
-					-- Rescue
+					-- FACE EACH OTHER
 					------------------------------------------------
 
-					FreezeManager:UnfreezePlayer(
-						player,
-						rescuer
+					FaceEachOther(
+						rescuer,
+						player
 					)
 
-					------------------------------------------------
-					-- Notifications
-					------------------------------------------------
-
-					if rescuer
-						and rescuer.Parent then
-
-						NotificationManager:Send(
-							player,
-							("You were rescued by %s!"):format(
-								rescuer.Name
-							),
-							Enums.NotificationTarget.Gameplay
-						)
-
-						NotificationManager:Send(
-							rescuer,
-							("You rescued %s!"):format(
-								player.Name
-							),
-							Enums.NotificationTarget.Gameplay
-						)
-
-					end
+					self:StartRescue(rescuer, player, effectName)
 
 				end
 			)
+
+			------------------------------------------------
+			-- HOLD END
+			------------------------------------------------
+
+			prompt.PromptButtonHoldEnded:Connect(
+				function(rescuer)
+				
+
+					self:StopRescue(rescuer, player)
+				end
+			)
+		------------------------------------------------
+		-- RESCUE COMPLETE
+		------------------------------------------------
+
+		prompt.Triggered:Connect(function(rescuer)
+		
+			if not IsValidRescue(rescuer, player) then
+				print("[RESCUE DEBUG] TRIGGER INVALID")
+				return
+			end
+			------------------------------------------------
+			-- Round check
+			------------------------------------------------
+
+			local round =
+				GetRoundManager()
+			
+			if round.CurrentState
+				~= Enums.RoundState.Playing then
+				return
+			end
+
+			------------------------------------------------
+			-- Rescuer must be runner
+			------------------------------------------------
+
+			if PlayerManager:GetTeam(
+				rescuer
+			) ~= Enums.Team.Runner then
+
+				return
+			end
+
+			------------------------------------------------
+			-- Rescuer must be alive
+			------------------------------------------------
+
+			if PlayerManager:GetState(
+				rescuer
+			) ~= Enums.PlayerState.Alive then
+
+				return
+			end
+
+			------------------------------------------------
+			-- STOP CINEMATIC
+			-- Rescue is complete
+			------------------------------------------------
+			self:StopRescue(rescuer, player)
+			-- RescueCinematic:FireClient(
+			-- 	rescuer,
+			-- 	"Stop"
+			-- )
+
+			-- RescueCinematic:FireClient(
+			-- 	player,
+			-- 	"Stop"
+			-- )
+
+			------------------------------------------------
+			-- ACTUAL RESCUE
+			------------------------------------------------
+
+			FreezeManager:UnfreezePlayer(
+				player,
+				rescuer
+			)
+
+			------------------------------------------------
+			-- Notifications
+			------------------------------------------------
+
+			if rescuer
+				and rescuer.Parent then
+
+				NotificationManager:Send(
+					player,
+					("You were rescued by %s!"):format(
+						rescuer.Name
+					),
+					Enums.NotificationTarget.Gameplay
+				)
+
+				NotificationManager:Send(
+					rescuer,
+					("You rescued %s!"):format(
+						player.Name
+					),
+					Enums.NotificationTarget.Gameplay
+				)
+
+			end
+
+		end)
+			-- prompt.Triggered:Connect(
+			-- 	function(rescuer)
+
+			-- 		------------------------------------------------
+			-- 		-- Round check
+			-- 		------------------------------------------------
+
+			-- 		local round =
+			-- 			GetRoundManager()
+
+			-- 		if round.CurrentState
+			-- 			~= Enums.RoundState.Playing then
+
+			-- 			return
+			-- 		end
+
+			-- 		------------------------------------------------
+			-- 		-- Rescuer must be runner
+			-- 		------------------------------------------------
+
+			-- 		if PlayerManager:GetTeam(
+			-- 			rescuer
+			-- 		) ~= Enums.Team.Runner then
+
+			-- 			return
+			-- 		end
+
+			-- 		------------------------------------------------
+			-- 		-- Rescuer must be alive
+			-- 		------------------------------------------------
+
+			-- 		if PlayerManager:GetState(
+			-- 			rescuer
+			-- 		) ~= Enums.PlayerState.Alive then
+
+			-- 			return
+			-- 		end
+
+			-- 		------------------------------------------------
+			-- 		-- Rescue
+			-- 		------------------------------------------------
+
+			-- 		FreezeManager:UnfreezePlayer(
+			-- 			player,
+			-- 			rescuer
+			-- 		)
+
+			-- 		------------------------------------------------
+			-- 		-- Notifications
+			-- 		------------------------------------------------
+
+			-- 		if rescuer
+			-- 			and rescuer.Parent then
+
+			-- 			NotificationManager:Send(
+			-- 				player,
+			-- 				("You were rescued by %s!"):format(
+			-- 					rescuer.Name
+			-- 				),
+			-- 				Enums.NotificationTarget.Gameplay
+			-- 			)
+
+			-- 			NotificationManager:Send(
+			-- 				rescuer,
+			-- 				("You rescued %s!"):format(
+			-- 					player.Name
+			-- 				),
+			-- 				Enums.NotificationTarget.Gameplay
+			-- 			)
+
+			-- 		end
+
+			-- 	end
+			-- )
 
 			prompt.Parent =
 				rootPart
@@ -532,12 +920,6 @@ function FreezeManager:FreezePlayer(
 	------------------------------------------------
 
 	local round = GetRoundManager()
-	print(
-	"[FreezeManager] Sending OnPlayerFrozen:",
-	player,
-	"Freezer:",
-	freezer and freezer.Name or "nil"
-)
 	GamemodeManager:OnPlayerFrozen(
 		round:GetGamemodeContext(),
 		player,
@@ -646,6 +1028,117 @@ function FreezeManager:FreezePlayer(
 
 end
 
+
+local RescueCinematic =
+	getRemote(
+		RemoteIndex.RescueCinematic
+	)
+------------------------------------------------
+-- RESCUE VALIDATION
+------------------------------------------------
+
+
+------------------------------------------------
+-- START RESCUE
+------------------------------------------------
+
+function FreezeManager:StartRescue(
+	rescuer,
+	frozenPlayer,
+	rescueEffect
+)
+
+	if not IsValidRescue(
+		rescuer,
+		frozenPlayer
+	) then
+		return false
+	end
+
+	------------------------------------------------
+	-- Already being rescued
+	------------------------------------------------
+
+	-- if ActiveRescues[frozenPlayer] then
+	-- 	return false
+	-- end
+
+	-- ActiveRescues[frozenPlayer] =
+	-- 	rescuer
+
+	------------------------------------------------
+	-- Tell BOTH clients
+	------------------------------------------------
+
+	RescueCinematic:FireClient(
+		rescuer,
+		"Start",
+		rescueEffect
+	)
+
+	RescueCinematic:FireClient(
+		frozenPlayer,
+		"Start",
+		rescueEffect
+	)
+
+	return true
+
+end
+
+------------------------------------------------
+-- STOP RESCUE
+------------------------------------------------
+
+function FreezeManager:StopRescue(
+	rescuer,
+	frozenPlayer
+)
+
+
+
+	------------------------------------------------
+	-- Tell BOTH clients to stop
+	------------------------------------------------
+
+	if rescuer
+		and rescuer.Parent
+	then
+
+		RescueCinematic:FireClient(
+			rescuer,
+			"Stop"
+		)
+
+	end
+
+	if frozenPlayer
+		and frozenPlayer.Parent
+	then
+
+		RescueCinematic:FireClient(
+			frozenPlayer,
+			"Stop"
+		)
+
+	end
+
+	-- ------------------------------------------------
+	-- -- Actually rescue player
+	-- ------------------------------------------------
+
+	-- if PlayerManager:GetState(
+	-- 	frozenPlayer
+	-- ) == Enums.PlayerState.Frozen then
+
+	-- 	self:UnfreezePlayer(
+	-- 		frozenPlayer,
+	-- 		rescuer
+	-- 	)
+
+	-- end
+
+end
 ------------------------------------------------
 -- UNFREEZE PLAYER
 ------------------------------------------------
@@ -706,12 +1199,7 @@ function FreezeManager:UnfreezePlayer(
 	------------------------------------------------
 
 	local round = GetRoundManager()
-	print(
-	"[FreezeManager] Sending OnPlayerRescued:",
-		player,
-		"Rescuer:",
-		rescuer
-	)
+	
 	GamemodeManager:OnPlayerRescued(
 		round:GetGamemodeContext(),
 		player,
@@ -1030,7 +1518,35 @@ function FreezeManager:Init()
 	print(
 		"FreezeManager Initializing..."
 	)
+	------------------------------------------------
+	-- RESCUE CINEMATIC REMOTE
+	------------------------------------------------
 
+	-- RescueCinematic.OnServerEvent:Connect(
+	-- 	function(
+	-- 		rescuer,
+	-- 		status,
+	-- 		frozenPlayer
+	-- 	)
+
+	-- 		if status == "Start" then
+
+	-- 			self:StartRescue(
+	-- 				rescuer,
+	-- 				frozenPlayer
+	-- 			)
+
+	-- 		elseif status == "Stop" then
+
+	-- 			self:StopRescue(
+	-- 				rescuer,
+	-- 				frozenPlayer
+	-- 			)
+
+	-- 		end
+
+	-- 	end
+	-- )
 	------------------------------------------------
 	-- Existing players
 	------------------------------------------------

@@ -31,6 +31,7 @@ local InfectedController = require(script.Controllers.InfectedController)
 local RoundInfoController = require(script.Controllers.RoundInfoController)
 local HelpSignalController = require(script.Controllers.HelpSignalController)
 local HunterEntryController= require(script.Controllers.HunterEntryController)
+local RescueCinematicController = require(script.Controllers.RescueCinematicController)
 
 ShopController:Init()
 CursorController:Init()
@@ -55,6 +56,7 @@ InfectedController:Init()
 RoundInfoController:Init()
 HelpSignalController:Init()
 HunterEntryController:Init()
+RescueCinematicController:Init()
 
 -- Wait for attributes to replicate
 if not LocalPlayer:GetAttribute("Team") then

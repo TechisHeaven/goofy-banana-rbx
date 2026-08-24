@@ -128,9 +128,14 @@ function CinematicController:Play(
 	-- LOCK CHARACTER
 	------------------------------------------------
 
-	humanoid.WalkSpeed = 0
-	humanoid.JumpPower = 0
-	humanoid.AutoRotate = false
+	local lockCharacter =
+	options.LockCharacter == true
+
+	if lockCharacter then
+		humanoid.WalkSpeed = 0
+		humanoid.JumpPower = 0
+		humanoid.AutoRotate = false
+	end
 
 	------------------------------------------------
 	-- CAMERA
@@ -187,15 +192,19 @@ function CinematicController:Play(
 
 		-- Restore character
 
-		humanoid.WalkSpeed =
-			oldWalkSpeed
+		if lockCharacter
+			and humanoid
+			and humanoid.Parent then
 
-		humanoid.JumpPower =
-			oldJumpPower
+			humanoid.WalkSpeed =
+				oldWalkSpeed
 
-		humanoid.AutoRotate =
-			oldAutoRotate
+			humanoid.JumpPower =
+				oldJumpPower
 
+			humanoid.AutoRotate =
+				oldAutoRotate
+		end
 		return nil
 	end
 
@@ -365,6 +374,46 @@ function CinematicController:Play(
 		cleanedUp =
 			true
 
+			
+		------------------------------------------------
+		-- RESTORE CAMERA
+		------------------------------------------------
+
+		if resetCamera then
+
+			-- First restore the camera mode
+
+			camera.CameraType =
+				Enum.CameraType.Custom
+
+			-- Restore FOV
+
+			camera.FieldOfView =
+				oldFOV
+
+			-- Restore exact previous camera position
+
+			camera.CFrame =
+				oldCameraCFrame
+
+			camera.Focus =
+				oldCameraFocus
+
+		else
+
+			-- Restore whatever camera mode
+			-- existed before the cinematic
+
+			camera.CameraType =
+				oldCameraType
+
+			camera.FieldOfView =
+				oldFOV
+
+			camera.CFrame =
+				lastCameraCFrame
+
+		end
 		------------------------------------------------
 		-- Stop camera updates FIRST
 		------------------------------------------------
@@ -420,51 +469,13 @@ function CinematicController:Play(
 
 		end
 
-		------------------------------------------------
-		-- RESTORE CAMERA
-		------------------------------------------------
-
-		if resetCamera then
-
-			-- First restore the camera mode
-
-			camera.CameraType =
-				Enum.CameraType.Custom
-
-			-- Restore FOV
-
-			camera.FieldOfView =
-				oldFOV
-
-			-- Restore exact previous camera position
-
-			camera.CFrame =
-				oldCameraCFrame
-
-			camera.Focus =
-				oldCameraFocus
-
-		else
-
-			-- Restore whatever camera mode
-			-- existed before the cinematic
-
-			camera.CameraType =
-				oldCameraType
-
-			camera.FieldOfView =
-				oldFOV
-
-			camera.CFrame =
-				lastCameraCFrame
-
-		end
 
 		------------------------------------------------
 		-- RESTORE CHARACTER
 		------------------------------------------------
 
-		if humanoid
+		if lockCharacter
+			and humanoid
 			and humanoid.Parent then
 
 			humanoid.WalkSpeed =
@@ -475,7 +486,6 @@ function CinematicController:Play(
 
 			humanoid.AutoRotate =
 				oldAutoRotate
-
 		end
 
 	end

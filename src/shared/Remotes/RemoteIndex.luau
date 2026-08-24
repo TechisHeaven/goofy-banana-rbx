@@ -95,8 +95,8 @@ RemoteIndex.Events = {
 	RoundInfo = "RoundInfo",
 
 	HelpSignal = "HelpSignal",
-	
-
+	RescueCinematic = "RescueCinematic",
+	RescueRemote = "RescueRemote",
 }
 
 RemoteIndex.Functions = {

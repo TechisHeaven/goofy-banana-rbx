@@ -20,14 +20,13 @@ function InventoryTemplate.Create()
 				Dance02 = true,
 			},
 			RescueEffects = {
-				Snow = true,
 			},
 		},
 
 		Equipped = {
 			Skins = "SleepyBanana",
 			BananaSkins = "GalaxyBanana",
-			RescueEffects = "Snow",
+			RescueEffects = "",
 			VictoryPoses = "Dance01",
 		}
 

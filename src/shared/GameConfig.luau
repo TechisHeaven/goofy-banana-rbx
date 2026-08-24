@@ -15,6 +15,7 @@ return {
 
     Rescue = {
         HoldTime = 3,
+        RescueDistance= 14,
     },
 
     Hunter = {
