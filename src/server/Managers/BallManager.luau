@@ -403,7 +403,8 @@ function BallManager:PickupBall(
 		ItemPickupDropModule:Equip(
 			character,
 			ball,
-			EQUIP_OFFSET
+			EQUIP_OFFSET,
+			"DashBall"
 		)
 
 	if not equipped then
@@ -615,6 +616,10 @@ function BallManager:ThrowBall(
 	SetupThrowHit(
 		ball,
 		player
+	)
+	
+	ItemPickupDropModule:ClearHeldItem(
+		player.Character
 	)
 
 	if prompt then

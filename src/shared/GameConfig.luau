@@ -42,6 +42,12 @@ return {
         DefaultSlowMoDuration = 3,
         DefaultSlowMoFOV = 70,
         DefaultSlowMoSpeed = 0.35
-    }
+    },
 
+    BananaPeel = {
+        MaxPlacementDistance = 12,
+        LifeTime = 20,
+        SlipDuration = 1.5,
+        PlacementCooldown = 10,
+    }
 }

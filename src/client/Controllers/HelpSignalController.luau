@@ -6,7 +6,7 @@ local HelpSignalController = {}
 
 local Players =
 	game:GetService("Players")
-
+local UserInputService = game:GetService("UserInputService")
 local ReplicatedStorage =
 	game:GetService("ReplicatedStorage")
 
@@ -226,6 +226,26 @@ function HelpSignalController:Init()
 	Button.Activated:Connect(function()
 		self:SendHelp()
 	end)
+
+
+	UserInputService.InputBegan:Connect(
+		function(
+			input,
+			gameProcessed
+		)
+
+			if gameProcessed then
+				return
+			end
+
+			if input.KeyCode
+				== Enum.KeyCode.H then
+				self:SendHelp()
+			end
+
+
+		end
+	)
 
 	------------------------------------------------
 	-- Server signal

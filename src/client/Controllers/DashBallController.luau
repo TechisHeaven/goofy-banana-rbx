@@ -40,6 +40,22 @@ local DashBall =
 
 local initialized = false
 
+local function HasEquippedDashBall()
+
+	local character =
+		player.Character
+
+	if not character then
+		return false
+	end
+
+	return character:GetAttribute(
+		"HeldItemId"
+	) == "DashBall"
+
+end
+
+
 ------------------------------------------------
 -- INIT
 ------------------------------------------------
@@ -68,10 +84,8 @@ function DashBallController:Init()
 
 				return
 			end
-			if player:GetAttribute(
-				"HoldingDashBall"
-			) ~= true then
 
+			if not HasEquippedDashBall() then
 				return
 			end
 			------------------------------------------------

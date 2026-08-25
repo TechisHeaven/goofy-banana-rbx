@@ -4,6 +4,7 @@ local ServerStorage =
 local ReplicatedStorage =
 	game:GetService("ReplicatedStorage")
 
+
 ------------------------------------------------
 -- MODULE
 ------------------------------------------------
@@ -14,6 +15,15 @@ local BananaPeelModule =
 			.Shared
 			.Modules
 			.BananaPeelModule
+	)
+
+	
+local ItemPickupDropModule =
+	require(
+		ReplicatedStorage
+			.Shared
+			.Modules
+			.ItemPickupDropModule
 	)
 
 local GameplayItemManager =
@@ -290,7 +300,7 @@ function BananaPeelManager:Create(
 
 	local itemState =
 		GameplayItemManager:GetState(player)
-
+	print(itemState)
 	if not itemState then
 		return false
 	end
@@ -404,6 +414,11 @@ function BananaPeelManager:Create(
             end
         )
 
+	ItemPickupDropModule:ClearHeldItem(
+		player.Character
+	)
+
+
     return true
 
 end
@@ -419,7 +434,7 @@ function BananaPeelManager:Init()
 			player,
 			position
 		)
-
+			print(position)
 			if typeof(position) ~= "Vector3" then
 				return
 			end

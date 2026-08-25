@@ -380,6 +380,10 @@ function GameplayItemManager:Equip(
 	visual.Parent =
 		character
 
+	character:SetAttribute(
+		"HeldItemId",
+		itemId
+	)
 	------------------------------------------------
 	-- Attach
 	------------------------------------------------
@@ -452,6 +456,13 @@ end
 function GameplayItemManager:Unequip(
 	player
 )
+	
+	local character =
+		player.Character
+
+	if not character then
+		return false
+	end
 
 	local state =
 		self:GetState(player)
@@ -469,6 +480,11 @@ function GameplayItemManager:Unequip(
 
 	self:SendState(
 		player
+	)
+
+	character:SetAttribute(
+		"HeldItemId",
+		nil
 	)
 
 	print(
@@ -550,7 +566,6 @@ function GameplayItemManager:Drop(
 			pickedItemId,
 			pickedSkinId
 		)
-			print("picked skin", pickedSkinId)
 			return self:PickUp(
 				picker,
 				pickedItemId,
@@ -710,7 +725,10 @@ function GameplayItemManager:Remove(
 	state.Selected = nil
 	state.Equipped = false
 	state.SkinId = nil
-
+	player.Character:SetAttribute(
+			"HeldItemId",
+			nil
+		)
 	------------------------------------------------
 	-- Update client
 	------------------------------------------------

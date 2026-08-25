@@ -15,8 +15,7 @@ local GameGui =
 
 local HelpFrame =
 	GameGui:WaitForChild("Help")
-local Label = HelpFrame:WaitForChild("Label")
-
+local Cooldown = HelpFrame:WaitForChild("Cooldown")
 
 ------------------------------------------------
 -- UI
@@ -24,14 +23,12 @@ local Label = HelpFrame:WaitForChild("Label")
 
 function HelpSignalUI:SetCooldown(remaining)
 
-	Label.Text =
-		"HELP\n"
-		.. remaining
+	Cooldown.Text = remaining .. 's'
 
 end
 
 function HelpSignalUI:SetReady()
-	Label.Text = "HELP"
+	Cooldown.Text = ""
 end
 
 return HelpSignalUI

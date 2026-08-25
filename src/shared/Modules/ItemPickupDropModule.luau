@@ -102,7 +102,8 @@ end
 function ItemPickupDropModule:Equip(
 	character,
 	item,
-	offset
+	offset,
+	itemId
 )
 
 	if not character or not item then
@@ -191,6 +192,15 @@ function ItemPickupDropModule:Equip(
 
 	weld.Parent =
 		main
+
+	if itemId then
+
+		character:SetAttribute(
+			"HeldItemId",
+			itemId
+		)
+
+	end
 
 	------------------------------------------------
 	-- RETURN HANDLE
@@ -346,6 +356,113 @@ function ItemPickupDropModule:Drop(
 	return item
 
 end
+
+
+
+------------------------------------------------
+-- HELD ITEM ATTRIBUTES
+------------------------------------------------
+
+function ItemPickupDropModule:SetHeldItem(
+	character,
+	itemId,
+	skinId
+)
+
+	if not character then
+		return false
+	end
+
+	if not itemId then
+		return false
+	end
+
+	------------------------------------------------
+	-- UNIVERSAL ITEM STATE
+	------------------------------------------------
+
+	character:SetAttribute(
+		"HeldItem",
+		itemId
+	)
+
+	character:SetAttribute(
+		"ItemId",
+		itemId
+	)
+
+	------------------------------------------------
+	-- OPTIONAL SKIN
+	------------------------------------------------
+
+	if skinId ~= nil then
+
+		character:SetAttribute(
+			"HeldItemSkinId",
+			skinId
+		)
+
+	else
+
+		character:SetAttribute(
+			"HeldItemSkinId",
+			nil
+		)
+
+	end
+
+	return true
+
+end
+
+------------------------------------------------
+-- CLEAR HELD ITEM
+------------------------------------------------
+
+function ItemPickupDropModule:ClearHeldItem(
+	character
+)
+
+	if not character then
+		return
+	end
+
+	character:SetAttribute(
+		"HeldItem",
+		nil
+	)
+
+	character:SetAttribute(
+		"ItemId",
+		nil
+	)
+
+	character:SetAttribute(
+		"HeldItemSkinId",
+		nil
+	)
+
+end
+
+------------------------------------------------
+-- CHECK HELD ITEM
+------------------------------------------------
+
+function ItemPickupDropModule:HasHeldItem(
+	character,
+	itemId
+)
+
+	if not character then
+		return false
+	end
+
+	return character:GetAttribute(
+		"HeldItem"
+	) == itemId
+
+end
+
 
 ------------------------------------------------
 -- RETURN

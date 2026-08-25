@@ -4,6 +4,14 @@ local ServerStorage =
 local ReplicatedStorage =
 	game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
+local ItemPickupDropModule =
+	require(
+		ReplicatedStorage
+			.Shared
+			.Modules
+			.ItemPickupDropModule
+	)
+
 
 local BananaSkinManager = require(ServerScriptService.Server.Managers.BananaSkinManager)
 ------------------------------------------------
@@ -208,14 +216,34 @@ local function CreatePrompt(
 					itemId,
                     droppedSkinId
 				)
-
 			if success then
+
+				------------------------------------------------
+				-- UNIVERSAL HELD ITEM STATE
+				------------------------------------------------
+
+				local character =
+					player.Character
+
+				if character then
+
+					ItemPickupDropModule:SetHeldItem(
+						character,
+						itemId,
+						droppedSkinId
+					)
+
+				end
+
+				------------------------------------------------
+				-- REMOVE DROP
+				------------------------------------------------
 
 				local drop =
 					main:FindFirstAncestorWhichIsA(
 						"Model"
 					)
-               
+
 				if drop then
 					drop:Destroy()
 				else
@@ -243,7 +271,6 @@ function GameplayItemDropModule:Create(
 	skinId,
 	onPickup
 )
-    print("drop create", skinId)
 	local character =
 		player.Character
 
@@ -330,6 +357,7 @@ function GameplayItemDropModule:Create(
 		"ItemId",
 		itemId
 	)
+	
     drop:SetAttribute(
             "SkinId",
             skinId

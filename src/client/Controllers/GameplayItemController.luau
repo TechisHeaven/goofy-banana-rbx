@@ -25,6 +25,17 @@ local ItemState =
 		RemoteIndex.GameplayItemState
 	)
 
+local LocalPlayer = game.Players.LocalPlayer
+local PlayerGui =
+	LocalPlayer:WaitForChild("PlayerGui")
+
+local GameGui =
+	PlayerGui:WaitForChild("GameGui")
+local BananaFrame =
+	GameGui.Bottom.Banana
+local Button = BananaFrame.BananaButton
+
+
 ------------------------------------------------
 -- CONTROLLER
 ------------------------------------------------
@@ -140,9 +151,7 @@ function GameplayItemController:Init()
 
 			if input.KeyCode
 				== Enum.KeyCode.E then
-
 				self:Toggle()
-
 			end
 
 			if input.KeyCode == Enum.KeyCode.Q then
@@ -151,6 +160,10 @@ function GameplayItemController:Init()
 
 		end
 	)
+
+	Button.Activated:Connect(function()
+		self:Toggle()
+	end)
 
 	------------------------------------------------
 	-- Get current server state
