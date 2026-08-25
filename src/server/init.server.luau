@@ -21,6 +21,7 @@ local LoadOrder = {
 	"BananaPeelManager",
 	"HelpSignalManager",
 	"CharacterAppearanceManager",
+	"BallManager",
 }
 
 

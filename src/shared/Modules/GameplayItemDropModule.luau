@@ -201,7 +201,6 @@ local function CreatePrompt(
                     )
 
             end
-            print("droppedSKinid", droppedSkinId)
         
 			local success =
 				onPickup(

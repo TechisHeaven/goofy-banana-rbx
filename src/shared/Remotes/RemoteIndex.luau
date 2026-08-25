@@ -97,6 +97,8 @@ RemoteIndex.Events = {
 	HelpSignal = "HelpSignal",
 	RescueCinematic = "RescueCinematic",
 	RescueRemote = "RescueRemote",
+
+	DashBall = "DashBall",
 }
 
 RemoteIndex.Functions = {
