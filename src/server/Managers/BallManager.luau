@@ -9,12 +9,14 @@ local Players =
 
 local ReplicatedStorage =
 	game:GetService("ReplicatedStorage")
-local EasyRagdoll =
+local PlayerManager = require(script.Parent.PlayerManager)
+local Enums = require(ReplicatedStorage.Shared.Enums)
+local GameConfig = require(ReplicatedStorage.Shared.GameConfig)
+local RagdollService =
 	require(
 		ReplicatedStorage
-			.Shared
-			.Modules
-			.EasyRagdoll
+			.Ragdoll
+			.RagdollService
 	)
 ------------------------------------------------
 -- MODULES
@@ -66,8 +68,8 @@ local EQUIP_OFFSET =
 ------------------------------------------------
 
 local THROW_SPEED =
-	125
-local THROW_UPWARD = 25
+	GameConfig.DashBall.speed or 125
+local THROW_UPWARD = GameConfig.DashBall.Upward or 25
 
 local THROW_FORWARD_OFFSET =
 	2.5
@@ -79,8 +81,7 @@ local THROW_HEIGHT_OFFSET =
 -- RAGDOLL
 
 local RAGDOLL_DURATION = 2.5
-
-local THROW_HIT_COOLDOWN = 0.2
+local THROW_COOLDOWN =  GameConfig.DashBall.Cooldown or 1
 
 ------------------------------------------------
 -- STATE
@@ -96,7 +97,7 @@ local THROW_HIT_COOLDOWN = 0.2
 local HoldingBalls = {}
 
 local BallConnections = {}
-
+local ThrowCooldowns = {}
 ------------------------------------------------
 -- GET MAIN PART
 ------------------------------------------------
@@ -132,11 +133,14 @@ local function GetCharacterFromPart(part)
 	return character
 
 end
+
 local function SetupThrowHit(
 	ball,
 	thrower
 )
-
+	if true then
+		return
+	end
 	local main =
 		GetMainPart(ball)
 
@@ -165,13 +169,30 @@ local function SetupThrowHit(
 				-- DON'T HIT THROWER
 				------------------------------------------------
 
-				if character ==
-					thrower.Character then
+				if character == thrower.Character then
 
 					return
 
 				end
+				
+				local targetPlayer = Players:GetPlayerFromCharacter(character)
 
+				if not targetPlayer then
+					return
+				end
+
+				------------------------------------------------
+				-- ONLY HUNTER CAN BE HIT
+				------------------------------------------------
+				local throwerTeam = PlayerManager:GetTeam(thrower)
+
+				if throwerTeam ~= Enums.Team.Runner then
+					print(
+						"[DashBall] BLOCKED - thrower is not Runner:",
+						thrower.Name
+					)
+					return
+				end
 				------------------------------------------------
 				-- DON'T HIT SAME PLAYER TWICE
 				------------------------------------------------
@@ -191,16 +212,7 @@ local function SetupThrowHit(
 					character.Name
 				)
 
-				EasyRagdoll.SetRagdoll(
-					character,
-					true,
-					true,
-					200
-				)
-
-				------------------------------------------------
-				-- RECOVER
-				------------------------------------------------
+				RagdollService.Ragdoll(character)
 
 				task.delay(
 					RAGDOLL_DURATION,
@@ -209,10 +221,7 @@ local function SetupThrowHit(
 						if character
 							and character.Parent then
 
-							EasyRagdoll.SetRagdoll(
-								character,
-								false
-							)
+							RagdollService.Unragdoll(character)
 
 						end
 
@@ -300,6 +309,29 @@ function BallManager:PickupBall(
 
 	end
 
+	local character =
+		player.Character
+
+	if not character then
+		return false
+	end
+
+
+	local heldItemId =
+		character:GetAttribute(
+			"HeldItemId"
+		)
+
+	if heldItemId then
+
+		print(
+			"[BallManager] Cannot pickup Ball while holding:",
+			heldItemId
+		)
+
+		return false
+
+	end
 	------------------------------------------------
 	-- ONLY ONE BALL
 	------------------------------------------------
@@ -372,10 +404,8 @@ function BallManager:PickupBall(
 		)
 
 	if prompt then
-
 		prompt.Enabled =
 			false
-
 	end
 
 	------------------------------------------------
@@ -406,7 +436,7 @@ function BallManager:PickupBall(
 			EQUIP_OFFSET,
 			"DashBall"
 		)
-
+		
 	if not equipped then
 
 		if prompt then
@@ -424,6 +454,13 @@ function BallManager:PickupBall(
 	HoldingBalls[player] =
 		equipped
 	player:SetAttribute("HoldingDashBall", true)
+
+	character:SetAttribute(
+		"HeldItemId",
+		"DashBall"
+	)
+	ball:SetAttribute("IsDashBall", true)
+
 	ball:SetAttribute(
 		"PickedUp",
 		true
@@ -465,6 +502,26 @@ function BallManager:ThrowBall(
 	end
 
 	------------------------------------------------
+	-- THROW COOLDOWN
+	------------------------------------------------
+
+	if ThrowCooldowns[player] then
+		return false
+	end
+
+	ThrowCooldowns[player] = true
+
+	task.delay(
+		THROW_COOLDOWN,
+		function()
+
+			ThrowCooldowns[player] = nil
+
+		end
+	)
+
+
+	------------------------------------------------
 	-- CHARACTER
 	------------------------------------------------
 
@@ -488,6 +545,7 @@ function BallManager:ThrowBall(
 
 	end
 
+	
 	------------------------------------------------
 	-- BALL
 	------------------------------------------------
@@ -528,14 +586,20 @@ function BallManager:ThrowBall(
 	ItemPickupDropModule:Unequip(
 		equipped
 	)
+	------------------------------------------------
+	-- RESTORE PHYSICS
+	------------------------------------------------
 
+	ItemPickupDropModule:PrepareForDrop(
+		ball
+	)
 	------------------------------------------------
 	-- MOVE BALL BACK TO BALLS FOLDER
 	------------------------------------------------
 
 	ball.Parent =
 		BallsFolder
-
+	
 	------------------------------------------------
 	-- THROW POSITION
 	------------------------------------------------
@@ -572,18 +636,13 @@ function BallManager:ThrowBall(
 
 	end
 
-	------------------------------------------------
-	-- RESTORE PHYSICS
-	------------------------------------------------
-
-	ItemPickupDropModule:PrepareForDrop(
-		ball
-	)
 
 	------------------------------------------------
 	-- RESET ATTRIBUTES
 	------------------------------------------------
 	player:SetAttribute("HoldingDashBall", false)
+
+	character:SetAttribute("HeldItemId", nil)
 	ball:SetAttribute(
 		"PickedUp",
 		false
@@ -627,6 +686,105 @@ function BallManager:ThrowBall(
 	end
 	print(
 		"[BallManager] Ball thrown:",
+		player.Name
+	)
+
+	return true
+
+end
+
+
+------------------------------------------------
+-- DROP HELD BALL
+------------------------------------------------
+
+function BallManager:DropBall(player)
+	local equipped =
+		HoldingBalls[player]
+
+	if not equipped then
+		return false
+	end
+
+	local character =
+		player.Character
+
+	if not character then
+		return false
+	end
+
+	------------------------------------------------
+	-- DROP USING UNIVERSAL ITEM MODULE
+	------------------------------------------------
+
+	local ball =
+		ItemPickupDropModule:Drop(
+			character,
+			equipped
+		)
+
+	if not ball then
+		return false
+	end
+	ball.Parent =
+		BallsFolder
+	------------------------------------------------
+	-- RESET BALL STATE
+	------------------------------------------------
+
+	character:SetAttribute("HeldItemId", nil)
+	ball:SetAttribute(
+		"PickedUp",
+		false
+	)
+
+	ball:SetAttribute(
+		"HeldBy",
+		nil
+	)
+
+	------------------------------------------------
+	-- RESET PLAYER STATE
+	------------------------------------------------
+
+	player:SetAttribute(
+		"HoldingDashBall",
+		false
+	)
+
+	ItemPickupDropModule:ClearHeldItem(
+		character
+	)
+
+	------------------------------------------------
+	-- ENABLE PICKUP PROMPT
+	------------------------------------------------
+
+	local main =
+		GetMainPart(ball)
+
+	if main then
+
+		local prompt =
+			main:FindFirstChild(
+				PROMPT_NAME
+			)
+
+		if prompt then
+			prompt.Enabled = true
+		end
+
+	end
+
+	------------------------------------------------
+	-- CLEAR MANAGER STATE
+	------------------------------------------------
+
+	HoldingBalls[player] =
+		nil
+
+	print(
+		"[BallManager] Ball dropped:",
 		player.Name
 	)
 
@@ -802,10 +960,9 @@ function BallManager:Init()
 				)
 
 			end
-
 			HoldingBalls[player] =
-				nil
-
+			nil
+			ThrowCooldowns[player] = nil
 		end
 	)
 
@@ -816,3 +973,6 @@ function BallManager:Init()
 end
 
 return BallManager
+
+
+

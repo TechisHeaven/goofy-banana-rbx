@@ -618,6 +618,7 @@ function HunterEntryController:Play(
 			{
 				ResetCamera = true,
 				FOV = 90,
+				LockCharacter = true,
 			}
 		)
 

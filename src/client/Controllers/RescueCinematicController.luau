@@ -26,71 +26,61 @@ local RescueCinematicController = {}
 
 function RescueCinematicController:Init()
     
-------------------------------------------------
--- REMOTE
-------------------------------------------------
+	------------------------------------------------
+	-- REMOTE
+	------------------------------------------------
 
-RescueCinematic.OnClientEvent:Connect(
-	function(action, effectName)
-		print(action, effectName)
-		------------------------------------------------
-		-- PLAY
-		------------------------------------------------
-		print(
-			"[CLIENT RESCUE DEBUG]",
-			action,
-			effectName,
-			os.clock()
-		)
-
-		if action == "Start" then
-			print("[CLIENT] Starting cinematic")
+	RescueCinematic.OnClientEvent:Connect(
+		function(action, effectName)
 			------------------------------------------------
-			-- Cleanup previous
+			-- PLAY
+		
+
+			if action == "Start" then
+				------------------------------------------------
+				-- Cleanup previous
+				------------------------------------------------
+
+				if currentCinematic then
+					currentCinematic.Cleanup()
+					currentCinematic = nil
+				end
+
+				local character =
+					player.Character
+
+				if not character then
+					return
+				end
+				------------------------------------------------
+				-- PLAY CINEMATIC
+				------------------------------------------------
+				currentCinematic =
+					RescueCinematicModule:Play(
+						character,
+						effectName,
+						{
+							ResetCamera = false
+						}
+					)
+
+			------------------------------------------------
+			-- STOP
 			------------------------------------------------
 
-			if currentCinematic then
-				currentCinematic.Cleanup()
-				currentCinematic = nil
-			end
+			elseif action == "Stop" then
+				if currentCinematic then
 
-			local character =
-				player.Character
+					currentCinematic.Cleanup()
 
-			if not character then
-				return
-			end
-			print(effectName)
-			------------------------------------------------
-			-- PLAY CINEMATIC
-			------------------------------------------------
-			currentCinematic =
-				RescueCinematicModule:Play(
-					character,
-					effectName,
-					{
-						ResetCamera = false
-					}
-				)
+					currentCinematic = nil
 
-		------------------------------------------------
-		-- STOP
-		------------------------------------------------
-
-		elseif action == "Stop" then
-			print("[CLIENT] Stopping cinematic")
-			if currentCinematic then
-
-				currentCinematic.Cleanup()
-
-				currentCinematic = nil
+				end
 
 			end
 
 		end
-
-	end
-)
+	)
 end
 
 return RescueCinematicController

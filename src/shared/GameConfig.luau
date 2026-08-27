@@ -49,5 +49,11 @@ return {
         LifeTime = 20,
         SlipDuration = 1.5,
         PlacementCooldown = 10,
+    },
+
+    DashBall = {
+        Speed = 120,
+        Upward = 25,
+        Cooldown = 1,
     }
 }

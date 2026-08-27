@@ -1,5 +1,7 @@
 local ItemPickupDropModule = {}
 
+local BallsFolder =
+	workspace:WaitForChild("Balls")
 ------------------------------------------------
 -- GET HAND
 ------------------------------------------------
@@ -78,9 +80,7 @@ function ItemPickupDropModule:PrepareForEquip(item)
 			object.CanTouch = false
 			object.CanQuery = false
 			object.Massless = true
-
 		end
-
 	end
 
 	if item:IsA("BasePart") then
@@ -89,6 +89,46 @@ function ItemPickupDropModule:PrepareForEquip(item)
 		item.CanCollide = false
 		item.CanTouch = false
 		item.CanQuery = false
+		item.Massless = true
+
+	end
+
+end
+
+------------------------------------------------
+-- PREPARE FOR DROP
+------------------------------------------------
+
+function ItemPickupDropModule:PrepareForDrop(
+	item
+)
+
+	if not item then
+		return
+	end
+
+	for _, object in ipairs(
+		item:GetDescendants()
+	) do
+
+		if object:IsA("BasePart") then
+
+			object.Anchored = false
+			object.CanCollide = true
+			object.CanTouch = true
+			object.CanQuery = true
+			object.Massless = true
+
+		end
+
+	end
+
+	if item:IsA("BasePart") then
+
+		item.Anchored = false
+		item.CanCollide = true
+		item.CanTouch = true
+		item.CanQuery = true
 		item.Massless = true
 
 	end
@@ -239,45 +279,7 @@ function ItemPickupDropModule:Unequip(
 
 end
 
-------------------------------------------------
--- PREPARE FOR DROP
-------------------------------------------------
 
-function ItemPickupDropModule:PrepareForDrop(
-	item
-)
-
-	if not item then
-		return
-	end
-
-	for _, object in ipairs(
-		item:GetDescendants()
-	) do
-
-		if object:IsA("BasePart") then
-
-			object.Anchored = false
-			object.CanCollide = true
-			object.CanTouch = true
-			object.CanQuery = true
-			object.Massless = false
-
-		end
-
-	end
-
-	if item:IsA("BasePart") then
-
-		item.Anchored = false
-		item.CanCollide = true
-		item.CanTouch = true
-		item.CanQuery = true
-		item.Massless = false
-
-	end
-
-end
 
 ------------------------------------------------
 -- DROP
@@ -300,18 +302,18 @@ function ItemPickupDropModule:Drop(
 		return nil
 	end
 
-	------------------------------------------------
-	-- REMOVE FROM HAND
-	------------------------------------------------
+	-- ------------------------------------------------
+	-- -- REMOVE FROM HAND
+	-- ------------------------------------------------
+	-- self:PrepareForDrop(equipped)
+	-- self:Unequip(equipped)
 
-	self:Unequip(equipped)
+	-- ------------------------------------------------
+	-- -- PARENT TO WORKSPACE
+	-- ------------------------------------------------
 
-	------------------------------------------------
-	-- PARENT TO WORKSPACE
-	------------------------------------------------
-
-	item.Parent =
-		workspace
+	-- item.Parent =
+	-- 	workspace
 
 	------------------------------------------------
 	-- POSITION
@@ -326,29 +328,123 @@ function ItemPickupDropModule:Drop(
 		return nil
 	end
 
-	position =
+	self:PrepareForDrop(item)
+
+	self:Unequip(equipped)
+
+	self:ClearHeldItem(character)
+
+	-- if item == "Banana" then
+	-- 	item.Parent = BallsFolder
+	-- else
+	-- 	item.Parent = workspace
+	-- end
+
+
+	local dropPosition =
 		position
 		or (
 			root.Position
 			+ root.CFrame.LookVector * 3
-			+ Vector3.new(0, 1, 0)
+			+ Vector3.new(0, 2, 0)
 		)
 
 	if item:IsA("Model") then
 
 		item:PivotTo(
-			CFrame.new(position)
+			CFrame.new(dropPosition)
 		)
 
 	else
 
 		item.CFrame =
-			CFrame.new(position)
+			CFrame.new(dropPosition)
 
 	end
 
 	------------------------------------------------
-	-- RESTORE PHYSICS
+	-- MAKE SURE ITEM IS ABOVE GROUND
+	------------------------------------------------
+
+	local rayParams =
+		RaycastParams.new()
+
+	rayParams.FilterType =
+		Enum.RaycastFilterType.Exclude
+
+	rayParams.FilterDescendantsInstances = {
+		character,
+		item
+	}
+
+	local rayResult =
+		workspace:Raycast(
+			dropPosition + Vector3.new(0, 5, 0),
+			Vector3.new(0, -15, 0),
+			rayParams
+		)
+
+	if rayResult then
+
+		local groundY =
+			rayResult.Position.Y
+
+		if item:IsA("Model") then
+
+			local boundingCFrame,
+				boundingSize =
+				item:GetBoundingBox()
+
+			local bottomY =
+				boundingCFrame.Position.Y
+				- boundingSize.Y / 2
+
+			local correction =
+				groundY
+				- bottomY
+				+ 0.08
+
+			if correction > 0 then
+
+				item:PivotTo(
+					item:GetPivot()
+					+ Vector3.new(
+						0,
+						correction,
+						0
+					)
+				)
+
+			end
+
+		elseif item:IsA("BasePart") then
+
+			local bottomY =
+				item.Position.Y
+				- item.Size.Y / 2
+
+			local correction =
+				groundY
+				- bottomY
+				+ 0.08
+
+			if correction > 0 then
+
+				item.Position +=
+					Vector3.new(
+						0,
+						correction,
+						0
+					)
+
+			end
+
+		end
+
+	end
+
+	------------------------------------------------
+	-- FINAL PHYSICS
 	------------------------------------------------
 
 	self:PrepareForDrop(item)

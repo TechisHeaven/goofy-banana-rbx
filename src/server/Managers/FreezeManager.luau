@@ -10,6 +10,7 @@ local ReplicatedStorage =
 local Players =
 	game:GetService("Players")
 
+
 ------------------------------------------------
 -- SHARED
 ------------------------------------------------
@@ -39,10 +40,6 @@ local InventoryManager= require(script.Parent.InventoryManager)
 
 local FreezeEventManager =
 	require(script.Parent.FreezeEventManager)
-local AnimationEffectManager =
-	require(
-		ReplicatedStorage.Shared.Modules.AnimationEffectManager
-	)
 local NotificationManager =
 	require(script.Parent.NotificationManager)
 
@@ -54,6 +51,8 @@ local GamemodeManager =
 
 local TaskManager =
 	require(script.Parent.TaskManager)
+
+	
 
 local TaskEvents =
 	require(
@@ -70,11 +69,15 @@ local TaskEvents =
 local FreezeModule =
 	require(Shared.Modules.FreezeModule)
 
+
+
 ------------------------------------------------
 -- ROUND MANAGER
 ------------------------------------------------
 
 local RoundManager = nil
+
+local REACH_DISTANCE = 8
 
 ------------------------------------------------
 -- REMOTES
@@ -140,7 +143,7 @@ local RescueCinematic =
 ------------------------------------------------
 -- RESCUE ANIMATION
 ------------------------------------------------
-
+local HUNTER_REACH_DISTANCE = 8
 local RESCUE_ANIMATION_NAME = "PunchAnimation"
 
 
@@ -1306,52 +1309,146 @@ function FreezeManager:UnfreezeAll()
 
 end
 
+
+
+
+
 ------------------------------------------------
 -- TOUCH
 ------------------------------------------------
 
-function FreezeManager:HandleTouch(
+
+
+function FreezeManager:HandleHandTouch(
 	toucher: Player,
+	hand: BasePart,
 	otherPart: BasePart
 )
 
+	------------------------------------------------
+	-- BASIC VALIDATION
+	------------------------------------------------
+
 	if not toucher
-		or not toucher.Parent then
+		or not toucher.Parent
+		or not hand
+		or not hand.Parent
+		or not otherPart
+		or not otherPart.Parent then
 
 		return
 	end
 
 	------------------------------------------------
-	-- Find target
+	-- ONLY HUNTER CAN USE HAND FREEZE
 	------------------------------------------------
 
-	local character =
-		otherPart
-		and otherPart:FindFirstAncestorOfClass(
-			"Model"
-		)
+	if PlayerManager:GetTeam(toucher)
+		~= Enums.Team.Hunter then
 
-	local target
-
-	if character then
-
-		target =
-			Players:GetPlayerFromCharacter(
-				character
-			)
-
+		return
 	end
+
+	------------------------------------------------
+	-- TARGET MUST BE A CHARACTER
+	------------------------------------------------
+
+	local targetCharacter =
+		otherPart:FindFirstAncestorOfClass("Model")
+
+	if not targetCharacter then
+		return
+	end
+
+	local target =
+		Players:GetPlayerFromCharacter(
+			targetCharacter
+		)
 
 	if not target then
 		return
 	end
+
+	------------------------------------------------
+	-- NEVER FREEZE YOURSELF
+	------------------------------------------------
 
 	if target == toucher then
 		return
 	end
 
 	------------------------------------------------
-	-- Round check
+	-- TARGET MUST BE RUNNER
+	------------------------------------------------
+
+	if PlayerManager:GetTeam(target)
+		~= Enums.Team.Runner then
+
+		return
+	end
+
+	------------------------------------------------
+	-- TARGET MUST HAVE A HUMANOID
+	------------------------------------------------
+
+	local targetHumanoid =
+		targetCharacter:FindFirstChildOfClass(
+			"Humanoid"
+		)
+
+	if not targetHumanoid then
+		return
+	end
+
+	------------------------------------------------
+	-- TARGET MUST HAVE ROOT
+	------------------------------------------------
+
+	local targetRoot =
+		targetCharacter:FindFirstChild(
+			"HumanoidRootPart"
+		)
+
+	if not targetRoot then
+		return
+	end
+
+	------------------------------------------------
+	-- HUNTER MUST HAVE ROOT
+	------------------------------------------------
+
+	local hunterCharacter =
+		toucher.Character
+
+	if not hunterCharacter then
+		return
+	end
+
+	local hunterRoot =
+		hunterCharacter:FindFirstChild(
+			"HumanoidRootPart"
+		)
+
+	if not hunterRoot then
+		return
+	end
+
+	------------------------------------------------
+	-- DISTANCE VALIDATION
+	--
+	-- Prevents weird touches from distant /
+	-- physically connected objects.
+	------------------------------------------------
+
+	local distance =
+		(hunterRoot.Position - targetRoot.Position).Magnitude
+
+	if distance > 8 then
+		return
+	end
+
+	------------------------------------------------
+	-- ROUND CHECK
 	------------------------------------------------
 
 	local round =
@@ -1364,59 +1461,47 @@ function FreezeManager:HandleTouch(
 	end
 
 	------------------------------------------------
-	-- Hunter check
+	-- ALREADY FROZEN
 	------------------------------------------------
 
-	if PlayerManager:GetTeam(
-		toucher
-	) ~= Enums.Team.Hunter then
+	if PlayerManager:GetState(target)
+		== Enums.PlayerState.Frozen then
 
 		return
 	end
 
 	------------------------------------------------
-	-- Runner check
+	-- FREEZE COOLDOWN
 	------------------------------------------------
 
-	if PlayerManager:GetTeam(
-		target
-	) ~= Enums.Team.Runner then
-
+	if not self:IsFreezeReady(toucher) then
 		return
 	end
 
 	------------------------------------------------
-	-- Already frozen
+	-- VALID HAND CONTACT
 	------------------------------------------------
 
-	if PlayerManager:GetState(
-		target
-	) == Enums.PlayerState.Frozen then
-
-		return
-	end
-
-	------------------------------------------------
-	-- Cooldown
-	------------------------------------------------
-
-	if not self:IsFreezeReady(
-		toucher
-	) then
-
-		return
-	end
+	print(
+		"[FreezeManager] HAND HIT:",
+		toucher.Name,
+		"->",
+		target.Name,
+		"Hand:",
+		hand.Name,
+		"Distance:",
+		distance
+	)
 
 	------------------------------------------------
-	-- MAIN GAME FREEZE
+	-- FREEZE
 	------------------------------------------------
-	-- Your normal game freeze is rescue-based.
 
 	self:FreezePlayer(
 		target,
 		toucher,
 		{
-			Mode = "Rescue",
+			Mode = "Rescue"
 		}
 	)
 
@@ -1468,44 +1553,77 @@ local function onCharacterAdded(
 	-- Touch listeners
 	------------------------------------------------
 
-	local function connectPart(
-		part: BasePart
-	)
+	-- local function connectPart(
+	-- 	part: BasePart
+	-- )
 
-		if not part:IsA("BasePart") then
+	-- 	if not part:IsA("BasePart") then
+	-- 		return
+	-- 	end
+
+	-- 	part.Touched:Connect(
+	-- 		function(otherPart)
+
+	-- 			FreezeManager:HandleTouch(
+	-- 				player,
+	-- 				otherPart
+	-- 			)
+
+	-- 		end
+	-- 	)
+
+	-- end
+
+	local function connectHand(
+		hand: BasePart
+	)
+		if not hand:IsA("BasePart") then
 			return
 		end
 
-		part.Touched:Connect(
-			function(otherPart)
+		hand.Touched:Connect(function(otherPart)
 
-				FreezeManager:HandleTouch(
-					player,
-					otherPart
-				)
+			FreezeManager:HandleHandTouch(
+				player,
+				hand,
+				otherPart
+			)
 
-			end
-		)
-
+		end)
 	end
 
 	------------------------------------------------
 
-	for _, descendant in ipairs(
-		character:GetDescendants()
-	) do
+	-- for _, descendant in ipairs(
+	-- 	character:GetDescendants()
+	-- ) do
 
-		connectPart(
-			descendant
-		)
+	-- 	connectPart(
+	-- 		descendant
+	-- 	)
 
+	-- end
+
+	-- ------------------------------------------------
+
+	-- character.DescendantAdded:Connect(
+	-- 	connectPart
+	-- )
+
+	if not character then
+		return
 	end
 
-	------------------------------------------------
+	local rightHand = character:FindFirstChild("RightHand")
+	local leftHand = character:FindFirstChild("LeftHand")
 
-	character.DescendantAdded:Connect(
-		connectPart
-	)
+	if rightHand and rightHand:IsA("BasePart") then
+		connectHand(rightHand)
+	end
+
+	if leftHand and leftHand:IsA("BasePart") then
+		connectHand(leftHand)
+	end
 
 end
 
@@ -1518,35 +1636,9 @@ function FreezeManager:Init()
 	print(
 		"FreezeManager Initializing..."
 	)
-	------------------------------------------------
-	-- RESCUE CINEMATIC REMOTE
-	------------------------------------------------
 
-	-- RescueCinematic.OnServerEvent:Connect(
-	-- 	function(
-	-- 		rescuer,
-	-- 		status,
-	-- 		frozenPlayer
-	-- 	)
 
-	-- 		if status == "Start" then
 
-	-- 			self:StartRescue(
-	-- 				rescuer,
-	-- 				frozenPlayer
-	-- 			)
-
-	-- 		elseif status == "Stop" then
-
-	-- 			self:StopRescue(
-	-- 				rescuer,
-	-- 				frozenPlayer
-	-- 			)
-
-	-- 		end
-
-	-- 	end
-	-- )
 	------------------------------------------------
 	-- Existing players
 	------------------------------------------------

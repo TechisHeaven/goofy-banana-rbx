@@ -23,53 +23,53 @@ local GameplayItemConfig = {
 
 	},
 
-	BananaGun = {
+	-- BananaGun = {
 
-		Name = "Banana Gun",
+	-- 	Name = "Banana Gun",
 
-		Model = "BananaGunModel",
+	-- 	Model = "BananaGunModel",
 
-		SkinCategory = nil,
+	-- 	SkinCategory = nil,
 
-		AttachTo = "RightHand",
+	-- 	AttachTo = "RightHand",
 
-		Attachment = "RightGripAttachment",
+	-- 	Attachment = "RightGripAttachment",
 
-		Offset = CFrame.new(
-			0,
-			0,
-			0
-		),
-		Pickup = {
-			HoldDuration = 2,
-			MaxDistance = 10,
-		},
+	-- 	Offset = CFrame.new(
+	-- 		0,
+	-- 		0,
+	-- 		0
+	-- 	),
+	-- 	Pickup = {
+	-- 		HoldDuration = 2,
+	-- 		MaxDistance = 10,
+	-- 	},
 
 
-	},
+	-- },
 
-	FreezeGun = {
+	-- FreezeGun = {
 
-		Name = "Freeze Gun",
+	-- 	Name = "Freeze Gun",
 
-		Model = "FreezeGunModel",
+	-- 	Model = "FreezeGunModel",
 
-		SkinCategory = nil,
-		AttachTo = "RightHand",
+	-- 	SkinCategory = nil,
+	-- 	AttachTo = "RightHand",
 
-		Attachment = "RightGripAttachment",
+	-- 	Attachment = "RightGripAttachment",
 
-		Offset = CFrame.new(
-			0,
-			0,
-			0
-		),
-		Pickup = {
-			HoldDuration = 2,
-			MaxDistance = 10,
-		},
+	-- 	Offset = CFrame.new(
+	-- 		0,
+	-- 		0,
+	-- 		0
+	-- 	),
+	-- 	Pickup = {
+	-- 		HoldDuration = 2,
+	-- 		MaxDistance = 10,
+	-- 	},
 
-	},
+	-- },
 
 }
 

@@ -324,6 +324,30 @@ function GameplayItemManager:Equip(
 		return false
 	end
 
+
+	------------------------------------------------
+	-- CLEAR DASHBALL FIRST
+	------------------------------------------------
+
+
+		local heldItemId =
+			character:GetAttribute(
+				"HeldItemId"
+			)
+		print(heldItemId)
+		if heldItemId == "DashBall" then
+
+			local BallManager =
+				require(
+					script.Parent.BallManager
+				)
+			BallManager:DropBall(
+				player
+			)
+
+		end
+
+	
 	------------------------------------------------
 	-- Find item folder
 	------------------------------------------------
@@ -384,6 +408,8 @@ function GameplayItemManager:Equip(
 		"HeldItemId",
 		itemId
 	)
+
+	
 	------------------------------------------------
 	-- Attach
 	------------------------------------------------

@@ -135,6 +135,27 @@ function CinematicController:Play(
 		humanoid.WalkSpeed = 0
 		humanoid.JumpPower = 0
 		humanoid.AutoRotate = false
+
+		-- Prevent player movement from affecting the cinematic.
+		humanoid:SetStateEnabled(
+			Enum.HumanoidStateType.Jumping,
+			false
+		)
+
+		humanoid:SetStateEnabled(
+			Enum.HumanoidStateType.Running,
+			false
+		)
+
+		humanoid:SetStateEnabled(
+			Enum.HumanoidStateType.Climbing,
+			false
+		)
+
+		humanoid:SetStateEnabled(
+			Enum.HumanoidStateType.Swimming,
+			false
+		)
 	end
 
 	------------------------------------------------
@@ -374,7 +395,6 @@ function CinematicController:Play(
 		cleanedUp =
 			true
 
-			
 		------------------------------------------------
 		-- RESTORE CAMERA
 		------------------------------------------------
@@ -478,14 +498,29 @@ function CinematicController:Play(
 			and humanoid
 			and humanoid.Parent then
 
-			humanoid.WalkSpeed =
-				oldWalkSpeed
+			humanoid.WalkSpeed = oldWalkSpeed
+			humanoid.JumpPower = oldJumpPower
+			humanoid.AutoRotate = oldAutoRotate
 
-			humanoid.JumpPower =
-				oldJumpPower
+			humanoid:SetStateEnabled(
+				Enum.HumanoidStateType.Jumping,
+				true
+			)
 
-			humanoid.AutoRotate =
-				oldAutoRotate
+			humanoid:SetStateEnabled(
+				Enum.HumanoidStateType.Running,
+				true
+			)
+
+			humanoid:SetStateEnabled(
+				Enum.HumanoidStateType.Climbing,
+				true
+			)
+
+			humanoid:SetStateEnabled(
+				Enum.HumanoidStateType.Swimming,
+				true
+			)
 		end
 
 	end

@@ -55,13 +55,13 @@ local function GetUI()
 			"Bottom"
 		)
 
-	local banana =
+	local Item =
 		bottom:WaitForChild(
-			"Banana"
+			"Item"
 		)
 
 	bananaButton =
-		banana:WaitForChild(
+		Item:WaitForChild(
 			"BananaButton"
 		)
 

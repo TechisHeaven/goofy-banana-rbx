@@ -31,9 +31,9 @@ local PlayerGui =
 
 local GameGui =
 	PlayerGui:WaitForChild("GameGui")
-local BananaFrame =
-	GameGui.Bottom.Banana
-local Button = BananaFrame.BananaButton
+local ItemFrame =
+	GameGui.Bottom.Item
+local Button = ItemFrame.BananaButton
 
 
 ------------------------------------------------

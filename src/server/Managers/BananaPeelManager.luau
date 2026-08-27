@@ -4,6 +4,12 @@ local ServerStorage =
 local ReplicatedStorage =
 	game:GetService("ReplicatedStorage")
 
+local RagdollService =
+	require(
+		ReplicatedStorage
+			.Ragdoll
+			.RagdollService
+	)
 
 ------------------------------------------------
 -- MODULE
@@ -197,39 +203,18 @@ function BananaPeelManager:Slip(
 		return
 	end
 
+	RagdollService.Ragdoll(character)
+				task.delay(
+					BananaPeelModule.Settings.SlipDuration,
+					function()
+						if character
+							and character.Parent then
 
-	------------------------------------------------
-	-- Temporary slip
-	------------------------------------------------
+							RagdollService.Unragdoll(character)
 
-	humanoid.PlatformStand = true
-
-	------------------------------------------------
-	-- Small fall impulse
-	------------------------------------------------
-
-	root.AssemblyLinearVelocity =
-		Vector3.new(
-			0,
-			-8,
-			0
+						end
+				end
 		)
-
-	task.delay(
-		BananaPeelModule.Settings.SlipDuration,
-		function()
-
-			if humanoid
-				and humanoid.Parent then
-
-				humanoid.PlatformStand =
-					false
-
-			end
-
-		end
-	)
-    
 end
 
 ------------------------------------------------

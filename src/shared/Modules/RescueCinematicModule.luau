@@ -45,7 +45,6 @@ function RescueCinematicController:Play(
 	if not character then
 		return nil
 	end
-	print(effectName)
 
 	effectName =
 		effectName or "DefaultPunch"
