@@ -44,6 +44,7 @@ local UpdateReward =
 	RemotesFolder:WaitForChild(
 		RemoteIndex.UpdateDailyReward
 	)
+local OpenUI = RemotesFolder:WaitForChild(RemoteIndex.OpenUI)
 
 ------------------------------------------------
 -- Manager
@@ -91,6 +92,10 @@ local function SendDailyRewardReminder(player, day)
 	end
 
 	DailyRewardReminderShown[player] = day
+	OpenUI:FireClient(
+		player,
+		"DailyReward"
+	)
 	NotificationManager:Send(
 		player,
 				'<font color="#FFD43B"><b>DAILY REWARD READY!</b></font> ' ..
@@ -98,7 +103,6 @@ local function SendDailyRewardReminder(player, day)
 				tostring(day) ..
 				' reward is waiting to be claimed.</font>'
 	)
-
 end
 
 ------------------------------------------------

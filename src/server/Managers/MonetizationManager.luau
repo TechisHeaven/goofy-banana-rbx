@@ -13,6 +13,13 @@ local CurrencyManager =
 local InventoryManager =
 	require(script.Parent.InventoryManager)
 
+local HunterRevealManager =
+	require(
+		script.Parent.HunterRevealManager
+	)
+
+local HunterRevealConfig = require(Shared.Config.HunterRevealConfig)
+
 local NotificationManager = require(script.Parent.NotificationManager)
 
 
@@ -89,6 +96,18 @@ local function BuildProductIndex()
 		end
 
 	end
+
+
+	------------------------------------------------
+	-- Hunter Reveal
+	------------------------------------------------
+	AddProduct(
+		{
+			ProductId = HunterRevealConfig.ProductId,
+			Id = "HunterReveal",
+		},
+		"HunterReveal"
+	)
 
 end
 
@@ -303,6 +322,19 @@ local function GrantProduct(player, productInfo)
 		return GrantGamePack(
 			player,
 			product
+		)
+
+	end
+
+
+	------------------------------------------------
+	-- Hunter Reveal
+	------------------------------------------------
+
+	if productType == "HunterReveal" then
+
+		return HunterRevealManager:Activate(
+			player
 		)
 
 	end

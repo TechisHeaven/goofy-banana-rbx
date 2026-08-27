@@ -155,10 +155,7 @@ local function CreatePrompt(
 		Instance.new("ProximityPrompt")
 
 	prompt.Name =
-		"PickupPrompt"
-
-	prompt.ActionText =
-		"Pick Up"
+		"Pick up"
 
 	prompt.ObjectText =
 		config.Name
@@ -167,6 +164,8 @@ local function CreatePrompt(
 	prompt.HoldDuration =
 		pickupConfig.HoldDuration
 		or 2
+	
+	prompt.Style = Enum.ProximityPromptStyle.Custom
 
 	prompt.MaxActivationDistance =
 		pickupConfig.MaxDistance

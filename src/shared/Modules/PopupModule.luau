@@ -59,6 +59,27 @@ function PopupManager:Init(Overlay)
 
 end
 
+
+-------------------------------------------------------
+-- ENSURE OVERLAY
+-------------------------------------------------------
+
+function PopupManager:EnsureOverlayVisible()
+
+	if not self.Overlay then
+		warn("[PopupManager] Overlay is not initialized")
+		return false
+	end
+
+	-- Safety:
+	-- Always make sure the overlay is visible
+	-- before opening any popup.
+	if not self.Overlay.Visible then
+		self.Overlay.Visible = true
+	end
+
+	return true
+end
 -------------------------------------------------------
 
 function PopupManager:Open(Popup, Options : {CanClickOutsideToClose: boolean, ReopenPreviousOnClose: boolean}?)
@@ -115,6 +136,14 @@ function PopupManager:Open(Popup, Options : {CanClickOutsideToClose: boolean, Re
 
 	self.CurrentPopup = Popup
 
+	------------------------------------------------
+	-- SAFETY: RESTORE OVERLAY
+	------------------------------------------------
+
+	if not self:EnsureOverlayVisible() then
+		return
+	end
+
 	local Scale = Popup:FindFirstChildOfClass("UIScale")
 
 	if not Scale then
@@ -125,7 +154,7 @@ function PopupManager:Open(Popup, Options : {CanClickOutsideToClose: boolean, Re
 	Scale.Scale = self.ClosedScale
 	
 	Popup.Visible = true
-	self.Overlay.Visible = true
+	-- self.Overlay.Visible = true
 
 	TweenService:Create(
 		self.Overlay,

@@ -72,6 +72,28 @@ function HighlightVisual.Create(
 		or Enum.HighlightDepthMode.AlwaysOnTop
 
 	highlight.Parent = parent
+	------------------------------------------------
+	-- AUTO REMOVE
+	------------------------------------------------
+
+	if typeof(options.Duration) == "number"
+		and options.Duration > 0 then
+
+		task.delay(
+			options.Duration,
+			function()
+
+				if highlight
+					and highlight.Parent then
+
+					highlight:Destroy()
+
+				end
+
+			end
+		)
+
+	end
 
 	return highlight
 
@@ -82,14 +104,13 @@ end
 ------------------------------------------------
 
 function HighlightVisual.Remove(parent)
-	print(parent)
+	
 	if not parent then
 		return
 	end
 
 	local highlight =
 		parent:FindFirstChild(DEFAULT_NAME)
-	print("hightlightname", highlight)
 	if highlight then
 		highlight:Destroy()
 	end

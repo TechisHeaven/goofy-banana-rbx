@@ -53,6 +53,7 @@ local defaultTab = Tabs:FindFirstChild(ShopConfig.DefaultCategory)
 local ShopUI = {}
 ShopUI.OnBuyPressed = nil
 ShopUI.OnTabChanged = nil
+ShopUI.OnOwnedItemPressed = nil
 
 local CurrentTab = nil
 
@@ -199,25 +200,30 @@ function ShopUI:RenderItems(items)
 		local buttonImage = if data.Currency == "Robux" then ROBUX_CURRENCY_IMAGE else COIN_CURRENCY_IMAGE
 		item.Button.Visible = false
 		item.EquipButton.Visible = false
-		if data.Equipped then
+		if data.Owned then
+
 			item.EquipButton.Visible = true
-			item.EquipButton.Title.Text = "Equipped"
+
+			if data.Equipped then
+				item.EquipButton.Title.Text = "Equipped"
+			else
+				item.EquipButton.Title.Text = "Equip"
+			end
+
 			item.Button.Active = false
-		elseif data.Owned then
-			item.EquipButton.Visible = true
-			item.EquipButton.Title.Text = "Equip"
-			item.Button.Active = false
+
+			item.EquipButton.Activated:Connect(function()
+
+				if self.OnOwnedItemPressed then
+					self.OnOwnedItemPressed(
+						data.Category,
+						data.Id
+					)
+				end
+
+			end)
+
 		else
-			item.Button.Active = true
-			item.Button.Visible = true
-			item.Button.ButtonFrame.Coin.Image = buttonImage
-			item.Button.ButtonFrame.Coin.Visible = true
-			item.Button.ButtonFrame.Price.Text =
-			price
-
-		end
-
-		if not data.Owned then
 
 			item.Button.Active = true
 			item.Button.Visible = true
@@ -227,8 +233,12 @@ function ShopUI:RenderItems(items)
 			item.Button.ButtonFrame.Price.Text = price
 
 			item.Button.Activated:Connect(function()
+
 				if self.OnBuyPressed then
-					self.OnBuyPressed(data.Category, data.Id)
+					self.OnBuyPressed(
+						data.Category,
+						data.Id
+					)
 				end
 
 			end)

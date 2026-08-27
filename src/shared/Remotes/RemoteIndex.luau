@@ -99,6 +99,10 @@ RemoteIndex.Events = {
 	RescueRemote = "RescueRemote",
 
 	DashBall = "DashBall",
+
+	OpenUI = "OpenUI",
+
+	HunterRevealEffect = "HunterRevealEffect"
 }
 
 RemoteIndex.Functions = {

@@ -6,7 +6,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local ShopConfig = require(Shared.Config.ShopConfig)
 
 local ShopUI = require(script.Parent.Parent.UI.ShopUI)
-
+local InventoryController = require(script.Parent.Parent.Controllers.InventoryController)
 ----------------------------------------------------
 
 local PlayerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
@@ -92,6 +92,14 @@ function ShopController:Init()
 			-- Show notification
 		end
 
+	end
+
+
+	ShopUI.OnOwnedItemPressed = function(category, itemId)
+		InventoryController:OpenItem(
+			category,
+			itemId
+		)
 	end
 	------------------------------------------------
 	-- Tabs

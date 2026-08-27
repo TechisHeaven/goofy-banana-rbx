@@ -1,8 +1,8 @@
-local ProximityPromptService =
-	game:GetService("ProximityPromptService")
+local Players = game:GetService("Players")
+local ProximityPromptService = game:GetService("ProximityPromptService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local ReplicatedStorage =
-	game:GetService("ReplicatedStorage")
+local player = Players.LocalPlayer
 
 local CustomProximityTemplate =
 	ReplicatedStorage.ProximityPrompt:WaitForChild("CustomProximity")
@@ -11,6 +11,11 @@ local CustomProximityTemplate =
 -- PROMPT SHOWN
 ------------------------------------------------
 
+local function IsRescuePrompt(prompt)
+	return prompt:GetAttribute("RescuePrompt") == true
+end
+
+
 ProximityPromptService.PromptShown:Connect(
 	function(promptInstance: ProximityPrompt)
 
@@ -18,6 +23,49 @@ ProximityPromptService.PromptShown:Connect(
 			== Enum.ProximityPromptStyle.Default then
 
 			return
+		end
+
+		if IsRescuePrompt(promptInstance) then
+
+			------------------------------------------------
+			-- CURRENT PLAYER MUST BE RUNNER
+			------------------------------------------------
+
+			if player:GetAttribute("Team") ~= "Runner" then
+				return
+			end
+
+			------------------------------------------------
+			-- FIND TARGET CHARACTER
+			------------------------------------------------
+
+			local targetCharacter =
+				promptInstance:FindFirstAncestorOfClass("Model")
+
+			if not targetCharacter then
+				return
+			end
+
+			local targetPlayer =
+				Players:GetPlayerFromCharacter(targetCharacter)
+
+			if not targetPlayer then
+				return
+			end
+
+			if targetPlayer == player then
+				return
+			end
+
+			------------------------------------------------
+			-- TARGET MUST ALSO BE RUNNER
+			------------------------------------------------
+
+			if targetPlayer:GetAttribute("Team") ~= "Runner" then
+				return
+			end
+
+
 		end
 
 		local customProximity =

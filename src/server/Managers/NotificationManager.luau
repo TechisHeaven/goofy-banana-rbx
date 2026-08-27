@@ -13,6 +13,8 @@ local NotifyRemote =
 
 local NotificationData = require(Shared.Modules.NotificationData)
 
+
+
 local NotificationManager = {}
 
 function NotificationManager:Send(player, message, target, duration)
@@ -32,6 +34,38 @@ function NotificationManager:Broadcast(message, target, duration)
         target or Enums.NotificationTarget.Default,
 		duration or GameConfig.Game.NotificationDuration
     ))
+
+end
+
+
+function NotificationManager:BroadcastToRound(
+	players,
+	message,
+	target,
+	duration
+)
+
+
+
+	local notification =
+		NotificationData.new(
+			message,
+			target or Enums.NotificationTarget.Default,
+			duration or GameConfig.Game.NotificationDuration
+		)
+
+	for _, player in ipairs(players) do
+
+		if player and player.Parent then
+
+			NotifyRemote:FireClient(
+				player,
+				notification
+			)
+
+		end
+
+	end
 
 end
 

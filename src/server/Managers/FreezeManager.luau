@@ -583,6 +583,7 @@ function FreezeManager:FreezePlayer(
 		and character:FindFirstChild(
 			"HumanoidRootPart"
 		)
+	local head = character:WaitForChild("Head")
 
 	if rootPart then
 
@@ -610,24 +611,21 @@ function FreezeManager:FreezePlayer(
 				)
 
 			prompt.ObjectText =
-				player.Name
-
-			prompt.ActionText =
-				"Rescue"
+				"Rescue " .. player.Name
 
 			prompt.HoldDuration =
 				GameConfig.Rescue.HoldTime
 				or 5
-
+				
 			prompt.KeyboardKeyCode =
 				Enum.KeyCode.E
 
 			prompt.RequiresLineOfSight =
 				false
-
+			prompt.Style = Enum.ProximityPromptStyle.Custom
 			prompt.MaxActivationDistance =
 				6
-			
+			prompt:SetAttribute("RescuePrompt", true)
 			------------------------------------------------
 			-- HOLD START
 			------------------------------------------------
@@ -811,83 +809,13 @@ function FreezeManager:FreezePlayer(
 			end
 
 		end)
-			-- prompt.Triggered:Connect(
-			-- 	function(rescuer)
-
-			-- 		------------------------------------------------
-			-- 		-- Round check
-			-- 		------------------------------------------------
-
-			-- 		local round =
-			-- 			GetRoundManager()
-
-			-- 		if round.CurrentState
-			-- 			~= Enums.RoundState.Playing then
-
-			-- 			return
-			-- 		end
-
-			-- 		------------------------------------------------
-			-- 		-- Rescuer must be runner
-			-- 		------------------------------------------------
-
-			-- 		if PlayerManager:GetTeam(
-			-- 			rescuer
-			-- 		) ~= Enums.Team.Runner then
-
-			-- 			return
-			-- 		end
-
-			-- 		------------------------------------------------
-			-- 		-- Rescuer must be alive
-			-- 		------------------------------------------------
-
-			-- 		if PlayerManager:GetState(
-			-- 			rescuer
-			-- 		) ~= Enums.PlayerState.Alive then
-
-			-- 			return
-			-- 		end
-
-			-- 		------------------------------------------------
-			-- 		-- Rescue
-			-- 		------------------------------------------------
-
-			-- 		FreezeManager:UnfreezePlayer(
-			-- 			player,
-			-- 			rescuer
-			-- 		)
-
-			-- 		------------------------------------------------
-			-- 		-- Notifications
-			-- 		------------------------------------------------
-
-			-- 		if rescuer
-			-- 			and rescuer.Parent then
-
-			-- 			NotificationManager:Send(
-			-- 				player,
-			-- 				("You were rescued by %s!"):format(
-			-- 					rescuer.Name
-			-- 				),
-			-- 				Enums.NotificationTarget.Gameplay
-			-- 			)
-
-			-- 			NotificationManager:Send(
-			-- 				rescuer,
-			-- 				("You rescued %s!"):format(
-			-- 					player.Name
-			-- 				),
-			-- 				Enums.NotificationTarget.Gameplay
-			-- 			)
-
-			-- 		end
-
-			-- 	end
-			-- )
-
-			prompt.Parent =
-				rootPart
+			
+			
+		if head then
+			prompt.Parent = head
+		else
+			prompt.Parent = rootPart
+		end
 
 			activePrompts[player] =
 				prompt

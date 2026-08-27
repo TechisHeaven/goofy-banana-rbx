@@ -43,7 +43,7 @@ local NAME_TAG_SETTINGS = {
 
 	AlwaysOnTop = true,
 
-	MaxDistance = 150,
+	MaxDistance = 50,
 
 	------------------------------------------------
 	-- Text

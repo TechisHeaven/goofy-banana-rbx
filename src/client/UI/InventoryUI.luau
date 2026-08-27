@@ -100,6 +100,39 @@ function InventoryUI:SetSelectedTab(name)
 
 end
 
+
+------------------------------------------------
+-- Open specific inventory category
+------------------------------------------------
+
+function InventoryUI:OpenCategory(category)
+
+	local config =
+		InventoryConfig.Categories[category]
+
+	if not config then
+		warn(
+			"[InventoryUI] Invalid category:",
+			category
+		)
+		return
+	end
+
+	------------------------------------------------
+	-- Select correct tab
+	------------------------------------------------
+
+	self:SetSelectedTab(category)
+
+	------------------------------------------------
+	-- Show correct page
+	------------------------------------------------
+
+	self:ShowPage(config.Page)
+
+end
+
+
 ------------------------------------------------
 
 function InventoryUI:Init()

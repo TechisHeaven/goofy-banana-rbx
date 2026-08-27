@@ -43,7 +43,7 @@ local function OpenCategory(category)
 		return
 	end
 
-	InventoryUI:ShowPage(config.Page)
+	InventoryUI:OpenCategory(category)
 
 	local items =
 		getRemote(RemoteIndexFunctions.GetInventoryItems)
@@ -54,6 +54,46 @@ local function OpenCategory(category)
 		category,
 		items
 	)
+
+end
+
+----------------------------------------------------
+-- Open specific inventory item
+----------------------------------------------------
+
+function InventoryController:OpenItem(
+	category,
+	itemId
+)
+
+	if not category then
+		return
+	end
+
+	local config =
+		InventoryConfig.Categories[category]
+
+	if not config then
+		warn(
+			"[InventoryController] Unknown category:",
+			category
+		)
+		return
+	end
+
+	CurrentCategory = category
+
+	InventoryUI:Open()
+
+	OpenCategory(category)
+
+	------------------------------------------------
+	-- Tell UI which item should be selected
+	------------------------------------------------
+
+	if InventoryUI.SelectItem then
+		InventoryUI:SelectItem(itemId)
+	end
 
 end
 
