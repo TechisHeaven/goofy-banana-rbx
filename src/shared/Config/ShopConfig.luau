@@ -3,6 +3,7 @@ local ShopConfig = {}
 local ShopData = script.Parent:WaitForChild("ShopConfigData")
 
 ShopConfig.DefaultCategory = "Skins"
+ShopConfig.DefaultOffersPage = "GamePacks"
 
 ShopConfig.Categories = {
 

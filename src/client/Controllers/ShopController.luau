@@ -63,6 +63,13 @@ local function OpenCategory(categoryName)
 
 end
 
+
+function ShopController:OpenShop(page)
+	if not page then
+		page = ShopConfig.DefaultOffersPage
+	end
+	OpenCategory(page)
+end
 ----------------------------------------------------
 
 function ShopController:Init()

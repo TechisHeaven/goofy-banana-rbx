@@ -81,13 +81,14 @@ function UIManager:UpdateRoundInfo(payload)
 	self:SetFrozenPlayers(payload.frozenRunners, payload.remainingRunners)
 end
 
-function UIManager:SetRole(team)
+function UIManager:SetRole(team, hunter)
 	RoleLabel.RichText = true
-	if team == "Hunter" then
-		RoleLabel.Text = 'You are a  <font color="#FF3B30"><b>Hunter</b></font>'
-	else
-		RoleLabel.Text = 'You are a  <font color="#3DB5F5"><b>Runner</b></font>'
+
+	if hunter ~= string then
+		hunter = tostring(hunter)
 	end
+
+	RoleLabel.Text = '<font color="#FF3B30"><b>' .. hunter .. '</b></font> is the Hunter'
 end
 
 

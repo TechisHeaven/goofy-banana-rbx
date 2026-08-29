@@ -12,6 +12,7 @@ local DailyRewardButton = LobbyGui.Center.Right.DailyRewardButton
 
 local PopupManager = require(ReplicatedStorage.Shared.Modules.PopupModule)
 
+local OpenUIController = require(script.Parent.Parent.Controllers.OpenUIController)
 
 local Overlay = PopupGui:WaitForChild("Overlay")
 local DailyRewardGui = Overlay:WaitForChild("DailyRewardFrame")
@@ -26,11 +27,12 @@ local GetPremium = Popup.GetPremium
 
 local Template =
     RewardsFrame.RewardTemplate
+
+local CheckoutOffers = Popup.Info.CheckoutOffers
 ---------------------------------------------------
 -- DailyRewardGui.NextReward = nil
 
 local DailyRewardUI = {}
-
 
 
 -- Template.Visible = false
@@ -139,15 +141,22 @@ function DailyRewardUI:Render(data)
 
         claim.Active = false
         claim.AutoButtonColor = false
+        reward.Today.Visible = false
         ------------------------------------------------
         -- Already Claimed
         ------------------------------------------------
         if card.Day <= data.ClaimedDay then
 
             claim.Visible = true
-            claim.Text.Text = "Claimed"
+            -- claim.Text.Text = "Claimed"
+            reward.ClaimedImage.Visible = true
+            reward.Preview.BasicReward.ClaimedUIStroke.Enabled = true
+            reward.Preview.BasicReward.NormalUIStroke.Enabled = false
+            reward.Preview.BasicReward.TodaysUIStroke.Enabled = false
+
             claim.Active = false
 	        claim.AutoButtonColor = false
+            
 
         ------------------------------------------------
         -- Today's reward
@@ -158,8 +167,14 @@ function DailyRewardUI:Render(data)
             currentReward = reward
 
                 claim.Visible = true
-
-                claim.Text.Text = "Claim"
+                reward.Today.Visible = true
+                reward.Preview.BasicReward.ClaimedUIStroke.Enabled = false
+                reward.Preview.BasicReward.NormalUIStroke.Enabled = false
+                reward.Preview.BasicReward.TodaysUIStroke.Enabled = true
+                reward.Preview.PremiumReward.NormalUIStroke.Enabled = false
+                reward.Preview.PremiumReward.TodaysUIStroke.Enabled = true
+                reward.Preview.BasicReward.UIShadow.Enabled = true
+                reward.Preview.PremiumReward.UIShadow.Enabled = true
 
                 claim.Active = true
                 claim.AutoButtonColor = false
@@ -179,6 +194,15 @@ function DailyRewardUI:Render(data)
 
         else
             claim.Visible = false
+                reward.Preview.BasicReward.ClaimedUIStroke.Enabled = false
+                reward.Preview.BasicReward.NormalUIStroke.Enabled = true
+                reward.Preview.BasicReward.TodaysUIStroke.Enabled = false
+                reward.Preview.PremiumReward.NormalUIStroke.Enabled = true
+                reward.Preview.PremiumReward.TodaysUIStroke.Enabled = false
+                reward.Preview.BasicReward.UIShadow.Enabled = false
+                reward.Preview.PremiumReward.UIShadow.Enabled = false
+
+            reward.ClaimedImage.Visible = false
             -- later.Visible = true
 
         end
@@ -253,6 +277,11 @@ function DailyRewardUI:Init()
 		if DailyRewardUI.OnPremiumPressed then
 			DailyRewardUI.OnPremiumPressed()
 		end
+	end)
+
+
+    CheckoutOffers.Activated:Connect(function()
+		OpenUIController:OpenShop()
 	end)
 end
 

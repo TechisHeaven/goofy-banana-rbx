@@ -34,6 +34,7 @@ local HunterEntryController= require(script.Controllers.HunterEntryController)
 local RescueCinematicController = require(script.Controllers.RescueCinematicController)
 local DashBallController = require(script.Controllers.DashBallController)
 local HunterRevealController = require(script.Controllers.HunterRevealController)
+local OpenUIController = require(script.Controllers.OpenUIController)
 
 ShopController:Init()
 CursorController:Init()
@@ -61,6 +62,7 @@ HunterEntryController:Init()
 RescueCinematicController:Init()
 DashBallController:Init()
 HunterRevealController:Init()
+OpenUIController:Init()
 
 -- Wait for attributes to replicate
 if not LocalPlayer:GetAttribute("Team") then

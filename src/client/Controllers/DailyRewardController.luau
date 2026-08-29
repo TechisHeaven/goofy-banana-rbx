@@ -16,14 +16,6 @@ local MonetizationController = require(script.Parent.MonetizationController)
 local DailyRewardConfig = require(Shared.Config.DailyRewardConfig)
 
 
-local Players = game:GetService("Players")
-
-local PlayerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
-local PopupGui = PlayerGui:WaitForChild("PopupGui")
-local Overlay = PopupGui:WaitForChild("Overlay")
-local DailyRewardFrame = Overlay:WaitForChild("DailyRewardFrame")
-
-
 -----------------------------------------------------
 -- Remotes
 -----------------------------------------------------
@@ -41,14 +33,12 @@ local UpdateReward =
 	getRemote(
 		RemoteIndex.Events.UpdateDailyReward
 	)
-local OpenUI = getRemote(RemoteIndexData.Events.OpenUI)
 
 local RequestReward =
 	getRemote(
 		RemoteIndex.Events.RequestDailyReward
 	)
 
-local PopupModule = require(ReplicatedStorage.Shared.Modules.PopupModule)
 
 -----------------------------------------------------
 -- Controller
@@ -147,15 +137,6 @@ function DailyRewardController:Init()
 		self:BuyPremium()
 
 	end
-
-	OpenUI.OnClientEvent:Connect(function(uiName)
-		if uiName == "DailyReward" then
-			PopupModule:Open(DailyRewardFrame, {
-				CanClickOutsideToClose = true
-			})
-		end
-
-	end)
 end
 
 return DailyRewardController

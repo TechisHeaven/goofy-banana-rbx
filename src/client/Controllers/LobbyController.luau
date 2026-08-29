@@ -108,15 +108,7 @@ local function onRoundStarting(seconds: number)
 	LobbyUI:ShowCountdown(seconds)
 end
 
---- TeleportToArena — round has officially started, switch to arena HUD
--- local function onTeleportToArena(hunterName: string)
--- 	print("LobbyController: Match started. Switching to arena HUD.")
--- 	isInMatch = true
--- 	isQueued  = false
--- 	LobbyUI:SetQueued(false)
--- 	UIManager:ShowGame()
--- 	-- TODO: enable arena HUD when it is implemented
--- end
+
 
 local function onTeleportToArena(data)
 	PopupManager:CloseCurrent()
@@ -124,7 +116,7 @@ local function onTeleportToArena(data)
 	isQueued  = false
 	LobbyUI:SetQueued(false)
 	UIManager:ShowGame()
-	UIManager:SetRole(data.role)
+	UIManager:SetRole(data.role, data.hunterName)
 	UIManager:SetTimer(data.roundTime)
 
 end

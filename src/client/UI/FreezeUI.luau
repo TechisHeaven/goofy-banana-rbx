@@ -13,7 +13,7 @@ local GameConfig = require(game.ReplicatedStorage.Shared.GameConfig)
 local FreezeUI = {}
 
 local Frame = PopupGui.Overlay.FrozenFrame
-local FreezeCooldown = GameGui.Center.FreezeCooldown
+local FreezeCooldown = GameGui.FreezeCooldown
 
 local CooldownText =
 	FreezeCooldown.Cooldown
