@@ -102,7 +102,9 @@ RemoteIndex.Events = {
 
 	OpenUI = "OpenUI",
 	DizzyEffect= "DizzyEffect",
-	HunterRevealEffect = "HunterRevealEffect"
+	HunterRevealEffect = "HunterRevealEffect",
+
+	UpdateSettings = "UpdateSettings",
 }
 
 RemoteIndex.Functions = {
@@ -116,6 +118,8 @@ RemoteIndex.Functions = {
 	ClaimTask = "ClaimTask",
 
 	GetTasks = "GetTasks",
+
+	GetSettings = "GetSettings",
 }
 
 return RemoteIndex

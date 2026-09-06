@@ -1,4 +1,7 @@
 local Managers = script.Managers
+local Services = script.Services
+
+
 local LoadOrder = {
 	"RemoteManager",  -- Creates all remotes first
 	"ProfileManager",
@@ -25,8 +28,11 @@ local LoadOrder = {
 }
 
 
+local ServicesLoadOrder = {
+	"SettingsService"
+}
 
-
+local LoadedServices = {}
 local LoadedManagers = {}
 
 -- for _, module in ipairs(Managers:GetChildren()) do
@@ -60,6 +66,30 @@ end
 
 print("Loaded", #LoadedManagers, "Managers")
 
+-------------------------------------------------------
+-- LOAD SERVICES IN ORDER
+-------------------------------------------------------
 
+for _, name in ipairs(ServicesLoadOrder) do
 
-local Players = game:GetService("Players")
+	local module = Services:FindFirstChild(name)
+
+	if not module then
+		error(("Missing service: %s"):format(name))
+	end
+
+	if not module:IsA("ModuleScript") then
+		error(("Service is not a ModuleScript: %s"):format(name))
+	end
+
+	local service = require(module)
+
+	if service.Init then
+		service:Init()
+	end
+
+	LoadedServices[name] = service
+
+end
+
+print("Loaded", #LoadedServices, "Services")

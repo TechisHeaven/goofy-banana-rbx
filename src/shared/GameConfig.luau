@@ -40,7 +40,7 @@ return {
         CoinAmount = 50,
         CoinRespawnTime = 3,
         DefaultSlowMoDuration = 3,
-        DefaultSlowMoFOV = 70,
+        DefaultSlowMoFOV = 80,
         DefaultSlowMoSpeed = 0.35
     },
 

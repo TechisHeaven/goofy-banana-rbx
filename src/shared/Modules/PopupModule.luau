@@ -22,6 +22,14 @@ PopupManager.ClosedScale = 0.8
 PopupManager.OpenTime = 0.22
 PopupManager.CloseTime = 0.15
 
+-- CAMERA ZOOM
+
+PopupManager.PopupFOV = 50
+PopupManager.FOVTweenTime = 0.2
+
+-- Your normal FOV from your config
+PopupManager.DefaultFOV = 80
+
 -------------------------------------------------------
 
 local Blur = Lighting:FindFirstChild("PopupBlur")
@@ -33,6 +41,66 @@ if not Blur then
 	Blur.Parent = Lighting
 end
 
+local Camera = workspace.CurrentCamera
+
+local function TweenFOV(targetFOV, duration)
+	Camera = workspace.CurrentCamera
+
+	if not Camera then
+		return
+	end
+
+	TweenService:Create(
+		Camera,
+		TweenInfo.new(
+			duration,
+			Enum.EasingStyle.Quad,
+			Enum.EasingDirection.Out
+		),
+		{
+			FieldOfView = targetFOV
+		}
+	):Play()
+end
+
+function PopupManager:SetPopupState(Popup, IsOpen)
+
+	if not self.Overlay then
+		return
+	end
+
+	if IsOpen then
+
+		-- Which popup currently has focus
+		self.Overlay:SetAttribute(
+			"FocusedPopup",
+			Popup.Name
+		)
+
+		-- Any popup is currently open
+		self.Overlay:SetAttribute(
+			"PopupOpen",
+			true
+		)
+
+	else
+
+		-- Clear focused popup
+		self.Overlay:SetAttribute(
+			"FocusedPopup",
+			nil
+		)
+
+		-- No popup open
+		self.Overlay:SetAttribute(
+			"PopupOpen",
+			false
+		)
+
+	end
+
+end
+
 -------------------------------------------------------
 
 function PopupManager:Init(Overlay)
@@ -40,6 +108,18 @@ function PopupManager:Init(Overlay)
 	self.Overlay = Overlay
 	self.Overlay.Visible = false
 	self.Overlay.BackgroundTransparency = 1
+
+	-- Initial state
+
+	self.Overlay:SetAttribute(
+		"FocusedPopup",
+		nil
+	)
+
+	self.Overlay:SetAttribute(
+		"PopupOpen",
+		false
+	)
 
 	self.Overlay.InputBegan:Connect(function(input)
 
@@ -144,6 +224,15 @@ function PopupManager:Open(Popup, Options : {CanClickOutsideToClose: boolean, Re
 		return
 	end
 
+
+	------------------------------------------------
+	-- Popup state attribute
+	------------------------------------------------
+
+	self:SetPopupState(Popup, true)
+
+
+
 	local Scale = Popup:FindFirstChildOfClass("UIScale")
 
 	if not Scale then
@@ -163,6 +252,7 @@ function PopupManager:Open(Popup, Options : {CanClickOutsideToClose: boolean, Re
 			BackgroundTransparency = self.BackgroundTransparency
 		}
 	):Play()
+	
 
 
 	TweenService:Create(
@@ -172,6 +262,12 @@ function PopupManager:Open(Popup, Options : {CanClickOutsideToClose: boolean, Re
 			Size = self.BlurSize
 		}
 	):Play()
+
+	-- Camera zoom
+	TweenFOV(
+		self.PopupFOV,
+		self.FOVTweenTime
+	)
 
 	TweenService:Create(
 		Scale,
@@ -227,7 +323,14 @@ function PopupManager:Close(Popup, IsSwitching)
 			Size = 0
 		}
 	):Play()
-
+	-- Camera Back to Zoom Normal
+	if not IsSwitching then
+		TweenFOV(
+			self.DefaultFOV,
+			self.FOVTweenTime
+		)
+	end
+	
 	TweenService:Create(
 		self.Overlay,
 		TweenInfo.new(self.CloseTime),
@@ -275,6 +378,9 @@ function PopupManager:Close(Popup, IsSwitching)
 
 	if not self.CurrentPopup then
 		self.Overlay.Visible = false
+		
+		-- Clear popup state
+		self:SetPopupState(Popup, false)
 	end
 
 	self.Overlay.Visible = false
