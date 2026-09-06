@@ -25,6 +25,7 @@ local CooldownText =
 
 local cooldownToken = 0
 
+FreezeCooldown.Visible = false
 
 function FreezeUI:Show(data)
 

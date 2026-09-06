@@ -31,7 +31,6 @@ Enums.NotificationTarget = {
 	Overlay = "Overlay",      -- PopupGui
 	Gameplay = "Gameplay",    -- GameGui
     Default = "Overlay",      -- Default to Overlay
-
 }
 
 

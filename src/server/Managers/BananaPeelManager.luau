@@ -68,6 +68,8 @@ local RemoteIndex =
 local Remotes = Shared.Remotes
 
 
+local DizzyEffectEvent =
+	Remotes:WaitForChild(RemoteIndex.DizzyEffect)
 
 local BananaPeelRequest =
 	Remotes:WaitForChild(
@@ -99,7 +101,7 @@ end
 ------------------------------------------------
 -- MANAGER
 ------------------------------------------------
-
+local RAGDOLL_DURATION = BananaPeelModule.Settings.SlipDuration or 3
 local BananaPeelManager = {}
 
 local PlacementCooldowns = {}
@@ -204,7 +206,8 @@ function BananaPeelManager:Slip(
 	end
 
 	RagdollService.Ragdoll(character)
-				task.delay(
+	DizzyEffectEvent:FireClient(player, RAGDOLL_DURATION)
+	task.delay(
 					BananaPeelModule.Settings.SlipDuration,
 					function()
 						if character
@@ -214,7 +217,7 @@ function BananaPeelManager:Slip(
 
 						end
 				end
-		)
+		)			
 end
 
 ------------------------------------------------

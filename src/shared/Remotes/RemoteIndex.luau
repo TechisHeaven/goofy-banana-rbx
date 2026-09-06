@@ -101,7 +101,7 @@ RemoteIndex.Events = {
 	DashBall = "DashBall",
 
 	OpenUI = "OpenUI",
-
+	DizzyEffect= "DizzyEffect",
 	HunterRevealEffect = "HunterRevealEffect"
 }
 

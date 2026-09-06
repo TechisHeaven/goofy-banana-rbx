@@ -18,12 +18,14 @@ local Overlay = PopupGui:WaitForChild("Overlay")
 local DailyRewardGui = Overlay:WaitForChild("DailyRewardFrame")
 
 local Popup = DailyRewardGui.DailyRewardItemsFrame
+local RewardItemFrame = Popup.RewardsPlaceholder.RewardPlaceholderPremium
 
 local RewardsFrame =
     Popup.ScrollingFrame
 
 local PremiumButton = Popup.PurchaseButton
 local GetPremium = Popup.GetPremium
+local GetPremiumMain = RewardItemFrame.GetPremium
 
 local Template =
     RewardsFrame.RewardTemplate
@@ -132,6 +134,7 @@ function DailyRewardUI:Render(data)
              PremiumButton.Selectable = false
              PremiumButton.Visible = false
              GetPremium.Selectable = false
+             GetPremiumMain.Selectable = false
         end
         local claim = reward.Claim
         -- local later = reward.Later
@@ -243,15 +246,15 @@ end
 
 ---------------------------------------------------
 
-local function hideAll()
+-- local function hideAll()
 
-    for _,frame in ipairs(rewardFrames) do
+--     for _,frame in ipairs(rewardFrames) do
 
-        frame.Visible = false
+--         frame.Visible = false
 
-    end
+--     end
 
-end
+-- end
 
 ---------------------------------------------------
 
@@ -274,6 +277,13 @@ function DailyRewardUI:Init()
 	end)
 
     GetPremium.Activated:Connect(function()
+		if DailyRewardUI.OnPremiumPressed then
+			DailyRewardUI.OnPremiumPressed()
+		end
+	end)
+
+    
+    GetPremiumMain.Activated:Connect(function()
 		if DailyRewardUI.OnPremiumPressed then
 			DailyRewardUI.OnPremiumPressed()
 		end

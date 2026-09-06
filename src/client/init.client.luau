@@ -35,6 +35,7 @@ local RescueCinematicController = require(script.Controllers.RescueCinematicCont
 local DashBallController = require(script.Controllers.DashBallController)
 local HunterRevealController = require(script.Controllers.HunterRevealController)
 local OpenUIController = require(script.Controllers.OpenUIController)
+local DizzyEffectClient = require(script.Controllers.DizzyEffectClient)
 
 ShopController:Init()
 CursorController:Init()
@@ -63,6 +64,7 @@ RescueCinematicController:Init()
 DashBallController:Init()
 HunterRevealController:Init()
 OpenUIController:Init()
+DizzyEffectClient:Init()
 
 -- Wait for attributes to replicate
 if not LocalPlayer:GetAttribute("Team") then

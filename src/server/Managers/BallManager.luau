@@ -39,9 +39,18 @@ local Remotes =
 		:WaitForChild("Shared")
 		:WaitForChild("Remotes")
 
-local DashBall =
-	Remotes:WaitForChild("DashBall")
+local RemoteIndex =
+	require(
+		ReplicatedStorage
+			.Shared
+			.Remotes
+			.RemoteIndex
+	).Events
 
+local DashBall =
+	Remotes:WaitForChild(RemoteIndex.DashBall)
+local DizzyEffectEvent =
+	Remotes:WaitForChild(RemoteIndex.DizzyEffect)
 ------------------------------------------------
 -- FOLDERS
 ------------------------------------------------
@@ -213,7 +222,7 @@ local function SetupThrowHit(
 				)
 
 				RagdollService.Ragdoll(character)
-
+				DizzyEffectEvent:FireClient(targetPlayer, RAGDOLL_DURATION)
 				task.delay(
 					RAGDOLL_DURATION,
 					function()
