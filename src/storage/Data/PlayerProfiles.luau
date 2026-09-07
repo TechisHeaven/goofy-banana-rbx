@@ -14,10 +14,9 @@ function PlayerProfiles:RegisterPlayer(player)
 		Inventory = InventoryTemplate.Create(),
         Settings = {
 			MusicVolume = 1,
-			MusicEnabled = false,
+			MusicEnabled = true,
 			FOV = 80,
 			RunningFOV = 100,
-			CameraShake = true,
 		},
 
         

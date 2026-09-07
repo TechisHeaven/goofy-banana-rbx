@@ -27,6 +27,9 @@ local DEFAULTS = SettingsConfig.Defaults
 local SettingsUI =
 	require(script.Parent.Parent.UI.SettingsUI)
 
+local SoundService =
+	require(script.Parent.Parent.Services.SoundService)
+
 ----------------------------------------------------
 -- Settings State
 ----------------------------------------------------
@@ -72,6 +75,19 @@ local function ApplyCameraSettings()
 	camera.FieldOfView = AppliedSettings.FOV
 end
 
+local function ApplyAudioSettings()
+	SoundService:SetMusicEnabled(
+		AppliedSettings.MusicEnabled
+	)
+
+	SoundService:SetMusicVolume(
+		AppliedSettings.MusicVolume
+	)
+
+end
+
+
+
 function SettingsController:LoadFromServer()
 
 	local settings =
@@ -93,6 +109,7 @@ function SettingsController:LoadFromServer()
 	)
 
 	ApplyCameraSettings()
+	ApplyAudioSettings()
 
 	print("Settings loaded from server")
 
@@ -189,15 +206,7 @@ function SettingsController:SetMusicVolume(volume)
 
 end
 
-----------------------------------------------------
--- Camera Shake
-----------------------------------------------------
 
-function SettingsController:SetCameraShake(enabled)
-
-	PendingSettings.CameraShake = enabled == true
-
-end
 
 ----------------------------------------------------
 -- Check Changes
@@ -244,6 +253,7 @@ function SettingsController:Apply()
 	------------------------------------------------
 
 	ApplyCameraSettings()
+	ApplyAudioSettings()
 
 	UpdateSettings:FireServer(
 		AppliedSettings
@@ -377,24 +387,6 @@ function SettingsController:Init()
 
 	end
 
-	------------------------------------------------
-	-- CAMERA SHAKE
-	------------------------------------------------
-
-	SettingsUI.OnCameraShakeChanged = function()
-
-		local current =
-			self:Get("CameraShake")
-
-		self:SetCameraShake(
-			not current
-		)
-
-		SettingsUI:SetCameraShake(
-			self:Get("CameraShake")
-		)
-
-	end
 
 	------------------------------------------------
 	-- Apply
@@ -429,12 +421,13 @@ function SettingsController:Init()
 	------------------------------------------------
 	self:LoadFromServer()
 
-	SettingsUI:Refresh(
-		PendingSettings
-	)
+	-- SettingsUI:Refresh(
+	-- 	PendingSettings
+	-- )
 
 	
-	ApplyCameraSettings()
+	-- ApplyCameraSettings()
+	-- ApplyAudioSettings()
 
 end
 

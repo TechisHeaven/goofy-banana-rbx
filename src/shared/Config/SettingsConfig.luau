@@ -1,15 +1,9 @@
 local SettingsConfig = {
 	Defaults = {
 		MusicEnabled = true,
-		MusicVolume = 0.5,
-
-		SFXEnabled = true,
-		SFXVolume = 0.5,
-
+		MusicVolume = 1,
 		FOV = 80,
 		RunningFOV = 100,
-
-		CameraShake = true,
 	},
 
 	Limits = {

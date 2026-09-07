@@ -103,15 +103,6 @@ local RunningFOVProgressBar =
 local RunningFOVValueLabel =
 	RunningFOVControls.Value
 
-------------------------------------------------
--- CAMERA SHAKE
-------------------------------------------------
-
-local CameraShakeToggle =
-	Items.CameraShakeFrame.Controls.ToggleButton
-
-local CameraShakeKnob =
-	CameraShakeToggle.Knob
 
 ------------------------------------------------
 -- ACTIONS
@@ -321,17 +312,7 @@ function SettingsUI:SetRunningFOV(value)
 
 end
 
-------------------------------------------------
 
-function SettingsUI:SetCameraShake(enabled)
-
-	UpdateToggle(
-		CameraShakeToggle,
-		CameraShakeKnob,
-		enabled
-	)
-
-end
 
 ------------------------------------------------
 -- REFRESH EVERYTHING
@@ -375,15 +356,7 @@ function SettingsUI:Refresh(settings)
 		)
 	end
 
-	------------------------------------------------
-	-- CAMERA SHAKE
-	------------------------------------------------
 
-	if settings.CameraShake ~= nil then
-		self:SetCameraShake(
-			settings.CameraShake
-		)
-	end
 
 end
 
@@ -513,19 +486,6 @@ function SettingsUI:Init()
 
 	end)
 
-	------------------------------------------------
-	-- CAMERA SHAKE
-	------------------------------------------------
-
-	CameraShakeToggle.Activated:Connect(function()
-
-		if self.OnCameraShakeChanged then
-
-			self.OnCameraShakeChanged()
-
-		end
-
-	end)
 
 	------------------------------------------------
 	-- APPLY
@@ -575,7 +535,6 @@ SettingsUI.OnMusicEnabledChanged = nil
 SettingsUI.OnFOVChanged = nil
 SettingsUI.OnRunningFOVChanged = nil
 
-SettingsUI.OnCameraShakeChanged = nil
 
 SettingsUI.OnApplyPressed = nil
 SettingsUI.OnCancelPressed = nil

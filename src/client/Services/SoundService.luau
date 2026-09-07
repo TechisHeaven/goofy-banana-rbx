@@ -1,15 +1,18 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RobloxSoundService = game:GetService("SoundService")
-local Shared = ReplicatedStorage:WaitForChild("Shared")
+
 ------------------------------------------------
 -- MODULES
 ------------------------------------------------
 
 local SoundUtils =
-	require(Shared.Utils.SoundUtils)
+	require(ReplicatedStorage.Shared.Utils.SoundUtils)
 
 local SoundConfig =
-	require(Shared.Config.SoundConfig)
+	require(ReplicatedStorage.Shared.Config.SoundConfig)
+
+local SettingsConfig =
+	require(ReplicatedStorage.Shared.Config.SettingsConfig)
 
 ------------------------------------------------
 -- SOUNDS
@@ -51,18 +54,32 @@ end
 local SoundService = {}
 
 ------------------------------------------------
+-- DEFAULTS
+------------------------------------------------
+
+local DEFAULTS =
+	SettingsConfig.Defaults
+
+------------------------------------------------
 -- STATE
 ------------------------------------------------
 
 local ActiveLoops = {}
 
 local CurrentMusic = nil
+local CurrentMusicName = nil
 
-local MusicEnabled = true
-local MusicVolume = 1
+local MusicEnabled =
+	DEFAULTS.MusicEnabled
 
-local SFXEnabled = true
-local SFXVolume = 1
+local MusicVolume =
+	DEFAULTS.MusicVolume
+
+local SFXEnabled =
+	DEFAULTS.SFXEnabled
+
+local SFXVolume =
+	DEFAULTS.SFXVolume
 
 ------------------------------------------------
 -- CONFIG
@@ -70,14 +87,9 @@ local SFXVolume = 1
 
 local function GetConfig(soundName)
 
-	local config =
-		SoundConfig[soundName]
+	return SoundConfig[soundName]
+		or SoundConfig.Default
 
-	if not config then
-		config = SoundConfig.Default
-	end
-
-	return config
 end
 
 ------------------------------------------------
@@ -110,10 +122,11 @@ local function GetSound(soundName)
 	end
 
 	return sound
+
 end
 
 ------------------------------------------------
--- GET GROUP
+-- GET SOUND GROUP
 ------------------------------------------------
 
 local function GetSoundGroup(category)
@@ -123,10 +136,35 @@ local function GetSoundGroup(category)
 	end
 
 	return SFXGroup
+
 end
 
 ------------------------------------------------
--- PLAY
+-- APPLY GROUP VOLUMES
+------------------------------------------------
+
+local function ApplyMusicVolume()
+
+	if MusicEnabled then
+		MusicGroup.Volume = MusicVolume
+	else
+		MusicGroup.Volume = 0
+	end
+
+end
+
+local function ApplySFXVolume()
+
+	if SFXEnabled then
+		SFXGroup.Volume = SFXVolume
+	else
+		SFXGroup.Volume = 0
+	end
+
+end
+
+------------------------------------------------
+-- PLAY SOUND
 ------------------------------------------------
 
 function SoundService:Play(
@@ -149,24 +187,7 @@ function SoundService:Play(
 		config.Category or "SFX"
 
 	------------------------------------------------
-	-- CHECK ENABLED
-	------------------------------------------------
-
-	if category == "Music" then
-
-		if not MusicEnabled then
-			return nil
-		end
-
-	else
-
-		if not SFXEnabled then
-			return nil
-		end
-	end
-
-	------------------------------------------------
-	-- PARENT
+	-- DEFAULT PARENT
 	------------------------------------------------
 
 	parent =
@@ -189,21 +210,20 @@ function SoundService:Play(
 
 		SoundGroup =
 			GetSoundGroup(category),
+
 	}
 
 	------------------------------------------------
 	-- PLAY
 	------------------------------------------------
 
-	local soundClone =
-		SoundUtils:PlaySound(
-			sound,
-			parent,
-			duration,
-			properties
-		)
+	return SoundUtils:PlaySound(
+		sound,
+		parent,
+		duration,
+		properties
+	)
 
-	return soundClone
 end
 
 ------------------------------------------------
@@ -230,35 +250,9 @@ function SoundService:PlayLoop(
 	local category =
 		config.Category or "SFX"
 
-	------------------------------------------------
-	-- ENABLED CHECK
-	------------------------------------------------
-
-	if category == "Music" then
-
-		if not MusicEnabled then
-			return nil
-		end
-
-	else
-
-		if not SFXEnabled then
-			return nil
-		end
-
-	end
-
-	------------------------------------------------
-	-- PARENT
-	------------------------------------------------
-
 	parent =
 		parent
 		or RobloxSoundService
-
-	------------------------------------------------
-	-- PROPERTIES
-	------------------------------------------------
 
 	local properties = {
 
@@ -272,10 +266,6 @@ function SoundService:PlayLoop(
 			GetSoundGroup(category),
 
 	}
-
-	------------------------------------------------
-	-- PLAY
-	------------------------------------------------
 
 	local soundClone =
 		SoundUtils:PlaySound(
@@ -312,45 +302,35 @@ function SoundService:StopLoop(soundName)
 	ActiveLoops[soundName] = nil
 
 	if sound.Parent then
+
 		sound:Stop()
 		sound:Destroy()
+
 	end
+
 end
 
 ------------------------------------------------
--- STOP ALL LOOPS
-------------------------------------------------
-
-function SoundService:StopAllLoops()
-
-	for soundName, sound in pairs(ActiveLoops) do
-
-		if sound
-			and sound.Parent then
-
-			sound:Stop()
-			sound:Destroy()
-
-		end
-
-		ActiveLoops[soundName] = nil
-	end
-end
-
-------------------------------------------------
--- MUSIC
+-- PLAY MUSIC
 ------------------------------------------------
 
 function SoundService:PlayMusic(soundName)
 
 	------------------------------------------------
-	-- STOP CURRENT MUSIC
+	-- Remember requested music
+	------------------------------------------------
+
+	CurrentMusicName =
+		soundName
+
+	------------------------------------------------
+	-- Stop previous music
 	------------------------------------------------
 
 	self:StopMusic()
 
 	------------------------------------------------
-	-- PLAY
+	-- Play new music
 	------------------------------------------------
 
 	local soundClone =
@@ -370,6 +350,7 @@ function SoundService:PlayMusic(soundName)
 		soundClone
 
 	return soundClone
+
 end
 
 ------------------------------------------------
@@ -390,6 +371,7 @@ function SoundService:StopMusic()
 	end
 
 	CurrentMusic = nil
+
 end
 
 ------------------------------------------------
@@ -398,38 +380,11 @@ end
 
 function SoundService:SetMusicEnabled(enabled)
 
-	enabled =
+	MusicEnabled =
 		enabled == true
 
-	if MusicEnabled == enabled then
-		return
-	end
+	ApplyMusicVolume()
 
-	------------------------------------------------
-	-- TOGGLE FEEDBACK
-	------------------------------------------------
-
-	if enabled then
-
-		MusicEnabled = true
-
-		self:Play("ToggleOn")
-
-	else
-
-		self:Play("ToggleOff")
-
-		MusicEnabled = false
-
-	end
-
-	------------------------------------------------
-	-- STOP MUSIC
-	------------------------------------------------
-
-	if not MusicEnabled then
-		self:StopMusic()
-	end
 end
 
 ------------------------------------------------
@@ -439,12 +394,14 @@ end
 function SoundService:SetMusicVolume(volume)
 
 	MusicVolume =
-		math.clamp(volume, 0, 1)
+		math.clamp(
+			volume,
+			0,
+			1
+		)
 
-	MusicGroup.Volume =
-		if MusicEnabled
-		then MusicVolume
-		else 0
+	ApplyMusicVolume()
+
 end
 
 ------------------------------------------------
@@ -453,35 +410,11 @@ end
 
 function SoundService:SetSFXEnabled(enabled)
 
-	enabled =
+	SFXEnabled =
 		enabled == true
 
-	if SFXEnabled == enabled then
-		return
-	end
+	ApplySFXVolume()
 
-	if enabled then
-
-		SFXEnabled = true
-
-		self:Play("ToggleOn")
-
-	else
-
-		self:Play("ToggleOff")
-
-		SFXEnabled = false
-
-	end
-
-	------------------------------------------------
-	-- MUTE GROUP
-	------------------------------------------------
-
-	SFXGroup.Volume =
-		if SFXEnabled
-		then SFXVolume
-		else 0
 end
 
 ------------------------------------------------
@@ -491,12 +424,34 @@ end
 function SoundService:SetSFXVolume(volume)
 
 	SFXVolume =
-		math.clamp(volume, 0, 1)
+		math.clamp(
+			volume,
+			0,
+			1
+		)
 
-	SFXGroup.Volume =
-		if SFXEnabled
-		then SFXVolume
-		else 0
+	ApplySFXVolume()
+
+end
+
+------------------------------------------------
+-- GET MUSIC STATE
+------------------------------------------------
+
+function SoundService:IsMusicEnabled()
+
+	return MusicEnabled
+
+end
+
+------------------------------------------------
+-- GET MUSIC VOLUME
+------------------------------------------------
+
+function SoundService:GetMusicVolume()
+
+	return MusicVolume
+
 end
 
 ------------------------------------------------
@@ -505,13 +460,18 @@ end
 
 function SoundService:Init()
 
-	MusicGroup.Volume =
-		MusicVolume
+	ApplyMusicVolume()
+	ApplySFXVolume()
 
-	SFXGroup.Volume =
+	print(
+		"SoundService Initialized",
+		"Music:",
+		MusicEnabled,
+		MusicVolume,
+		"SFX:",
+		SFXEnabled,
 		SFXVolume
-
-	print("SoundService Initialized")
+	)
 
 end
 
