@@ -18,7 +18,8 @@ function PlayerProfiles:RegisterPlayer(player)
 			FOV = 80,
 			RunningFOV = 100,
 		},
-
+		
+		RedeemedCodes = {},
         
 		Tasks = {
 			Daily = {

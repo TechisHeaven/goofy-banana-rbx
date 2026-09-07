@@ -214,9 +214,6 @@ function Confetti:Play(originObject, container, amount)
 
 		local origin = screenOrigin - containerPosition
 
-		print("Screen Origin:", screenOrigin)
-		print("Container Origin:", origin)
-
 		for i = 1, amount do
 
 			task.delay(

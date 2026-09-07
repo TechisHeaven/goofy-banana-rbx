@@ -29,7 +29,9 @@ local LoadOrder = {
 
 
 local ServicesLoadOrder = {
-	"SettingsService"
+	"SettingsService",
+	"RedeemCodeService",
+	"SettingsService",
 }
 
 local LoadedServices = {}

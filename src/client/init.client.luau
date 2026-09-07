@@ -37,6 +37,7 @@ local HunterRevealController = require(script.Controllers.HunterRevealController
 local OpenUIController = require(script.Controllers.OpenUIController)
 local DizzyEffectClient = require(script.Controllers.DizzyEffectClient)
 local SettingsController = require(script.Controllers.SettingsController)
+local RedeemCodeController = require(script.Controllers.RedeemCodeController)
 
 SettingsController:Init()
 ShopController:Init()
@@ -67,7 +68,7 @@ DashBallController:Init()
 HunterRevealController:Init()
 OpenUIController:Init()
 DizzyEffectClient:Init()
-
+RedeemCodeController:Init()
 
 
 local SoundService = require(script.Services.SoundService)

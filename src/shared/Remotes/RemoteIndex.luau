@@ -120,6 +120,8 @@ RemoteIndex.Functions = {
 	GetTasks = "GetTasks",
 
 	GetSettings = "GetSettings",
+
+	RedeemCode = "RedeemCode",
 }
 
 return RemoteIndex

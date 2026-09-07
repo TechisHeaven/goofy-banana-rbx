@@ -159,6 +159,48 @@ function InventoryManager:AddItem(player, category, itemId)
 		return false
 	end
 
+	------------------------------------------------
+	-- VALIDATE CATEGORY
+	------------------------------------------------
+
+	local categoryData =
+		ShopConfig.Categories[category]
+
+	if not categoryData then
+
+		warn(
+			"[InventoryManager] Category not found:",
+			category
+		)
+
+		return false
+	end
+
+	------------------------------------------------
+	-- VALIDATE ITEM BEFORE MODIFYING INVENTORY
+	------------------------------------------------
+
+	local item =
+		self:GetItem(
+			category,
+			itemId
+		)
+
+	if not item then
+		NotificationManager:Error(
+			player,
+			"Item not found: " .. category .. " " .. itemId
+		)
+		warn(
+			"[InventoryManager] Item not found:",
+			category,
+			itemId
+		)
+
+		return false
+	end
+
+
 	local inventory = profile.Inventory
 
 	inventory.Owned[category] = inventory.Owned[category] or {}
@@ -168,7 +210,7 @@ function InventoryManager:AddItem(player, category, itemId)
 	end
 
 	inventory.Owned[category][itemId] = true
-	local item = self:GetItem(category, itemId)
+
 	local itemName = item.Name
 	NotificationManager:Success(
 		player,
