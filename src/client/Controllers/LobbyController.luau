@@ -20,6 +20,8 @@ local GameConfig  	     = require(Shared.GameConfig)
 
 local LobbyController    = {}
 
+local SoundService = require(script.Parent.Parent.Services.SoundService)
+
 -- Internal state -----------------------------------------------------------
 local isQueued  = false
 local isInMatch = false
@@ -119,6 +121,7 @@ local function onTeleportToArena(data)
 	UIManager:SetRole(data.role, data.hunterName)
 	UIManager:SetTimer(data.roundTime)
 
+	SoundService:PlayMusic("GameMusic")
 end
 
 --- ReturnToLobby — round over, restore lobby UI
@@ -127,6 +130,7 @@ local function onReturnToLobby()
 	setQueued(false)
 	LobbyUI:SetQueued(false)
 	UIManager:ShowLobby()
+	SoundService:PlayMusic("LobbyMusic")
 end
 
 --- ShowWinnerScreen — show winner + rewards overlay
@@ -154,6 +158,9 @@ function LobbyController:Init()
 	-- Init Lobby
 	LobbyUI:Init()
 	UIManager:ShowLobby()
+
+	SoundService:PlayMusic("LobbyMusic")
+
 	LobbyUI.OnPlayPressed   = onPlayPressed
 	LobbyUI.OnCancelPressed = onCancelPressed
 

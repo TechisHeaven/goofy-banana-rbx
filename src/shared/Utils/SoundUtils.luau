@@ -1,11 +1,5 @@
 local SoundUtils = {}
 
-local ReplicatedStorage =
-	game:GetService("ReplicatedStorage")
-
-local SoundsFolder =
-	ReplicatedStorage:WaitForChild("Sounds")
-
 ------------------------------------------------
 -- PLAY SOUND
 ------------------------------------------------
@@ -13,11 +7,12 @@ local SoundsFolder =
 function SoundUtils:PlaySound(
 	sound,
 	parent,
-	duration
+	duration,
+	properties
 )
 
 	if not sound or not parent then
-		return
+		return nil
 	end
 
 	local soundClone
@@ -31,50 +26,6 @@ function SoundUtils:PlaySound(
 
 		soundClone = sound:Clone()
 
-	------------------------------------------------
-	-- STRING SOUND ID
-	------------------------------------------------
-
-	elseif typeof(sound) == "string" then
-
-		soundClone =
-			Instance.new("Sound")
-
-		soundClone.SoundId =
-			sound
-
-		------------------------------------------------
-		-- Store template in ReplicatedStorage.Sounds
-		------------------------------------------------
-
-		local template =
-			Instance.new("Sound")
-
-		template.Name =
-			"Sound_" .. tostring(
-				math.abs(
-					string.byte(
-						sound,
-						1
-					) or 0
-				)
-			)
-
-		template.SoundId =
-			sound
-
-		template.Parent =
-			SoundsFolder
-
-		------------------------------------------------
-		-- Clone template settings
-		------------------------------------------------
-
-		soundClone.SoundId =
-			template.SoundId
-
-		template:Destroy()
-
 	else
 
 		warn(
@@ -82,21 +33,48 @@ function SoundUtils:PlaySound(
 			sound
 		)
 
-		return
-
+		return nil
 	end
 
 	------------------------------------------------
-	-- Parent + Play
+	-- APPLY PROPERTIES
 	------------------------------------------------
 
-	soundClone.Parent =
-		parent
+	if properties then
+
+		for property, value in pairs(properties) do
+
+			local success, errorMessage =
+				pcall(function()
+					soundClone[property] = value
+				end)
+
+			if not success then
+
+				warn(
+					"[SoundUtils] Failed to set property:",
+					property,
+					errorMessage
+				)
+
+			end
+		end
+	end
+
+	------------------------------------------------
+	-- PARENT
+	------------------------------------------------
+
+	soundClone.Parent = parent
+
+	------------------------------------------------
+	-- PLAY
+	------------------------------------------------
 
 	soundClone:Play()
 
 	------------------------------------------------
-	-- Custom duration
+	-- CUSTOM DURATION
 	------------------------------------------------
 
 	if duration then
@@ -116,12 +94,11 @@ function SoundUtils:PlaySound(
 			end
 		)
 
-		return
-
+		return soundClone
 	end
 
 	------------------------------------------------
-	-- Automatically remove
+	-- AUTOMATIC CLEANUP
 	------------------------------------------------
 
 	soundClone.Ended:Once(
@@ -137,6 +114,7 @@ function SoundUtils:PlaySound(
 		end
 	)
 
+	return soundClone
 end
 
 return SoundUtils

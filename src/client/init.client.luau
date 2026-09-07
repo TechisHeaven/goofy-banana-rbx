@@ -68,6 +68,13 @@ HunterRevealController:Init()
 OpenUIController:Init()
 DizzyEffectClient:Init()
 
+
+
+local SoundService = require(script.Services.SoundService)
+
+
+SoundService:Init()
+
 -- Wait for attributes to replicate
 if not LocalPlayer:GetAttribute("Team") then
 	LocalPlayer:GetAttributeChangedSignal("Team"):Wait()

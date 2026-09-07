@@ -24,7 +24,7 @@ PopupManager.CloseTime = 0.15
 
 -- CAMERA ZOOM
 
-PopupManager.PopupFOV = 50
+PopupManager.DefaultPopupFOV = 50
 PopupManager.FOVTweenTime = 0.2
 
 -- Your normal FOV from your config
@@ -265,7 +265,7 @@ function PopupManager:Open(Popup, Options : {CanClickOutsideToClose: boolean, Re
 
 	-- Camera zoom
 	TweenFOV(
-		self.PopupFOV,
+		Camera:GetAttribute("NormalFOV") - 20 or self.DefaultPopupFOV,
 		self.FOVTweenTime
 	)
 
@@ -326,7 +326,7 @@ function PopupManager:Close(Popup, IsSwitching)
 	-- Camera Back to Zoom Normal
 	if not IsSwitching then
 		TweenFOV(
-			self.DefaultFOV,
+			Camera:GetAttribute("NormalFOV") or self.DefaultFOV,
 			self.FOVTweenTime
 		)
 	end

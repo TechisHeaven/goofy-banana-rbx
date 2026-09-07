@@ -42,7 +42,7 @@ local function GetCamera()
 	return workspace.CurrentCamera
 end
 
-local function ApplyFOV()
+local function ApplyCameraSettings()
 
 	local camera = GetCamera()
 
@@ -50,8 +50,26 @@ local function ApplyFOV()
 		return
 	end
 
-	camera.FieldOfView = AppliedSettings.FOV
+	------------------------------------------------
+	-- Store settings as Camera attributes
+	------------------------------------------------
 
+	camera:SetAttribute(
+		"NormalFOV",
+		AppliedSettings.FOV
+	)
+
+	camera:SetAttribute(
+		"RunningFOV",
+		AppliedSettings.RunningFOV
+	)
+
+	------------------------------------------------
+	-- Apply normal FOV
+	------------------------------------------------
+
+
+	camera.FieldOfView = AppliedSettings.FOV
 end
 
 function SettingsController:LoadFromServer()
@@ -74,7 +92,7 @@ function SettingsController:LoadFromServer()
 		AppliedSettings
 	)
 
-	ApplyFOV()
+	ApplyCameraSettings()
 
 	print("Settings loaded from server")
 
@@ -225,7 +243,7 @@ function SettingsController:Apply()
 	-- Apply local settings
 	------------------------------------------------
 
-	ApplyFOV()
+	ApplyCameraSettings()
 
 	UpdateSettings:FireServer(
 		AppliedSettings
@@ -416,7 +434,7 @@ function SettingsController:Init()
 	)
 
 	
-	ApplyFOV()
+	ApplyCameraSettings()
 
 end
 

@@ -20,12 +20,12 @@ local SettingsConfig = {
 
 		FOV = {
 			Min = 60,
-			Max = 100,
+			Max = 110,
 		},
 		
 		RunningFOV = {
-			Min = 60,
-			Max = 110,
+			Min = 70,
+			Max = 130,
 		},
 	},
 }
