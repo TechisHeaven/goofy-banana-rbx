@@ -12,7 +12,7 @@ local ReplicatedStorage =
 	game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 local ScreenUtil = require(ReplicatedStorage.Shared.Utils.ScreenUtil)
-
+local SoundService = require(script.Parent.Parent.Services.SoundService)
 local Shared = ReplicatedStorage.Shared
 
 local RemoteIndexData =
@@ -59,14 +59,6 @@ local HunterEntry =
 		RemoteIndex.HunterEntry
 	)
 
-
-
-local LAND_SOUND_ID =
-	"rbxassetid://85818610620233"
-
-local PUNCH_SOUND_ID =
-	"rbxassetid://85818610620233"
-
 local Debris =
 	game:GetService("Debris")
 
@@ -79,7 +71,6 @@ local CinematicController =
 		Shared.Modules.CinematicController
 	)
 
-local SoundUtils = require(Shared.Utils.SoundUtils)
 local PunchImpact =
 	require(
 		Shared.Modules.PunchImpact
@@ -88,8 +79,6 @@ local PunchImpact =
 -- PLAYER
 ------------------------------------------------
 
-local LocalPlayer =
-	Players.LocalPlayer
 
 ------------------------------------------------
 -- CONFIG
@@ -98,8 +87,6 @@ local LocalPlayer =
 local ANIMATION_NAME =
 	"HunterEntry2"
 
-local IMPACT_LIFETIME =
-	3
 
 ------------------------------------------------
 -- STATE
@@ -303,12 +290,8 @@ local function CreateLandEffect(character)
 	------------------------------------------------
 	-- LANDING SOUND
 	------------------------------------------------
+	SoundService:Play("LandSound", 0.8, character)
 
-	SoundUtils:PlaySound(
-		LAND_SOUND_ID,
-		character,
-		0.8
-	)
 
 end
 local CFG = {
@@ -499,11 +482,8 @@ local function PlayEffect(
 		ImpactFrameStyled(.06)
         task.wait(.08)
         ImpactFrame(.3)
-        SoundUtils:PlaySound(
-            PUNCH_SOUND_ID,
-            character,
-            1
-        )
+
+		SoundService:Play("PunchSound", 1, character)
 		
 		if groundPosition then
 

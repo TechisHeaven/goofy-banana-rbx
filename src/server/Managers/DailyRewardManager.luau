@@ -7,9 +7,6 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local DailyRewardConfig =
 	require(Shared.Config.DailyRewardConfig)
 
-local ArchieventSound = ReplicatedStorage.Sounds.ArchievementNotification
-local SoundUtils = require(ReplicatedStorage.Shared.Utils.SoundUtils)
-
 local RemoteIndexData =
 	require(Shared.Remotes.RemoteIndex)
 

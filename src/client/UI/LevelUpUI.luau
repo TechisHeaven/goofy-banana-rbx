@@ -1,13 +1,10 @@
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Sounds = ReplicatedStorage.Sounds
-local Chime = Sounds.Chime
-local Tresure = Sounds.GameTresure
 local PopupManager =
 	require(ReplicatedStorage.Shared.Modules.PopupModule)
-local SoundUtil = require(ReplicatedStorage.Shared.Utils.SoundUtils)
-local PlaySound = SoundUtil.PlaySound
+local SoundService = require(script.Parent.Parent.Services.SoundService)
+
 local PlayerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
 
 local PopupGui =
@@ -422,10 +419,7 @@ function LevelUpUI:Show(data)
 		------------------------------------------------
 
 		if level < newLevel then
-			SoundUtil:PlaySound(
-				Chime,
-				LevelUpFrame
-			)
+			SoundService:Play("Chime", nil, LevelUpFrame)
 
 			self:AnimateLevelChange(
 				level + 1
@@ -442,11 +436,8 @@ function LevelUpUI:Show(data)
 	------------------------------------------------
 
 	self:SetLevel(newLevel)
-
-	SoundUtil:PlaySound(
-		Tresure,
-		LevelUpFrame
-	)
+	
+	SoundService:Play("GameTreasure", nil, LevelUpFrame)
 	-- Treasure:Play()
 
 	task.wait(0.8)

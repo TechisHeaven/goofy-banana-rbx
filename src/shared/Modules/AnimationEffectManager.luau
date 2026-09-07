@@ -1,7 +1,6 @@
 local AnimationEffectManager = {}
 
 local Debris = game:GetService("Debris")
-
 ------------------------------------------------
 -- CONFIG
 ------------------------------------------------
@@ -294,6 +293,9 @@ function AnimationEffectManager:PlayWoosh(
 		return
 	end
 
+
+	
+
 	local sounds =
 		animationFolder:FindFirstChild(
 			"Sounds"
@@ -302,6 +304,9 @@ function AnimationEffectManager:PlayWoosh(
 	if not sounds then
 		return
 	end
+
+
+
 
 	local woosh =
 		sounds:FindFirstChild(

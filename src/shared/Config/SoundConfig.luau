@@ -39,7 +39,7 @@ local SoundConfig = {
 		Volume = 1,
 	},
 
-	GameTresure = {
+	GameTreasure = {
 		Category = "SFX",
 		Volume = 1,
 	},
@@ -134,6 +134,18 @@ local SoundConfig = {
 		Looped = true,
 	},
 	 ImpactStrong = {
+		Category = "SFX",
+		Volume = 1,
+		Looped = true,
+	},
+
+	LandSound = {
+		Category = "SFX",
+		Volume = 1,
+		Looped = true,
+	},
+
+	PunchSound = {
 		Category = "SFX",
 		Volume = 1,
 		Looped = true,

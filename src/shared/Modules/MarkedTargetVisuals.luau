@@ -27,7 +27,6 @@ local MarkedTargetVisuals = {}
 MarkedTargetVisuals.CurrentTarget = nil
 MarkedTargetVisuals.CurrentCharacter = nil
 MarkedTargetVisuals.Highlight = nil
-MarkedTargetVisuals.NameTag = nil
 
 ------------------------------------------------
 -- CONFIGURATION
@@ -56,43 +55,8 @@ local HIGHLIGHT_SETTINGS = {
 
 }
 
-------------------------------------------------
--- NAME TAG SETTINGS
-------------------------------------------------
 
-local NAME_TAG_SETTINGS = {
 
-	Name = "MarkedTargetNameTag",
-
-	Text = "MARKED",
-
-	TextColor =
-		Color3.fromRGB(
-			255,
-			200,
-			50
-		),
-
-	TextSize = 20,
-
-	Size =
-		UDim2.fromOffset(
-			140,
-			45
-		),
-
-	StudsOffset =
-		Vector3.new(
-			0,
-			3,
-			0
-		),
-
-	AlwaysOnTop = true,
-
-	MaxDistance = 999999,
-
-}
 
 ------------------------------------------------
 -- CLEAR
@@ -110,15 +74,6 @@ function MarkedTargetVisuals:Clear()
 			self.CurrentCharacter
 		)
 
-		------------------------------------------------
-		-- Remove name tag
-		------------------------------------------------
-
-		MarkerUtil.Remove(
-			self.CurrentCharacter,
-			NAME_TAG_SETTINGS.Name
-		)
-
 	end
 
 	------------------------------------------------
@@ -128,7 +83,6 @@ function MarkedTargetVisuals:Clear()
 	self.CurrentTarget = nil
 	self.CurrentCharacter = nil
 	self.Highlight = nil
-	self.NameTag = nil
 
 end
 
@@ -182,16 +136,6 @@ function MarkedTargetVisuals:Show(
 		HighlightVisual.Create(
 			character,
 			HIGHLIGHT_SETTINGS
-		)
-
-	------------------------------------------------
-	-- Name tag
-	------------------------------------------------
-
-	self.NameTag =
-		MarkerUtil.Create(
-			character,
-			NAME_TAG_SETTINGS
 		)
 
 	------------------------------------------------
