@@ -133,6 +133,11 @@ local SoundConfig = {
 		Volume = 1,
 		Looped = true,
 	},
+	 ImpactStrong = {
+		Category = "SFX",
+		Volume = 1,
+		Looped = true,
+	},
 	------------------------------------------------
 	-- MUSIC
 	------------------------------------------------

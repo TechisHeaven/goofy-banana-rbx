@@ -11,11 +11,10 @@ local player = Players.LocalPlayer
 local ReplicatedStorage =
 	game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
-local RunService = game:GetService("RunService")
+local ScreenUtil = require(ReplicatedStorage.Shared.Utils.ScreenUtil)
 
 local Shared = ReplicatedStorage.Shared
 
-local camera = workspace.CurrentCamera
 local RemoteIndexData =
 	require(
 		Shared.Remotes.RemoteIndex
@@ -147,39 +146,6 @@ local function GetGroundPosition(character)
 	return result.Position, result.Normal
 end
 
-local function ScreenShake(intensity, duration, frequency)
-    intensity = intensity or 1.2
-    duration = duration or 0.45
-    frequency = frequency or 0.016
-    
-    local elapsed = 0
-    local conn
-    
-    conn = RunService.RenderStepped:Connect(function(dt)
-        elapsed += dt
-        if elapsed >= duration then
-            conn:Disconnect()
-            camera.CFrame = camera.CFrame -- subtle reset
-        end
-        
-        -- Intensity decreases over time (ease-out)
-        local t = 1 - (elapsed/duration)
-        local strength = intensity * t * t
-        
-        local offset = CFrame.new(
-            math.random(-100, 100) / 100 * strength,
-            math.random(-100, 100) / 100 * strength,
-            0
-        ) * CFrame.Angles(
-            math.rad(math.random(-100, 100) / 100 * strength * 0.5),
-            math.rad(math.random(-100, 100) / 100 * strength * 0.5),
-            0
-        )
-        
-        camera.CFrame = camera.CFrame * offset
-        task.wait(frequency)
-    end)
-end
 
 
 
@@ -529,7 +495,7 @@ local function PlayEffect(
 		)
 
 	elseif parameter == "punch" then
-    	ScreenShake(1.2, 0.45, 0.016)
+    	ScreenUtil:ScreenShake(1.2, 0.45, 0.016)
 		ImpactFrameStyled(.06)
         task.wait(.08)
         ImpactFrame(.3)

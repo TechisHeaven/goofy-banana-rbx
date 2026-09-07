@@ -72,7 +72,7 @@ local function ApplyCameraSettings()
 	------------------------------------------------
 
 
-	camera.FieldOfView = AppliedSettings.FOV
+	-- camera.FieldOfView = AppliedSettings.FOV
 end
 
 local function ApplyAudioSettings()
