@@ -46,7 +46,6 @@ LobbyController:Init()
 RoundController:Init()
 FreezeController:Init()
 InventoryController:Init()
-DailyRewardController:Init()
 VictoryController:Init()
 CurrencyController:Init()
 MonetizationController:Init()
@@ -55,6 +54,8 @@ TaskController:Init()
 LevelUpController:Init()
 RewardItemController:Init()
 PopupController:Init()
+OpenUIController:Init()
+DailyRewardController:Init()
 GameplayItemController:Init()
 BananaPeelController:Init()
 CurrencyUIController:Init()
@@ -66,10 +67,31 @@ HunterEntryController:Init()
 RescueCinematicController:Init()
 DashBallController:Init()
 HunterRevealController:Init()
-OpenUIController:Init()
 DizzyEffectClient:Init()
 RedeemCodeController:Init()
 
+------------------------------------------------
+-- CLIENT READY
+------------------------------------------------
+
+local Remotes =
+	ReplicatedStorage.Shared:WaitForChild("Remotes")
+
+local RemoteIndex =
+	require(
+		ReplicatedStorage.Shared.Remotes.RemoteIndex
+	)
+
+local ClientReady =
+	Remotes:WaitForChild(
+		RemoteIndex.Events.ClientReady
+	)
+
+ClientReady:FireServer()
+
+print(
+	"[Client] All controllers initialized - ClientReady sent"
+)
 
 local SoundService = require(script.Services.SoundService)
 

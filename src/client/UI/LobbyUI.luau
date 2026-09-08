@@ -9,7 +9,7 @@ local RunService     = game:GetService("RunService")
 
 local LocalPlayer    = Players.LocalPlayer
 local PlayerGui      = LocalPlayer:WaitForChild("PlayerGui")
-
+local GameConfig 	 = require(game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("GameConfig"))
 local LobbyUI = {}
 
 -- Internal references ------------------------------------------------------
@@ -30,6 +30,8 @@ local notificationLabel : TextLabel
 -- State flags
 local isQueued   = false
 local isInMatch  = false
+
+local MAX_PLAYERS_IN_SERVER = GameConfig.MaxPlayers or 10 -- Default value, can be overridden by server
 
 -- Callbacks set by LobbyController -----------------------------------------
 LobbyUI.OnPlayPressed   = nil :: (() -> ())?
@@ -193,26 +195,12 @@ function LobbyUI:UpdateStatus(payload: { state: string, playerCount: number, que
 
 	if queueLabel then
 		if queueCount > 0 then
-			queueLabel.Text = string.format("%02d/10", queueCount)
+			queueLabel.Text = string.format("%02d/".. (MAX_PLAYERS_IN_SERVER or "10"), queueCount)
 			currentQueueFrame.Visible = true
 		else
 			queueLabel.Text = ""
 			currentQueueFrame.Visible = false
 		end
-	end
-
-	-- Show the waiting banner when the player is queued but a round is live
-	if waitingBanner then
-		waitingBanner.Visible = isQueued and (state == "Playing" or state == "Ending")
-	end
-
-	if roundInfoLabel then
-		local hunterName = payload.hunterName or "None"
-		local aliveRunners = payload.aliveRunners or 0
-		local frozenRunners = payload.frozenRunners or 0
-		local remainingRunners = payload.remainingRunners or 0
-		roundInfoLabel.Text = string.format("Hunter: %s\nAlive: %d • Frozen: %d • Left: %d", hunterName, aliveRunners, frozenRunners, remainingRunners)
-		roundInfoLabel.Visible = true
 	end
 end
 

@@ -23,6 +23,8 @@ local CurrencyManager =
 local InventoryManager =
 	require(script.Parent.InventoryManager)
 
+local RemoteManager = require(script.Parent.RemoteManager)
+
 local NotificationManager = require(script.Parent.NotificationManager)
 
 local RewardDisplay = require(Shared.Modules.RewardDisplay)
@@ -83,14 +85,18 @@ end
 ------------------------------------------------
 
 local function SendDailyRewardReminder(player, day)
-
 	if DailyRewardReminderShown[player] == day then
 		return
 	end
-
 	DailyRewardReminderShown[player] = day
-	OpenUI:FireClient(
+	-- OpenUI:FireClient(
+	-- 	player,
+	-- 	"DailyReward"
+	-- )
+
+	RemoteManager:FireClient(
 		player,
+		OpenUI,
 		"DailyReward"
 	)
 	NotificationManager:Send(
@@ -288,19 +294,7 @@ function DailyRewardManager:SendData(player)
 		self:IsPremium(player)
 
 	local canClaim = self:CanClaim(player)
-
-	if canClaim then
-
-		SendDailyRewardReminder(
-			player,
-			data.CurrentDay
-		)
-
-	end
-
-	UpdateReward:FireClient(
-		player,
-		{
+	local data = {
 
 			CurrentDay =
 				data.CurrentDay,
@@ -326,7 +320,22 @@ function DailyRewardManager:SendData(player)
 				self:BuildCards(player),
 
 		}
+	RemoteManager:FireClient(
+		player,
+		UpdateReward,
+		data
 	)
+
+
+
+	if canClaim then
+
+		SendDailyRewardReminder(
+			player,
+			data.CurrentDay
+		)
+
+	end
 
 end
 
@@ -514,11 +523,11 @@ function DailyRewardManager:Init()
 	for _, player in ipairs(
 		Players:GetPlayers()
 	) do
-
+		print(player)
 		GetPlayerData(player)
 
 		task.defer(function()
-
+			print("Sending data to player: ", player.Name)
 			self:SendData(player)
 
 		end)

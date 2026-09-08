@@ -34,6 +34,7 @@ local CurrencyController = {}
 ------------------------------------------------
 
 local function OnCurrencyUpdate(data)
+	print("OnCurrencyUpdate", data)
 	CurrencyUI:SetCoins(data.Coins)
 	CurrencyUI:SetXP(data.XP, data.Level)
 	CurrencyUI:SetWins(data.Wins)

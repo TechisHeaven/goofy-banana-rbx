@@ -73,6 +73,7 @@ function CurrencyUIController:Init()
 		function(
 			data
 		)
+		print("CurrencyUIController", data)
            if not data then
 				return
 			end

@@ -8,6 +8,7 @@ local RemoteIndex = RemoteIndexData.Events
 
 local ProfileManager = require(script.Parent.ProfileManager)
 local NotificationManager = require(script.Parent.NotificationManager)
+local RemoteManager = require(script.Parent.RemoteManager)
 ------------------------------------------------
 
 local UpdateCurrency =
@@ -117,13 +118,23 @@ function CurrencyManager:Send(player)
 	if not profile then
 		return
 	end
-
-	UpdateCurrency:FireClient(player, {
+	local data = {
 		Coins = profile.Coins,
 		XP = profile.XP,
 		Level = profile.Level,
 		Wins = profile.Wins
-	})
+	}
+	RemoteManager:FireClient(
+		player,
+		UpdateCurrency,
+		data
+	)
+	-- UpdateCurrency:FireClient(player, {
+	-- 	Coins = profile.Coins,
+	-- 	XP = profile.XP,
+	-- 	Level = profile.Level,
+	-- 	Wins = profile.Wins
+	-- })
 
 end
 

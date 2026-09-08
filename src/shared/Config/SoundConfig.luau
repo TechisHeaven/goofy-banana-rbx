@@ -63,92 +63,92 @@ local SoundConfig = {
 	IceCracking = {
 		Category = "SFX",
 		Volume = 1,
-		Looped = true,
+		Looped = false,
 	},
 
     IceFreezing = {
 		Category = "SFX",
 		Volume = 1,
-		Looped = true,
+		Looped = false,
 	},
 
     IceShatter = {
 		Category = "SFX",
 		Volume = 1,
-		Looped = true,
+		Looped = false,
 	},
      ImpactSlip = {
 		Category = "SFX",
 		Volume = 1,
-		Looped = true,
+		Looped = false,
 	},
    
      LightSpell = {
 		Category = "SFX",
 		Volume = 1,
-		Looped = true,
+		Looped = false,
 	},
      MessageNotification = {
 		Category = "SFX",
 		Volume = 1,
-		Looped = true,
+		Looped = false,
 	},
      Pop = {
 		Category = "SFX",
 		Volume = 1,
-		Looped = true,
+		Looped = false,
 	},
      Slide = {
 		Category = "SFX",
 		Volume = 1,
-		Looped = true,
+		Looped = false,
 	},
     Success = {
 		Category = "SFX",
 		Volume = 1,
-		Looped = true,
+		Looped = false,
 	},
      TimerCountdown = {
 		Category = "SFX",
 		Volume = 1,
-		Looped = true,
+		Looped = false,
 	},
     VictorySound = {
 		Category = "SFX",
 		Volume = 1,
-		Looped = true,
+		Looped = false,
 	},
      WindGust1 = {
 		Category = "SFX",
 		Volume = 1,
-		Looped = true,
+		Looped = false,
 	},
      WindGust2 = {
 		Category = "SFX",
 		Volume = 1,
-		Looped = true,
+		Looped = false,
 	},
      Woosh = {
 		Category = "SFX",
 		Volume = 1,
-		Looped = true,
+		Looped = false,
 	},
 	 ImpactStrong = {
 		Category = "SFX",
 		Volume = 1,
-		Looped = true,
+		Looped = false,
 	},
 
 	LandSound = {
 		Category = "SFX",
 		Volume = 1,
-		Looped = true,
+		Looped = false,
 	},
 
 	PunchSound = {
 		Category = "SFX",
 		Volume = 1,
-		Looped = true,
+		Looped = false,
 	},
 	------------------------------------------------
 	-- MUSIC
@@ -176,7 +176,7 @@ local SoundConfig = {
 
     GameMusic = {
 		Category = "Music",
-		Volume = 0.8,
+		Volume = 0.2,
 		Looped = true,
 	},
 }

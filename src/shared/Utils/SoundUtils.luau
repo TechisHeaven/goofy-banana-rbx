@@ -1,6 +1,12 @@
 local SoundUtils = {}
 
 ------------------------------------------------
+-- SERVICES
+------------------------------------------------
+
+local Debris = game:GetService("Debris")
+
+------------------------------------------------
 -- PLAY SOUND
 ------------------------------------------------
 
@@ -11,25 +17,18 @@ function SoundUtils:PlaySound(
 	properties
 )
 
-	if not sound or not parent then
+	if not sound then
+		warn("[SoundUtils] No sound provided")
 		return nil
 	end
 
-	local soundClone
-
 	------------------------------------------------
-	-- SOUND INSTANCE
+	-- VALIDATE
 	------------------------------------------------
 
-	if typeof(sound) == "Instance"
-		and sound:IsA("Sound") then
-
-		soundClone = sound:Clone()
-
-	else
-
+	if not sound:IsA("Sound") then
 		warn(
-			"[SoundUtils] Invalid sound:",
+			"[SoundUtils] Instance is not a Sound:",
 			sound
 		)
 
@@ -37,7 +36,25 @@ function SoundUtils:PlaySound(
 	end
 
 	------------------------------------------------
-	-- APPLY PROPERTIES
+	-- DEFAULT PARENT
+	------------------------------------------------
+
+	parent =
+		parent
+		or game:GetService("SoundService")
+
+	------------------------------------------------
+	-- CLONE
+	------------------------------------------------
+
+	local soundClone =
+		sound:Clone()
+
+	soundClone.Name =
+		sound.Name .. "_Playing"
+
+	------------------------------------------------
+	-- PROPERTIES
 	------------------------------------------------
 
 	if properties then
@@ -45,9 +62,11 @@ function SoundUtils:PlaySound(
 		for property, value in pairs(properties) do
 
 			local success, errorMessage =
-				pcall(function()
-					soundClone[property] = value
-				end)
+				pcall(
+					function()
+						soundClone[property] = value
+					end
+				)
 
 			if not success then
 
@@ -58,14 +77,24 @@ function SoundUtils:PlaySound(
 				)
 
 			end
+
 		end
+
 	end
+
+	------------------------------------------------
+	-- RESET PLAYBACK STATE
+	------------------------------------------------
+
+	soundClone.TimePosition = 0
+	soundClone.Playing = false
 
 	------------------------------------------------
 	-- PARENT
 	------------------------------------------------
 
 	soundClone.Parent = parent
+
 
 	------------------------------------------------
 	-- PLAY
@@ -74,7 +103,7 @@ function SoundUtils:PlaySound(
 	soundClone:Play()
 
 	------------------------------------------------
-	-- CUSTOM DURATION
+	-- CLEANUP
 	------------------------------------------------
 
 	if duration then
@@ -94,27 +123,29 @@ function SoundUtils:PlaySound(
 			end
 		)
 
-		return soundClone
+	else
+
+		soundClone.Ended:Once(
+			function()
+
+				if soundClone
+					and soundClone.Parent then
+
+					soundClone:Destroy()
+
+				end
+
+			end
+		)
+
 	end
 
 	------------------------------------------------
-	-- AUTOMATIC CLEANUP
+	-- IMPORTANT
 	------------------------------------------------
 
-	soundClone.Ended:Once(
-		function()
-
-			if soundClone
-				and soundClone.Parent then
-
-				soundClone:Destroy()
-
-			end
-
-		end
-	)
-
 	return soundClone
+
 end
 
 return SoundUtils

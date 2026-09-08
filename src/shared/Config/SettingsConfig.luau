@@ -11,7 +11,6 @@ local SettingsConfig = {
 			Min = 0,
 			Max = 1,
 		},
-
 		FOV = {
 			Min = 60,
 			Max = 110,

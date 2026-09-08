@@ -422,9 +422,26 @@ function BananaPeelController:Init()
 	-- MARKER UPDATE
 	------------------------------------------------
 
-	RunService.RenderStepped:Connect(
-		function()
+	-- RunService.RenderStepped:Connect(
+	-- 	function()
+	-- 		UpdateMarker()
+	-- 	end
+	-- )
+
+	UserInputService.InputChanged:Connect(
+		function(input, gameProcessed)
+
+			if gameProcessed then
+				return
+			end
+
+			if input.UserInputType
+				~= Enum.UserInputType.MouseMovement then
+				return
+			end
+
 			UpdateMarker()
+
 		end
 	)
 

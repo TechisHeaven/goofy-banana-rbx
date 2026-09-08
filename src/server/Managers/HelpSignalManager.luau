@@ -128,7 +128,7 @@ function HelpSignalManager:RequestHelp(player)
 			~= Enums.Team.Runner then
 			continue
 		end
-		NotificationManager:Broadcast(
+		NotificationManager:Send(player,
 			player.Name .. ": Help Me! 🥹",
 			Enums.NotificationTarget.Gameplay
 		)

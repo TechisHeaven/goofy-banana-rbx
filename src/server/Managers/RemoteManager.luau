@@ -1,6 +1,9 @@
 local ReplicatedStorage =
 	game:GetService("ReplicatedStorage")
 
+local Players =
+	game:GetService("Players")
+
 ------------------------------------------------
 -- SHARED
 ------------------------------------------------
@@ -27,6 +30,10 @@ local RemoteManager = {}
 ------------------------------------------------
 
 local Remotes = {}
+
+local ReadyPlayers = {}
+
+local PendingEvents = {}
 
 ------------------------------------------------
 -- CREATE / GET REMOTE EVENT
@@ -99,12 +106,195 @@ local function createRemoteFunction(name)
 end
 
 ------------------------------------------------
+-- QUEUE EVENT
+------------------------------------------------
+
+local function QueueEvent(
+	player,
+	remoteName,
+	arguments
+)
+
+	if not PendingEvents[player] then
+
+		PendingEvents[player] = {}
+
+	end
+
+	table.insert(
+		PendingEvents[player],
+		{
+			Remote = remoteName,
+			Arguments = arguments,
+		}
+	)
+
+end
+
+------------------------------------------------
+-- FIRE CLIENT
+------------------------------------------------
+
+function RemoteManager:FireClient(
+	player,
+	remoteName,
+	...
+)
+
+	if not player
+		or not player.Parent then
+
+		return
+
+	end
+
+	local remote =
+		self:GetEvent(remoteName)
+
+	if not remote then
+		return
+	end
+
+	------------------------------------------------
+	-- Client isn't ready yet
+	------------------------------------------------
+
+	if not ReadyPlayers[player] then
+
+		QueueEvent(
+			player,
+			remote.Name,
+			{
+				...
+			}
+		)
+
+		return
+
+	end
+
+	------------------------------------------------
+	-- Client ready
+	------------------------------------------------
+
+	remote:FireClient(
+		player,
+		...
+	)
+
+end
+
+------------------------------------------------
+-- FIRE ALL CLIENTS
+------------------------------------------------
+
+function RemoteManager:FireAllClients(
+	remoteName,
+	...
+)
+
+	local arguments = {
+		...
+	}
+
+	for _, player in ipairs(
+		Players:GetPlayers()
+	) do
+
+		if ReadyPlayers[player] then
+
+			local remote =
+				self:GetEvent(remoteName)
+
+			if remote then
+
+				remote:FireClient(
+					player,
+					table.unpack(arguments)
+				)
+
+			end
+
+		else
+
+			QueueEvent(
+				player,
+				remoteName,
+				arguments
+			)
+
+		end
+
+	end
+
+end
+
+------------------------------------------------
+-- PLAYER READY
+------------------------------------------------
+
+function RemoteManager:SetPlayerReady(player)
+
+	if not player
+		or not player.Parent then
+
+		return
+
+	end
+
+	ReadyPlayers[player] = true
+
+	local events =
+		PendingEvents[player]
+
+	if not events then
+		return
+	end
+
+	PendingEvents[player] = nil
+
+	------------------------------------------------
+	-- FLUSH
+	------------------------------------------------
+
+	for _, eventData in ipairs(events) do
+
+		local remote =
+			self:GetEvent(
+				eventData.Remote
+			)
+
+		if remote then
+
+			remote:FireClient(
+				player,
+				table.unpack(
+					eventData.Arguments
+				)
+			)
+
+		end
+
+	end
+
+	print(
+		"[RemoteManager] Flushed",
+		#events,
+		"pending events for",
+		player.Name
+	)
+
+end
+
+------------------------------------------------
 -- INIT
 ------------------------------------------------
 
 function RemoteManager:Init()
 
-	print("[RemoteManager] Initializing...")
+	print(
+		"[RemoteManager] Initializing..."
+	)
 
 	------------------------------------------------
 	-- RemoteEvents
@@ -137,6 +327,38 @@ function RemoteManager:Init()
 			remote
 
 	end
+
+	------------------------------------------------
+	-- CLIENT READY
+	------------------------------------------------
+
+	local ClientReady =
+		self:GetEvent(
+			RemoteIndex.Events.ClientReady
+		)
+
+	ClientReady.OnServerEvent:Connect(
+		function(player)
+
+			self:SetPlayerReady(
+				player
+			)
+
+		end
+	)
+
+	------------------------------------------------
+	-- CLEANUP
+	------------------------------------------------
+
+	Players.PlayerRemoving:Connect(
+		function(player)
+
+			ReadyPlayers[player] = nil
+			PendingEvents[player] = nil
+
+		end
+	)
 
 	print(
 		"[RemoteManager] Created / loaded",
@@ -176,32 +398,71 @@ end
 
 function RemoteManager:GetEvent(name)
 
+	------------------------------------------------
+	-- Allow RemoteEvent instance
+	------------------------------------------------
+
+	if typeof(name) == "Instance" then
+
+		if name:IsA("RemoteEvent") then
+			return name
+		end
+
+		warn(
+			"[RemoteManager] Instance is not a RemoteEvent:",
+			name:GetFullName()
+		)
+
+		return nil
+	end
+
+	------------------------------------------------
+	-- Cached lookup
+	------------------------------------------------
+
 	local remote =
 		Remotes[name]
 
-	if not remote then
+	if remote
+		and remote:IsA("RemoteEvent") then
 
-		warn(
-			"[RemoteManager] RemoteEvent not found:",
-			name
-		)
-
-		return nil
+		return remote
 
 	end
 
-	if not remote:IsA("RemoteEvent") then
+	------------------------------------------------
+	-- Fallback to actual folder
+	------------------------------------------------
 
-		warn(
-			"[RemoteManager] Remote is not a RemoteEvent:",
-			name
-		)
+	remote =
+		RemotesFolder:FindFirstChild(name)
 
-		return nil
+	if remote then
+
+		if not remote:IsA("RemoteEvent") then
+
+			warn(
+				"[RemoteManager] Remote exists but is not a RemoteEvent:",
+				name
+			)
+
+			return nil
+
+		end
+
+		-- Repair cache
+		Remotes[name] = remote
+
+		return remote
 
 	end
 
-	return remote
+	warn(
+		"[RemoteManager] RemoteEvent not found:",
+		name
+	)
+
+	return nil
 
 end
 
@@ -247,8 +508,12 @@ end
 function RemoteManager:Cleanup()
 
 	table.clear(Remotes)
+	table.clear(ReadyPlayers)
+	table.clear(PendingEvents)
 
-	print("[RemoteManager] Cache cleared")
+	print(
+		"[RemoteManager] Cache cleared"
+	)
 
 end
 

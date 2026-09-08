@@ -172,9 +172,7 @@ local function ValidateReward(
 	end
 
 	local rewardCount = 0
-
 	for rewardType, value in pairs(reward) do
-
 		rewardCount += 1
 
 		------------------------------------------------
@@ -205,8 +203,7 @@ local function ValidateReward(
 			then
 
 				return false
-			end
-
+			end		
 		------------------------------------------------
 		-- SKIN
 		------------------------------------------------
@@ -217,7 +214,6 @@ local function ValidateReward(
 				or #value < 1
 				or #value > 64
 			then
-
 				return false
 			end
 
@@ -225,10 +221,7 @@ local function ValidateReward(
 				"Skins",
 				value
 			) then
-                NotificationManager:Send(
-                    player,
-                    "Something Went Wrong"
-                )
+
 				warn(
 					"[RedeemCodeService] Skin does not exist:",
 					value
@@ -247,7 +240,6 @@ local function ValidateReward(
 				or #value < 1
 				or #value > 64
 			then
-
 				return false
 			end
 
@@ -255,10 +247,7 @@ local function ValidateReward(
 				"BananaSkins",
 				value
 			) then
-                NotificationManager:Send(
-                    player,
-                    "Something Went Wrong"
-                )
+
 				warn(
 					"[RedeemCodeService] BananaSkin does not exist:",
 					value
@@ -277,7 +266,6 @@ local function ValidateReward(
 				or #value < 1
 				or #value > 64
 			then
-
 				return false
 			end
 
@@ -285,10 +273,7 @@ local function ValidateReward(
 				"VictoryPoses",
 				value
 			) then
-                NotificationManager:Send(
-                    player,
-                    "Something Went Wrong"
-                )
+
 				warn(
 					"[RedeemCodeService] VictoryPose does not exist:",
 					value
@@ -307,7 +292,6 @@ local function ValidateReward(
 				or #value < 1
 				or #value > 64
 			then
-
 				return false
 			end
 
@@ -315,10 +299,7 @@ local function ValidateReward(
 				"RescueEffects",
 				value
 			) then
-                  NotificationManager:Send(
-                    player,
-                    "Something Went Wrong"
-                )
+
 				warn(
 					"[RedeemCodeService] RescueEffect does not exist:",
 					value
@@ -330,7 +311,7 @@ local function ValidateReward(
 		else
             NotificationManager:Send(
                     player,
-                    "Invalid Code"
+                    "Invalid Code or Unknown reward"
                 )
 			warn(
 				"[RedeemCodeService] Unknown reward type:",
@@ -356,66 +337,6 @@ end
 
 
 
-local function ValidatePlayerCanReceiveReward(
-	player,
-	reward
-)
-
-	local profile =
-		ProfileManager:GetProfile(player)
-
-	if not profile then
-		return false
-	end
-
-	local inventory =
-		profile.Inventory
-
-	if reward.Skin then
-
-		return not (
-			inventory.Owned.Skins
-			and inventory.Owned.Skins[reward.Skin]
-		)
-
-	end
-
-	if reward.BananaSkin then
-
-		return not (
-			inventory.Owned.BananaSkins
-			and inventory.Owned.BananaSkins[
-				reward.BananaSkin
-			]
-		)
-
-	end
-
-	if reward.VictoryPose then
-
-		return not (
-			inventory.Owned.VictoryPoses
-			and inventory.Owned.VictoryPoses[
-				reward.VictoryPose
-			]
-		)
-
-	end
-
-	if reward.RescueEffect then
-
-		return not (
-			inventory.Owned.RescueEffects
-			and inventory.Owned.RescueEffects[
-				reward.RescueEffect
-			]
-		)
-
-	end
-
-	return true
-
-end
 ------------------------------------------------
 -- VALIDATE ALL REWARDS
 ------------------------------------------------
@@ -444,14 +365,6 @@ local function ValidateRewards(
 	for _, reward in ipairs(rewards) do
 
         if not ValidateReward(
-            player,
-            reward
-        ) then
-
-            return false
-        end
-
-        if not ValidatePlayerCanReceiveReward(
             player,
             reward
         ) then
@@ -748,10 +661,16 @@ function RedeemCodeService:Redeem(
 
 		end
 
-		table.insert(
-			grantedRewards,
-			reward
-		)
+		if reward.Coins
+			or reward.XP
+		then
+
+			table.insert(
+				grantedRewards,
+				reward
+			)
+
+		end
 
 	end
 

@@ -37,7 +37,6 @@ function PlayerProfiles:RegisterPlayer(player)
 			Overall = {},
 		},
 	}
-
 end
 
 

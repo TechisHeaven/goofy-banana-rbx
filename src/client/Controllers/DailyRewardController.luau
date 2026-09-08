@@ -60,7 +60,7 @@ function OnDailyRewardUpdate(data)
 	end
 
 	CurrentData = data
-
+	print(data)
 	------------------------------------------------
 	-- Render latest reward information
 	------------------------------------------------

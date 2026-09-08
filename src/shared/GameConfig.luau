@@ -1,5 +1,5 @@
 return {
-
+    MaxPlayers = 10,
     Round = {
         MinimumPlayers = 2,
         IntermissionTime = 10,

@@ -75,12 +75,6 @@ local MusicEnabled =
 local MusicVolume =
 	DEFAULTS.MusicVolume
 
-local SFXEnabled =
-	DEFAULTS.SFXEnabled
-
-local SFXVolume =
-	DEFAULTS.SFXVolume
-
 ------------------------------------------------
 -- CONFIG
 ------------------------------------------------
@@ -153,15 +147,7 @@ local function ApplyMusicVolume()
 
 end
 
-local function ApplySFXVolume()
 
-	if SFXEnabled then
-		SFXGroup.Volume = SFXVolume
-	else
-		SFXGroup.Volume = 0
-	end
-
-end
 
 ------------------------------------------------
 -- PLAY SOUND
@@ -212,7 +198,6 @@ function SoundService:Play(
 			GetSoundGroup(category),
 
 	}
-
 	------------------------------------------------
 	-- PLAY
 	------------------------------------------------
@@ -404,35 +389,7 @@ function SoundService:SetMusicVolume(volume)
 
 end
 
-------------------------------------------------
--- SFX ENABLED
-------------------------------------------------
 
-function SoundService:SetSFXEnabled(enabled)
-
-	SFXEnabled =
-		enabled == true
-
-	ApplySFXVolume()
-
-end
-
-------------------------------------------------
--- SFX VOLUME
-------------------------------------------------
-
-function SoundService:SetSFXVolume(volume)
-
-	SFXVolume =
-		math.clamp(
-			volume,
-			0,
-			1
-		)
-
-	ApplySFXVolume()
-
-end
 
 ------------------------------------------------
 -- GET MUSIC STATE
@@ -461,16 +418,12 @@ end
 function SoundService:Init()
 
 	ApplyMusicVolume()
-	ApplySFXVolume()
 
 	print(
 		"SoundService Initialized",
 		"Music:",
 		MusicEnabled,
-		MusicVolume,
-		"SFX:",
-		SFXEnabled,
-		SFXVolume
+		MusicVolume
 	)
 
 end

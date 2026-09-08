@@ -38,7 +38,7 @@
 local RemoteIndex = {}
 
 RemoteIndex.Events = {
-
+	ClientReady = "ClientReady",
 	RequestJoinQueue = "RequestJoinQueue",
 	RequestLeaveQueue = "RequestLeaveQueue",
 

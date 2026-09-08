@@ -56,12 +56,13 @@ end
 function OpenUIController:Init()
 
 	print(
-		"DailyRewardController Initialized"
+		"OpenUIController Initialized"
 	)
 
 
-
+	print("OpenUI", OpenUI)
 	OpenUI.OnClientEvent:Connect(function(uiName)
+		print("OpenUIController: Received OpenUI event for: ", uiName)
 		if uiName == "DailyReward" then
 			PopupModule:Open(DailyRewardFrame, {
 				CanClickOutsideToClose = true
