@@ -111,7 +111,6 @@ function SettingsController:LoadFromServer()
 	ApplyCameraSettings()
 	ApplyAudioSettings()
 
-	print("Settings loaded from server")
 
 end
 
@@ -262,7 +261,6 @@ function SettingsController:Apply()
 	-- Server save will go here
 	------------------------------------------------
 
-	print("Settings Applied")
 end
 
 function SettingsController:ResetToDefaults()
@@ -292,7 +290,7 @@ end
 
 function SettingsController:Init()
 
-	print("SettingsController Initialized")
+	-- print("SettingsController Initialized")
 
 	SettingsUI:Init()
 

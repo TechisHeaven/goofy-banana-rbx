@@ -120,9 +120,9 @@ function MonetizationController:Init()
 		end
 	)
 
-	print(
-		"[MonetizationController] Initialized"
-	)
+	-- print(
+	-- 	"[MonetizationController] Initialized"
+	-- )
 
 end
 

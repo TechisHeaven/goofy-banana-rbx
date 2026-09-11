@@ -151,12 +151,9 @@ function PopupManager:EnsureOverlayVisible()
 		return false
 	end
 
-	-- Safety:
-	-- Always make sure the overlay is visible
-	-- before opening any popup.
-	if not self.Overlay.Visible then
-		self.Overlay.Visible = true
-	end
+	-- Always restore the overlay before opening
+	self.Overlay.Visible = true
+	self.Overlay.Active = true
 
 	return true
 end
@@ -223,7 +220,8 @@ function PopupManager:Open(Popup, Options : {CanClickOutsideToClose: boolean, Re
 	if not self:EnsureOverlayVisible() then
 		return
 	end
-
+	self.Overlay.Visible = true
+	self.Overlay.Active = true
 
 	------------------------------------------------
 	-- Popup state attribute
@@ -265,7 +263,7 @@ function PopupManager:Open(Popup, Options : {CanClickOutsideToClose: boolean, Re
 
 	-- Camera zoom
 	TweenFOV(
-		Camera:GetAttribute("NormalFOV") - 20 or self.DefaultPopupFOV,
+		(Camera:GetAttribute("NormalFOV") or self.DefaultFOV) - 20,
 		self.FOVTweenTime
 	)
 
@@ -331,13 +329,17 @@ function PopupManager:Close(Popup, IsSwitching)
 		)
 	end
 	
-	TweenService:Create(
-		self.Overlay,
-		TweenInfo.new(self.CloseTime),
-		{
-			BackgroundTransparency = 1
-		}
-	):Play()
+	if not IsSwitching then
+
+		TweenService:Create(
+			self.Overlay,
+			TweenInfo.new(self.CloseTime),
+			{
+				BackgroundTransparency = 1
+			}
+		):Play()
+
+	end
 
 	Tween.Completed:Wait()
 
@@ -375,7 +377,6 @@ function PopupManager:Close(Popup, IsSwitching)
 	end
 
 	-- Hide overlay only if nothing reopened
-
 	if not self.CurrentPopup then
 		self.Overlay.Visible = false
 		

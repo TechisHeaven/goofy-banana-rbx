@@ -55,12 +55,11 @@ end
 
 function OpenUIController:Init()
 
-	print(
-		"OpenUIController Initialized"
-	)
+	-- print(
+	-- 	"OpenUIController Initialized"
+	-- )
 
 
-	print("OpenUI", OpenUI)
 	OpenUI.OnClientEvent:Connect(function(uiName)
 		print("OpenUIController: Received OpenUI event for: ", uiName)
 		if uiName == "DailyReward" then

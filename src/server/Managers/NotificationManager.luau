@@ -18,7 +18,6 @@ local NotificationData = require(Shared.Modules.NotificationData)
 local NotificationManager = {}
 
 function NotificationManager:Send(player, message, target, duration)
-
     NotifyRemote:FireClient(player, NotificationData.new(
 			message,
 			target or Enums.NotificationTarget.Default,

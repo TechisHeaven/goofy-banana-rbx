@@ -153,7 +153,7 @@ end
 -- Init ---------------------------------------------------------------------
 
 function LobbyController:Init()
-	print("LobbyController Initializing...")
+	-- print("LobbyController Initializing...")
 
 	-- Init Lobby
 	LobbyUI:Init()

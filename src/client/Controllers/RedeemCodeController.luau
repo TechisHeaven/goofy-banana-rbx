@@ -196,9 +196,9 @@ function RedeemCodeController:Init()
 		Redeem
 	)
 
-	print(
-		"[RedeemCodeController] Initialized"
-	)
+	-- print(
+	-- 	"[RedeemCodeController] Initialized"
+	-- )
 
 end
 

@@ -33,7 +33,7 @@ local SlowMoController = {}
 
 function SlowMoController:Init()
 
-	print("SlowMoController Initialized")
+	-- print("SlowMoController Initialized")
     getRemote(RemoteIndex.StartSlowMo)
 	.OnClientEvent
 	:Connect(function(data)

@@ -74,7 +74,7 @@ end
 
 function ShopController:Init()
 
-	print("ShopController Initialized")
+	-- print("ShopController Initialized")
 
 	ShopUI:Init()
 

@@ -516,9 +516,9 @@ end
 
 function DailyRewardManager:Init()
 
-	print(
-		"DailyRewardManager Initialized"
-	)
+	-- print(
+	-- 	"DailyRewardManager Initialized"
+	-- )
 
 	for _, player in ipairs(
 		Players:GetPlayers()

@@ -150,6 +150,7 @@ function LobbyManager:SetInMatch(players: {Player})
 	for _, player in ipairs(players) do
 		inMatchSet[player]  = true
 		lobbyStates[player] = Enums.PlayerLobbyState.InMatch
+		player:SetAttribute("InMatch", true)
 		player:SetAttribute("LobbyState", Enums.PlayerLobbyState.InMatch)
 	end
 	self:BroadcastStatus()
@@ -164,28 +165,15 @@ function LobbyManager:ReturnAllToLobby(players: {Player})
 		if player and player.Parent then
 			PlayerManager:ResetPlayer(player)
 			lobbyStates[player] = Enums.PlayerLobbyState.InLobby
+			print("players return to lobby and state changed to inlobby")
 			player:SetAttribute("LobbyState", Enums.PlayerLobbyState.InLobby)
-
+			player:SetAttribute("InMatch", false)
 			local re = 	Shared.Remotes:WaitForChild(RemoteIndex.Events.ReturnToLobby)
 			if re then re:FireClient(player) end
 		end
 	end
 
 	SpawnManager:TeleportToLobby(players)
-
-	for _, player in ipairs(players) do
-
-		if player and player.Parent then
-
-			player:SetAttribute(
-				"LobbyState",
-				Enums.PlayerLobbyState.InLobby
-			)
-
-		end
-
-	end
-
 	self:BroadcastStatus()
 end
 
@@ -281,6 +269,10 @@ local function onPlayerAdded(player: Player)
 	lobbyStates[player] = Enums.PlayerLobbyState.InLobby
 	
 	player:SetAttribute("LobbyState", Enums.PlayerLobbyState.InLobby)
+	player:SetAttribute(
+		"InMatch",
+		false
+	)
 
 	-- Send them the current status immediately
 	task.defer(function()
@@ -301,7 +293,7 @@ end
 -- ─── Init ─────────────────────────────────────────────────────────────────────
 
 function LobbyManager:Init()
-	print("LobbyManager Initializing...")
+	-- print("LobbyManager Initializing...")
 
 
 

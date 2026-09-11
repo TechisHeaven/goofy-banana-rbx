@@ -104,9 +104,9 @@ end
 
 function TaskController:Init()
 
-	print(
-		"[TaskController] Initialized"
-	)
+	-- print(
+	-- 	"[TaskController] Initialized"
+	-- )
 
 	TaskUI:Init()
 

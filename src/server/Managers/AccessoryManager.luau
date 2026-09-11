@@ -184,12 +184,12 @@ function AccessoryManager:Equip(
 	-- Done
 	------------------------------------------------
 
-	print(
-		"[AccessoryManager] Equipped:",
-		accessoryId,
-		"on",
-		config.AttachTo
-	)
+	-- print(
+	-- 	"[AccessoryManager] Equipped:",
+	-- 	accessoryId,
+	-- 	"on",
+	-- 	config.AttachTo
+	-- )
 
 	return true
 
@@ -212,9 +212,9 @@ function AccessoryManager:Unequip(
 
 	self:Clear(character)
 
-	print(
-		"[AccessoryManager] Unequipped"
-	)
+	-- print(
+	-- 	"[AccessoryManager] Unequipped"
+	-- )
 
 end
 

@@ -6,33 +6,37 @@ local CharacterAppearanceManager = {}
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerStorage = game:GetService("ServerStorage")
 
 ------------------------------------------------
 -- SHARED
 ------------------------------------------------
-
-local Shared = ReplicatedStorage:WaitForChild("Shared")
+local Shared =
+	ReplicatedStorage:WaitForChild("Shared")
 
 local MarkerUtil =
 	require(
 		Shared.Utils.MarkerUtil
 	)
 
+local Enums = require(Shared.Enums)
+
+local ProfileManager = require(script.Parent.ProfileManager)
 ------------------------------------------------
 -- CONFIG
 ------------------------------------------------
 
 local NAME_TAG_SETTINGS = {
 
-	------------------------------------------------
+		------------------------------------------------
 	-- Billboard
 	------------------------------------------------
 
 	Name = "PlayerNameTag",
 
 	Size = UDim2.fromOffset(
-		180,
-		40
+		220,
+		55
 	),
 
 	StudsOffset = Vector3.new(
@@ -49,27 +53,22 @@ local NAME_TAG_SETTINGS = {
 	-- Text
 	------------------------------------------------
 
-	Text = function(player)
+	RichText = true,
 
-		return player.DisplayName
+	TextColor = Color3.fromRGB(
+		255,
+		255,
+		255
+	),
 
-	end,
+	TextSize = 18,
 
 }
 
+
+
 ------------------------------------------------
 -- BODY SCALE
-------------------------------------------------
--- These values are identical for everybody.
---
--- Height = normal
--- Width  = slightly thick
--- Depth  = slightly thick
--- Head   = normal
---
--- BodyType = 0 means classic/blockier R15.
--- Proportion = 0 keeps the body from becoming
--- too narrow/slender.
 ------------------------------------------------
 
 local BODY_SCALE = {
@@ -87,6 +86,142 @@ local BODY_SCALE = {
 	ProportionScale = 0,
 
 }
+
+------------------------------------------------
+-- CHECK IF PLAYER IS IN A ROUND
+------------------------------------------------
+
+local function IsInGame(
+	player
+)
+	return player:GetAttribute("InMatch") == true
+end
+
+------------------------------------------------
+-- CREATE NAME TAG
+------------------------------------------------
+
+local function CreateNameTag(
+	character,
+	player
+)
+
+	------------------------------------------------
+	-- Remove old one
+	------------------------------------------------
+
+	local old =
+		character:FindFirstChild(
+			"PlayerNameTag"
+		)
+
+	if old then
+		old:Destroy()
+	end
+
+	------------------------------------------------
+	-- Don't create tag during a round
+	------------------------------------------------
+	if IsInGame(player) then
+		return nil
+	end
+
+
+	------------------------------------------------
+	-- Create settings
+	------------------------------------------------
+
+	local settings =
+		table.clone(
+			NAME_TAG_SETTINGS
+		)
+
+	------------------------------------------------
+	-- Name + Level + Wins
+	------------------------------------------------
+
+	settings.Text =
+	"<font color=\"#FFFFFF\">"
+	.. player.DisplayName
+	.. "</font>"
+	.. "\n"
+	.. "<font color=\"#55BFFF\">Lv. "
+	.. tostring(
+		ProfileManager:GetLevel(player)
+	)
+	.. "</font>"
+	.. "  |  "
+	.. "<font color=\"#FFD84D\">👑 "
+	.. tostring(
+		ProfileManager:GetWins(player)
+	)
+	.. "</font>"
+
+	------------------------------------------------
+	-- Create
+	------------------------------------------------
+
+	local nameTag =
+		MarkerUtil.Create(
+			character,
+			settings
+		)
+
+	return nameTag
+
+end
+
+------------------------------------------------
+-- UPDATE NAME TAG
+------------------------------------------------
+
+local function UpdateNameTag(
+	self,
+	player
+)
+
+	local character =
+		player.Character
+	if not character then
+		return
+	end
+	local shouldShow =
+		not IsInGame(player)
+
+		
+	local existing =
+		character:FindFirstChild(
+			"PlayerNameTag"
+		)
+	------------------------------------------------
+	-- Remove existing tag
+	------------------------------------------------
+	if shouldShow and existing then
+		return
+	end
+
+	if not shouldShow and not existing then
+		return
+	end
+
+	if existing then
+		existing:Destroy()
+	end
+
+	------------------------------------------------
+	-- Create only when in lobby
+	------------------------------------------------
+
+	local nameTag =
+		CreateNameTag(
+			character,
+			player
+		)
+
+	self.NameTags[player] =
+		nameTag
+
+end
 
 ------------------------------------------------
 -- APPLY SCALE
@@ -109,7 +244,9 @@ local function ApplyBodyScale(
 	-- Make sure this is R15
 	------------------------------------------------
 
-	if humanoid.RigType ~= Enum.HumanoidRigType.R15 then
+	if humanoid.RigType
+		~= Enum.HumanoidRigType.R15
+	then
 
 		warn(
 			"[CharacterAppearanceManager] Character is not R15:",
@@ -193,54 +330,6 @@ local function ApplyBodyScale(
 end
 
 ------------------------------------------------
--- CREATE NAME TAG
-------------------------------------------------
-
-local function CreateNameTag(
-	character,
-	player
-)
-
-	------------------------------------------------
-	-- Remove old one
-	------------------------------------------------
-
-	local old =
-		character:FindFirstChild(
-			"PlayerNameTag"
-		)
-
-	if old then
-		old:Destroy()
-	end
-
-	------------------------------------------------
-	-- Create settings
-	------------------------------------------------
-
-	local settings =
-		table.clone(
-			NAME_TAG_SETTINGS
-		)
-
-	settings.Text =
-		player.DisplayName
-
-	------------------------------------------------
-	-- Create
-	------------------------------------------------
-
-	local nameTag =
-		MarkerUtil.Create(
-			character,
-			settings
-		)
-
-	return nameTag
-
-end
-
-------------------------------------------------
 -- SETUP CHARACTER
 ------------------------------------------------
 
@@ -267,6 +356,7 @@ function CharacterAppearanceManager:Setup(
 		return
 	end
 
+
 	------------------------------------------------
 	-- Apply standard R15 proportions
 	------------------------------------------------
@@ -276,7 +366,7 @@ function CharacterAppearanceManager:Setup(
 	)
 
 	------------------------------------------------
-	-- Create consistent name tag
+	-- Create name tag if in lobby
 	------------------------------------------------
 
 	local nameTag =
@@ -284,7 +374,6 @@ function CharacterAppearanceManager:Setup(
 			character,
 			player
 		)
-
 	------------------------------------------------
 	-- Keep reference
 	------------------------------------------------
@@ -297,6 +386,24 @@ function CharacterAppearanceManager:Setup(
 
 end
 
+
+------------------------------------------------
+-- REFRESH NAME TAG
+------------------------------------------------
+
+function CharacterAppearanceManager:RefreshNameTag(
+	player
+)
+
+	if not player then
+		return
+	end
+	UpdateNameTag(
+		self,
+		player
+	)
+
+end
 ------------------------------------------------
 -- INIT
 ------------------------------------------------
@@ -304,6 +411,12 @@ end
 function CharacterAppearanceManager:Init()
 
 	self.NameTags = {}
+
+	------------------------------------------------
+	-- CURRENCY / PROFILE DATA
+	------------------------------------------------
+
+	
 
 	------------------------------------------------
 	-- Existing players
@@ -328,6 +441,10 @@ function CharacterAppearanceManager:Init()
 
 		end
 
+		------------------------------------------------
+		-- Character added
+		------------------------------------------------
+
 		player.CharacterAdded:Connect(
 			function(character)
 
@@ -338,8 +455,26 @@ function CharacterAppearanceManager:Init()
 
 			end
 		)
+		------------------------------------------------
+		-- LOBBY STATE CHANGED
+		------------------------------------------------
+
+		player:GetAttributeChangedSignal(
+			"InMatch"
+		):Connect(
+			function()
+
+				UpdateNameTag(
+					self,
+					player
+				)
+
+			end
+		)
 
 	end
+
+
 
 	------------------------------------------------
 	-- New players
@@ -347,6 +482,10 @@ function CharacterAppearanceManager:Init()
 
 	Players.PlayerAdded:Connect(
 		function(player)
+
+			------------------------------------------------
+			-- Character
+			------------------------------------------------
 
 			player.CharacterAdded:Connect(
 				function(character)
@@ -359,6 +498,22 @@ function CharacterAppearanceManager:Init()
 				end
 			)
 
+			------------------------------------------------
+			-- LOBBY STATE CHANGED
+			------------------------------------------------
+
+			player:GetAttributeChangedSignal(
+				"InMatch"
+			):Connect(
+				function()
+
+					UpdateNameTag(
+						self,
+						player
+					)
+
+				end
+			)
 		end
 	)
 
@@ -369,15 +524,11 @@ function CharacterAppearanceManager:Init()
 	Players.PlayerRemoving:Connect(
 		function(player)
 
-			self.NameTags[player] =
-				nil
-
+			self.NameTags[player] = nil
 		end
 	)
 
-	print(
-		"[CharacterAppearanceManager] Initialized"
-	)
+
 
 end
 

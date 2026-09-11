@@ -118,16 +118,7 @@ function GameplayItemController:Init()
 				data.Equipped
 
 			
-			print(
-				"[GameplayItemController]",
-				"Item:",
-				self.Item,
-				"Selected:",
-				self.Selected,
-				"Equipped:",
-				self.Equipped
-			)
-
+		
 			------------------------------------------------
 			-- UI update later
 			------------------------------------------------

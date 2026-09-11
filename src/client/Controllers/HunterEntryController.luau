@@ -659,9 +659,9 @@ function HunterEntryController:Init()
 			self:Play(hunter)
 		end
 	)
-	print(
-		"[HunterEntryController] Initialized"
-	)
+	-- print(
+	-- 	"[HunterEntryController] Initialized"
+	-- )
 
 end
 

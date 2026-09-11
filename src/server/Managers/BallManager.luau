@@ -147,9 +147,6 @@ local function SetupThrowHit(
 	ball,
 	thrower
 )
-	if true then
-		return
-	end
 	local main =
 		GetMainPart(ball)
 
@@ -220,7 +217,6 @@ local function SetupThrowHit(
 					"[BallManager] DashBall hit:",
 					character.Name
 				)
-
 				RagdollService.Ragdoll(character)
 				DizzyEffectEvent:FireClient(targetPlayer, RAGDOLL_DURATION)
 				task.delay(
@@ -914,9 +910,9 @@ end
 
 function BallManager:Init()
 
-	print(
-		"[BallManager] Initializing..."
-	)
+	-- print(
+	-- 	"[BallManager] Initializing..."
+	-- )
 
 	------------------------------------------------
 	-- REMOTE
@@ -975,9 +971,9 @@ function BallManager:Init()
 		end
 	)
 
-	print(
-		"[BallManager] Initialized"
-	)
+	-- print(
+	-- 	"[BallManager] Initialized"
+	-- )
 
 end
 

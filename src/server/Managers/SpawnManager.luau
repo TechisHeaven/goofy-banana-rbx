@@ -182,7 +182,7 @@ function SpawnManager:TeleportToLobby(players: {Player})
 end
 
 function SpawnManager:Init()
-	print("SpawnManager Initializing...")
+	-- print("SpawnManager Initializing...")
 end
 
 return SpawnManager

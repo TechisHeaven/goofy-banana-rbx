@@ -721,9 +721,9 @@ Players.PlayerRemoving:Connect(
 
 function RedeemCodeService:Init()
 
-	print(
-		"[RedeemCodeService] Initialized"
-	)
+	-- print(
+	-- 	"[RedeemCodeService] Initialized"
+	-- )
 
 	RedeemCodeRemote.OnServerInvoke =
 		function(

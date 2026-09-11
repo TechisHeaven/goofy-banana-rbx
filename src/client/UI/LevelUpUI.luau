@@ -1,6 +1,9 @@
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ContentProvider =
+	game:GetService("ContentProvider")
+
 local PopupManager =
 	require(ReplicatedStorage.Shared.Modules.PopupModule)
 local SoundService = require(script.Parent.Parent.Services.SoundService)
@@ -56,6 +59,59 @@ local OriginalStarRotation =
 
 local OriginalBarSize =
 	XPBar.Size
+
+
+function LevelUpUI:Preload()
+
+	------------------------------------------------
+	-- PRELOAD UI ASSETS
+	------------------------------------------------
+
+	local preloadObjects = {}
+
+	for _, object in ipairs(
+		LevelUpFrame:GetDescendants()
+	) do
+
+		if object:IsA("ImageLabel")
+			or object:IsA("ImageButton")
+			or object:IsA("Decal")
+			or object:IsA("Texture")
+		then
+
+			table.insert(
+				preloadObjects,
+				object
+			)
+
+		end
+
+	end
+
+	if #preloadObjects > 0 then
+
+		ContentProvider:PreloadAsync(
+			preloadObjects
+		)
+
+	end
+
+	------------------------------------------------
+	-- WARM UP UI RENDER
+	------------------------------------------------
+
+	local wasVisible =
+		LevelUpFrame.Visible
+
+	LevelUpFrame.Visible =
+		true
+
+	task.wait()
+
+	LevelUpFrame.Visible =
+		wasVisible
+
+end
 
 ------------------------------------------------
 -- Helpers
@@ -145,10 +201,17 @@ function LevelUpUI:AnimateXP(
 	duration
 )
 
+	local levelRange =
+		levelEndXP - levelStartXP
+
+	if levelRange <= 0 then
+		return
+	end
+
 	local startProgress =
 		math.clamp(
 			(startXP - levelStartXP)
-				/ (levelEndXP - levelStartXP),
+				/ levelRange,
 			0,
 			1
 		)
@@ -156,49 +219,68 @@ function LevelUpUI:AnimateXP(
 	local endProgress =
 		math.clamp(
 			(endXP - levelStartXP)
-				/ (levelEndXP - levelStartXP),
+				/ levelRange,
 			0,
 			1
 		)
 
-	SetProgress(startProgress)
+	------------------------------------------------
+	-- INITIAL
+	------------------------------------------------
 
-	local value =
+	SetProgress(
+		startProgress
+	)
+
+	self:SetXPText(
+		startXP,
+		levelRange
+	)
+
+	------------------------------------------------
+	-- TWEEN DRIVER
+	------------------------------------------------
+
+	local driver =
 		Instance.new("NumberValue")
 
-	value.Value =
+	driver.Value =
 		startProgress
 
-	local connection
+	------------------------------------------------
+	-- UPDATE UI
+	------------------------------------------------
 
-	connection =
-		value:GetPropertyChangedSignal("Value")
+	local connection =
+		driver:GetPropertyChangedSignal("Value")
 		:Connect(function()
 
+			local progress =
+				driver.Value
+
 			SetProgress(
-				value.Value
+				progress
 			)
 
 			local currentXP =
 				levelStartXP
-				+ (
-					value.Value
-					* (
-						levelEndXP
-						- levelStartXP
-					)
-				)
+				+ progress * levelRange
 
 			self:SetXPText(
 				currentXP,
-				levelEndXP - levelStartXP
+				levelRange
 			)
 
 		end)
 
+	------------------------------------------------
+	-- TWEEN
+	------------------------------------------------
+
 	local tween =
 		TweenService:Create(
-			value,
+
+			driver,
 
 			TweenInfo.new(
 				duration or 0.6,
@@ -209,15 +291,30 @@ function LevelUpUI:AnimateXP(
 			{
 				Value = endProgress
 			}
+
 		)
 
 	tween:Play()
+
 	tween.Completed:Wait()
 
-	connection:Disconnect()
-	value:Destroy()
+	------------------------------------------------
+	-- CLEANUP
+	------------------------------------------------
 
-	SetProgress(endProgress)
+	connection:Disconnect()
+
+	tween:Destroy()
+	driver:Destroy()
+
+	SetProgress(
+		endProgress
+	)
+
+	self:SetXPText(
+		endXP,
+		levelRange
+	)
 
 end
 
@@ -438,7 +535,6 @@ function LevelUpUI:Show(data)
 	self:SetLevel(newLevel)
 	
 	SoundService:Play("GameTreasure", nil, LevelUpFrame)
-	-- Treasure:Play()
 
 	task.wait(0.8)
 
@@ -457,7 +553,7 @@ end
 function LevelUpUI:Init()
 
 	LevelUpFrame.Visible = false
-
+	-- self:Preload()
 end
 
 return LevelUpUI

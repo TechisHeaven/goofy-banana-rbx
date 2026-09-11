@@ -66,8 +66,6 @@ for _, name in ipairs(LoadOrder) do
 
 end
 
-print("Loaded", #LoadedManagers, "Managers")
-
 -------------------------------------------------------
 -- LOAD SERVICES IN ORDER
 -------------------------------------------------------
@@ -93,5 +91,3 @@ for _, name in ipairs(ServicesLoadOrder) do
 	LoadedServices[name] = service
 
 end
-
-print("Loaded", #LoadedServices, "Services")

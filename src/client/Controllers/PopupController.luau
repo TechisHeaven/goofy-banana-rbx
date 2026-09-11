@@ -15,7 +15,7 @@ local PopupController = {}
 
 function PopupController:Init()
 
-	print("PopupController Initialized")
+	-- print("PopupController Initialized")
 
 	------------------------------------------------
 	-- Player

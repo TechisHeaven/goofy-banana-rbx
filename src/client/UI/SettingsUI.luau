@@ -374,7 +374,7 @@ end
 
 function SettingsUI:Init()
 
-	print("SettingsUI Initialized")
+	-- print("SettingsUI Initialized")
 
 	------------------------------------------------
 	-- MUSIC +

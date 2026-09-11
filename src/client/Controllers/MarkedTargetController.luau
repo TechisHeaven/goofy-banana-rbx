@@ -47,9 +47,9 @@ local MarkedTargetController = {}
 
 function MarkedTargetController:Init()
 
-	print(
-		"[MarkedTargetController] Initialized"
-	)
+	-- print(
+	-- 	"[MarkedTargetController] Initialized"
+	-- )
 
 	MarkedPlayerChanged.OnClientEvent:Connect(
 		function(markedPlayer)

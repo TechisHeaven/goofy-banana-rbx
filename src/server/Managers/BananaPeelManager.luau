@@ -435,9 +435,9 @@ function BananaPeelManager:Init()
 		end
 	)
 
-	print(
-		"BananaPeelManager initialized"
-	)
+	-- print(
+	-- 	"BananaPeelManager initialized"
+	-- )
 
 end
 

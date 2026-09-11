@@ -25,9 +25,9 @@ local RewardItemController = {}
 
 function RewardItemController:Init()
 
-	print(
-		"RewardItemController Initialized"
-	)
+	-- print(
+	-- 	"RewardItemController Initialized"
+	-- )
 
 	RewardItemUI:Init()
 

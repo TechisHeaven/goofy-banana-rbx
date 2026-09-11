@@ -32,6 +32,7 @@ CurrencyGainFX.Settings = {
 ------------------------------------------------
 
 local Initialized = false
+
 local CoinPool = {}
 
 ------------------------------------------------
@@ -44,11 +45,13 @@ local function ScaleUDim2(
 )
 
 	return UDim2.new(
+
 		size.X.Scale * scale,
 		size.X.Offset * scale,
 
 		size.Y.Scale * scale,
 		size.Y.Offset * scale
+
 	)
 
 end
@@ -80,13 +83,13 @@ end
 
 local function GetAvailableCoin()
 
-	for _, coin in ipairs(CoinPool) do
+	for _, coinData in ipairs(CoinPool) do
 
-		if not coin.Busy then
+		if not coinData.Busy then
 
-			coin.Busy = true
+			coinData.Busy = true
 
-			return coin
+			return coinData
 
 		end
 
@@ -97,7 +100,7 @@ local function GetAvailableCoin()
 end
 
 ------------------------------------------------
--- RETURN COIN
+-- RELEASE COIN
 ------------------------------------------------
 
 local function ReleaseCoin(
@@ -111,15 +114,53 @@ local function ReleaseCoin(
 	local coin =
 		coinData.Instance
 
-	if coin then
+	if not coin then
 
-		coin.Visible = false
+		coinData.Busy = false
 
-		coin.Rotation = 0
+		return
+	end
+
+	------------------------------------------------
+	-- STOP ACTIVE TWEEN
+	------------------------------------------------
+
+	local tween =
+		coinData.Tween
+
+	if tween then
+
+		tween:Cancel()
+
+		tween:Destroy()
+
+		coinData.Tween =
+			nil
 
 	end
 
-	coinData.Busy = false
+	------------------------------------------------
+	-- RESET
+	------------------------------------------------
+
+	coin.Visible =
+		false
+
+	coin.Rotation =
+		0
+
+	coin.Size =
+		coinData.OriginalSize
+
+	coin.Position =
+		coinData.OriginalPosition
+
+	------------------------------------------------
+	-- RELEASE
+	------------------------------------------------
+
+	coinData.Busy =
+		false
 
 end
 
@@ -135,10 +176,19 @@ function CurrencyGainFX:Init(
 		return
 	end
 
+	if not container then
+
+		warn(
+			"[CurrencyGainFX] Missing container"
+		)
+
+		return
+	end
+
 	Initialized = true
 
 	------------------------------------------------
-	-- FIND PRE-CREATED COINS
+	-- BUILD POOL
 	------------------------------------------------
 
 	for i = 1, self.Settings.MaxCoins do
@@ -150,21 +200,35 @@ function CurrencyGainFX:Init(
 
 		if coin then
 
-			coin.Visible = false
+			local coinData = {
+
+				Instance = coin,
+
+				Busy = false,
+
+				Tween = nil,
+
+				OriginalSize =
+					coin.Size,
+
+				OriginalPosition =
+					coin.Position,
+
+			}
+
+			coin.Visible =
+				false
 
 			table.insert(
 				CoinPool,
-				{
-					Instance = coin,
-					Busy = false,
-				}
+				coinData
 			)
 
 		else
 
 			warn(
 				"[CurrencyGainFX] Missing:",
-				"Coin" .. i
+				"CoinTemplate" .. i
 			)
 
 		end
@@ -187,23 +251,21 @@ function CurrencyGainFX:Play(
 	target,
 	amount
 )
-
+	debug.profilebegin("is this currencygainfx play issue?")
 	if not container
 		or not target then
 
 		return
-
 	end
 
 	if typeof(amount) ~= "number"
 		or amount <= 0 then
 
 		return
-
 	end
 
 	------------------------------------------------
-	-- MAKE SURE POOL EXISTS
+	-- POOL SHOULD ALREADY EXIST
 	------------------------------------------------
 
 	if not Initialized then
@@ -220,8 +282,11 @@ function CurrencyGainFX:Play(
 
 	local count =
 		math.min(
+
 			math.floor(amount),
+
 			self.Settings.MaxCoins
+
 		)
 
 	------------------------------------------------
@@ -260,10 +325,6 @@ function CurrencyGainFX:Play(
 		local coinData =
 			GetAvailableCoin()
 
-		------------------------------------------------
-		-- Pool is currently busy
-		------------------------------------------------
-
 		if not coinData then
 			break
 		end
@@ -272,12 +333,38 @@ function CurrencyGainFX:Play(
 			coinData.Instance
 
 		------------------------------------------------
+		-- CANCEL OLD TWEEN
+		------------------------------------------------
+
+		if coinData.Tween then
+
+			coinData.Tween:Cancel()
+
+			coinData.Tween:Destroy()
+
+			coinData.Tween =
+				nil
+
+		end
+
+		------------------------------------------------
 		-- RESET
 		------------------------------------------------
 
-		coin.Visible = true
+		coin.Visible =
+			true
 
-		coin.Rotation = 0
+		coin.Rotation =
+			0
+
+		coin.Size =
+			ScaleUDim2(
+
+				coinData.OriginalSize,
+
+				self.Settings.PopScale
+
+			)
 
 		------------------------------------------------
 		-- POSITION
@@ -306,30 +393,18 @@ function CurrencyGainFX:Play(
 			)
 
 		------------------------------------------------
-		-- SIZE
-		------------------------------------------------
-
-		local originalSize =
-			coin.Size
-
-		coin.Size =
-			ScaleUDim2(
-				originalSize,
-				self.Settings.PopScale
-			)
-
-		------------------------------------------------
 		-- STAGGER
 		------------------------------------------------
 
-		task.delay(
-
+		local delayTime =
 			(i - 1)
-				* self.Settings.Stagger,
+			* self.Settings.Stagger
 
+		task.delay(
+			delayTime,
 			function()
 
-				if not coin
+				if not coinData.Busy
 					or not coin.Parent then
 
 					ReleaseCoin(
@@ -337,7 +412,6 @@ function CurrencyGainFX:Play(
 					)
 
 					return
-
 				end
 
 				------------------------------------------------
@@ -375,33 +449,41 @@ function CurrencyGainFX:Play(
 
 							Size =
 								ScaleUDim2(
-									originalSize,
+
+									coinData.OriginalSize,
+
 									self.Settings.EndScale
+
 								),
 
 						}
 
 					)
 
-				tween:Play()
+				coinData.Tween =
+					tween
 
 				tween.Completed:Once(
-
 					function()
+
+						coinData.Tween =
+							nil
 
 						ReleaseCoin(
 							coinData
 						)
 
 					end
-
 				)
 
-			end
+				tween:Play()
 
+			end
 		)
 
 	end
+
+	debug.profileend()
 
 end
 

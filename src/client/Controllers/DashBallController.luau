@@ -98,9 +98,9 @@ function DashBallController:Init()
 		end
 	)
 
-	print(
-		"[DashBallController] Initialized"
-	)
+	-- print(
+	-- 	"[DashBallController] Initialized"
+	-- )
 
 end
 

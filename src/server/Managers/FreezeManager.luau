@@ -1561,9 +1561,9 @@ end
 
 function FreezeManager:Init()
 
-	print(
-		"FreezeManager Initializing..."
-	)
+	-- print(
+	-- 	"FreezeManager Initializing..."
+	-- )
 
 
 

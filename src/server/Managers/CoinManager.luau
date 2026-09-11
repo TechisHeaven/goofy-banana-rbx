@@ -5,7 +5,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage.Shared
 
 local GameConfig = require(Shared.GameConfig)
-
+local Enums = require(Shared.Enums)
 local CoinManager = {}
 
 ------------------------------------------------
@@ -23,6 +23,7 @@ local RESPAWN_DELAY = GameConfig.Game.CoinRespawnTime
 local RoundStatsManager =
 	require(script.Parent.RoundStatsManager)
 local TaskManager = require(script.Parent.TaskManager)
+
 local TaskEvents = require(Shared.EnumsEvents.TaskEvents)
 local CoinTemplate =
 	ServerStorage.Templates:WaitForChild("Coin")
@@ -451,10 +452,10 @@ function CoinManager:SpawnCoin()
 		------------------------------------------------
 
 		collected = true
+
 		------------------------------------------------
 		-- Add to ROUND stats
 		------------------------------------------------
-
 		RoundStatsManager:AddCoins(
 			player,
 			COIN_AMOUNT
@@ -549,7 +550,7 @@ end
 
 function CoinManager:Init()
 
-	print("[CoinManager] Initializing...")
+	-- print("[CoinManager] Initializing...")
 
 	local platforms =
 		GetPlatforms()

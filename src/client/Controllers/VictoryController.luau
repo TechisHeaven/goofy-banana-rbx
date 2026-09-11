@@ -38,7 +38,7 @@ function VictoryController:Init()
 		:Connect(function(data)
 		self:Play(data)
 	end)
-	print("[VictoryManager] Initialized")
+	-- print("[VictoryManager] Initialized")
 end
 
 

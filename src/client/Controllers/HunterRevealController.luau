@@ -147,9 +147,9 @@ end
 
 function HunterRevealController:Init()
 
-	print(
-		"HunterRevealController Initialized"
-	)
+	-- print(
+	-- 	"HunterRevealController Initialized"
+	-- )
 
 	AbilityUI:Init()
 

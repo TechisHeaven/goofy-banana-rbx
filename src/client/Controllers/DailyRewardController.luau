@@ -60,7 +60,6 @@ function OnDailyRewardUpdate(data)
 	end
 
 	CurrentData = data
-	print(data)
 	------------------------------------------------
 	-- Render latest reward information
 	------------------------------------------------
@@ -108,9 +107,9 @@ end
 
 function DailyRewardController:Init()
 
-	print(
-		"DailyRewardController Initialized"
-	)
+	-- print(
+	-- 	"DailyRewardController Initialized"
+	-- )
 
 	DailyRewardUI:Init()
 	

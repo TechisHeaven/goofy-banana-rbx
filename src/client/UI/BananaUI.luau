@@ -224,9 +224,9 @@ function BananaUIController:Init()
 		end
 	)
 
-	print(
-		"[BananaUIController] Initialized"
-	)
+	-- print(
+	-- 	"[BananaUIController] Initialized"
+	-- )
 
 end
 

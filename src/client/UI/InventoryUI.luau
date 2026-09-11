@@ -137,8 +137,6 @@ end
 
 function InventoryUI:Init()
 
-	PopupManager:Init(Overlay)
-
 	InventoryButton.Activated:Connect(function()
 		self:Open()
 	end)

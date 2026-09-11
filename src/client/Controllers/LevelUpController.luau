@@ -94,9 +94,9 @@ end
 
 function LevelUpController:Init()
 
-	print(
-		"[LevelUpController] Initialized"
-	)
+	-- print(
+	-- 	"[LevelUpController] Initialized"
+	-- )
 
 	------------------------------------------------
 	-- Level Up remote

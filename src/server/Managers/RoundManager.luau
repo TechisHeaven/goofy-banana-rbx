@@ -445,7 +445,6 @@ function RoundManager:EndRound()
 	------------------------------------------------
 
 	if self.VictoryPlayer then
-		print("victoryPlayer", self.VictoryPlayer)
 		VictoryManager:Play(
 			self.VictoryPlayer,
 			players
@@ -545,7 +544,7 @@ function RoundManager:SelectHunter(players)
 
 	local index =
 		math.random(#players)
-
+	NotificationManager:Send(players[index], "You are THE HUNTER!")
 	return players[index]
 
 end
@@ -782,9 +781,9 @@ end
 
 function RoundManager:Init()
 
-	print(
-		"RoundManager Initializing..."
-	)
+	-- print(
+	-- 	"RoundManager Initializing..."
+	-- )
 
 	------------------------------------------------
 	-- Join request

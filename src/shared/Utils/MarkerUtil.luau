@@ -108,6 +108,10 @@ function MarkerUtil.Create(
 		config.Text
 		or "MARKER"
 
+	label.RichText =
+		config.RichText
+		or false
+
 	label.TextColor3 =
 		config.TextColor
 		or Color3.fromRGB(

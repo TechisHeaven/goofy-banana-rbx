@@ -221,7 +221,7 @@ end
 
 function SettingsService:Init()
 
-	print("SettingsService Initialized")
+	-- print("SettingsService Initialized")
 
 	------------------------------------------------
 	-- CLIENT GETS SETTINGS ONCE

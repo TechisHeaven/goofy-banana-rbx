@@ -9,6 +9,8 @@ local RemoteIndex = RemoteIndexData.Events
 local ProfileManager = require(script.Parent.ProfileManager)
 local NotificationManager = require(script.Parent.NotificationManager)
 local RemoteManager = require(script.Parent.RemoteManager)
+local CharacterAppearanceManager =
+	require(script.Parent.CharacterAppearanceManager)
 ------------------------------------------------
 
 local UpdateCurrency =
@@ -177,6 +179,7 @@ function CurrencyManager:AddResultStats(
 		return
 	end
 
+
 	------------------------------------------------
 	-- Coins
 	------------------------------------------------
@@ -204,7 +207,6 @@ function CurrencyManager:AddResultStats(
 	if won then
 
 		profile.Wins += 1
-
 	end
 
 	------------------------------------------------
@@ -254,7 +256,6 @@ function CurrencyManager:AddResultStats(
 	)
 
 	self:Send(player)
-
 end
 
 
@@ -328,6 +329,7 @@ function CurrencyManager:AddXP(player, amount)
 		profile.Level = 1
 	end
 
+	local oldLevel = profile.Level
 	------------------------------------------------
 	-- Add XP
 	------------------------------------------------
@@ -351,7 +353,9 @@ function CurrencyManager:AddXP(player, amount)
 	------------------------------------------------
 
 	self:Send(player)
-
+	if profile.Level ~= oldLevel then
+		CharacterAppearanceManager:RefreshNameTag(player)
+	end
 end
 
 
@@ -425,7 +429,7 @@ end
 
 function CurrencyManager:Init()
 
-	print("CurrencyManager Initializing...")
+	-- print("CurrencyManager Initializing...")
     Players.PlayerAdded:Connect(function(player)
 		task.defer(function()
 			self:Send(player)

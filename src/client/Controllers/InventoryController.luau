@@ -118,7 +118,7 @@ end
 
 function InventoryController:Init()
 
-	print("InventoryController Initialized")
+	-- print("InventoryController Initialized")
 
 	InventoryUI:Init()
 

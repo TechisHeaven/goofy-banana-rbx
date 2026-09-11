@@ -292,9 +292,9 @@ end
 
 function RemoteManager:Init()
 
-	print(
-		"[RemoteManager] Initializing..."
-	)
+	-- print(
+	-- 	"[RemoteManager] Initializing..."
+	-- )
 
 	------------------------------------------------
 	-- RemoteEvents

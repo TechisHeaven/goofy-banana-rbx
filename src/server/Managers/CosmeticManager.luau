@@ -1370,9 +1370,9 @@ Players.PlayerRemoving:Connect(
 
 function CosmeticManager:Init()
 
-	print(
-		"CosmeticManager Initializing..."
-	)
+	-- print(
+	-- 	"CosmeticManager Initializing..."
+	-- )
 
 	for _, player in ipairs(
 		Players:GetPlayers()

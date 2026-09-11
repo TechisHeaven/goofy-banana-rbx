@@ -1010,9 +1010,9 @@ end
 
 function TaskManager:Init()
 
-	print(
-		"TaskManager Initializing..."
-	)
+	-- print(
+	-- 	"TaskManager Initializing..."
+	-- )
 
 	------------------------------------------------
 	-- Existing players

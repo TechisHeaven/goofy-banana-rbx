@@ -25,7 +25,7 @@ local InventoryManager = require(
 local VictoryManager = {}
 
 function VictoryManager:Init()
-	print("[VictoryManager] Initialized")
+	-- print("[VictoryManager] Initialized")
 	-- print(InventoryManager:GetEquipped(Players:GetPlayers()[1], "VictoryPoses"))
 
 	----------------------------------------------------------------

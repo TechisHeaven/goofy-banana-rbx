@@ -7,8 +7,6 @@ local UserInputService =
 local ReplicatedStorage =
 	game:GetService("ReplicatedStorage")
 
-local RunService =
-	game:GetService("RunService")
 local GameConfig = require(ReplicatedStorage.Shared.GameConfig)
 ------------------------------------------------
 -- PLAYER
@@ -422,12 +420,6 @@ function BananaPeelController:Init()
 	-- MARKER UPDATE
 	------------------------------------------------
 
-	-- RunService.RenderStepped:Connect(
-	-- 	function()
-	-- 		UpdateMarker()
-	-- 	end
-	-- )
-
 	UserInputService.InputChanged:Connect(
 		function(input, gameProcessed)
 
@@ -497,9 +489,9 @@ function BananaPeelController:Init()
 		end
 	)
 
-	print(
-		"[BananaPeelController] Initialized"
-	)
+	-- print(
+	-- 	"[BananaPeelController] Initialized"
+	-- )
 
 end
 

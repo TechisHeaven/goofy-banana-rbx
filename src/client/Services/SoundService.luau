@@ -419,12 +419,12 @@ function SoundService:Init()
 
 	ApplyMusicVolume()
 
-	print(
-		"SoundService Initialized",
-		"Music:",
-		MusicEnabled,
-		MusicVolume
-	)
+	-- print(
+	-- 	"SoundService Initialized",
+	-- 	"Music:",
+	-- 	MusicEnabled,
+	-- 	MusicVolume
+	-- )
 
 end
 

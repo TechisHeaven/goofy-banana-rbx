@@ -29,7 +29,7 @@ local NotificationUI = {}
 -- UI
 ------------------------------------------------
 
-local NotificationTemplate =
+local NotificationTemplateDefault =
 	PopupGui
 		.NotificationFrame
 		.Notification
@@ -41,6 +41,9 @@ NotificationUI.PopupContainer =
 
 NotificationUI.GameplayContainer =
 	GameGui.Right.Notifications
+
+NotificationUI.AchievementContainer =
+	PopupGui.AchievementGameFrame.Notifications
 
 local NotificationSpawnDelay = 0.2
 
@@ -54,6 +57,10 @@ local function GetContainer(target)
 
 	if target == Enums.NotificationTarget.Gameplay then
 		return NotificationUI.GameplayContainer
+	end
+
+	if target == Enums.NotificationTarget.Achievement then
+		return NotificationUI.AchievementContainer
 	end
 
 	return NotificationUI.PopupContainer
@@ -72,7 +79,6 @@ function NotificationUI:ShowNotification(data)
 
 	local container =
 		GetContainer(data.Target)
-
 	------------------------------------------------
 	-- 0.2 second stagger
 	------------------------------------------------
@@ -96,7 +102,7 @@ function NotificationUI:ShowNotification(data)
 	------------------------------------------------
 	-- Create slot
 	------------------------------------------------
-
+	local NotificationTemplate = container.Parent.Notification or NotificationTemplateDefault
 	local slot = Instance.new("Frame")
 
 	slot.Name = "NotificationSlot"

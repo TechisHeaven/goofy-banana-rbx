@@ -126,4 +126,3 @@ ProximityPromptService.PromptShown:Connect(function(prompt, inputType)
 	end
 end)
 
-print("Client-side Rescue ProximityPrompt filter initialized.")

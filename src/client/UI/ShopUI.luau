@@ -121,7 +121,7 @@ end
 
 function ShopUI:Init()
 
-	PopupManager:Init(Overlay)
+	-- PopupManager:Init(Overlay)
 
 	if defaultTab then
 		SelectTab(defaultTab)

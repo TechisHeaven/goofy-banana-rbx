@@ -571,9 +571,9 @@ end
 
 function TaskUI:Init()
 
-	print(
-		"[TaskUI] Initialized"
-	)
+	-- print(
+	-- 	"[TaskUI] Initialized"
+	-- )
 
 	TaskTemplate.Visible = false
 

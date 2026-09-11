@@ -4,6 +4,7 @@ local Round = {}
 
 local PlayerStats = {}
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local NotificationManager = require(script.Parent.NotificationManager)
 local Shared = ReplicatedStorage.Shared
 local Enums = require(Shared.Enums)
 
@@ -69,6 +70,7 @@ function RoundStatsManager:StartRound(players, hunter)
             
             Rescues = 0,
             FrozenPlayers = 0,
+			HitByBall = 0,
 
             Falls = 0,
 
@@ -136,6 +138,7 @@ function RoundStatsManager:AddMVPScore(player, amount)
 		return
 	end
 
+	NotificationManager:Send(player, "+" .. amount .. " Score",Enums.NotificationTarget.Achievement, 3)
 	stats.MVPScore += amount
 
 end
@@ -150,7 +153,10 @@ function RoundStatsManager:AddCoins(player, amount)
     end
 
     stats.Coins += amount
-    stats.MVPScore += amount
+    self:AddMVPScore(amount)
+
+	NotificationManager:Send(player, "+" .. amount .. " Coins",Enums.NotificationTarget.Achievement, 3)
+
 
 	RoundStatsUpdate:FireClient(
 		player,
@@ -168,7 +174,7 @@ function RoundStatsManager:AddFrozenPlayer(player)
 	end
 
 	stats.FrozenPlayers += 1
-	stats.MVPScore += 200
+    self:AddMVPScore(200)
 end
 
 -- Later Joiners Logic 
@@ -192,7 +198,7 @@ function RoundStatsManager:AddLateJoiner(player)
 		Rescues = 0,
 
 		FrozenPlayers = 0,
-
+		HitByBall = 0,
 		MVPScore = 0,
 
 	}
@@ -253,7 +259,8 @@ function RoundStatsManager:AwardAliveBonus()
 	for _, stats in pairs(PlayerStats) do
 
 		if stats.Team == Enums.Team.Runner and stats.Alive then
-			stats.MVPScore += 200
+			
+   			self:AddMVPScore(200)
 		end
 
 	end
@@ -269,17 +276,26 @@ function RoundStatsManager:AddBanana(player)
 	end
 
 	stats.BananasCollected += 1
-    stats.MVPScore += 25
+    
+   	self:AddMVPScore(25)
 end
 
-function RoundStatsManager:AddRescue(player)
+function RoundStatsManager:AddRescue(rescuer)
 
-	local stats = PlayerStats[player]
-
+	local stats = PlayerStats[rescuer]
 	stats.Rescues += 1
-	stats.MVPScore += 150
+   	self:AddMVPScore(150)
+
 
 end
+
+
+function RoundStatsManager:AddHitByBall(player)
+	local stats = PlayerStats[player]
+	stats.HitByBall += 1
+   	self:AddMVPScore(150)
+end
+
 
 
 
@@ -426,10 +442,7 @@ function RoundStatsManager:Rescue(rescuer, rescued)
 	local rescuerStats = PlayerStats[rescuer]
 
 	if rescuerStats then
-
-		rescuerStats.Rescues += 1
-		rescuerStats.MVPScore += 150
-
+		self:AddRescue(rescuer)
 	end
 
 end
@@ -449,12 +462,13 @@ function RoundStatsManager:Tick(deltaTime)
 		stats.SurvivalTime += deltaTime
 		
 		-- Reward surviving every second
+		
+   		-- self:AddMVPScore(deltaTime * 2)
 		stats.MVPScore += deltaTime * 2
-
 		if stats.Team == Enums.Team.Runner
 			and stats.Alive then
-
 			stats.MVPScore += 300
+   			-- self:AddMVPScore(300)
 
 		end
 

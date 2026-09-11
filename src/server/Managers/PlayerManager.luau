@@ -85,7 +85,7 @@ function PlayerManager:ResetPlayer(player: Player)
 end
 
 function PlayerManager:Init()
-	print("PlayerManager Initializing...")
+	-- print("PlayerManager Initializing...")
 	
 	-- Connect event listeners
 	Players.PlayerAdded:Connect(function(player)

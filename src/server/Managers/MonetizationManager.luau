@@ -437,9 +437,9 @@ end
 
 function MonetizationManager:Init()
 
-	print(
-		"MonetizationManager Initializing..."
-	)
+	-- print(
+	-- 	"MonetizationManager Initializing..."
+	-- )
 
 	BuildProductIndex()
 
