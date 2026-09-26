@@ -6,8 +6,7 @@ function InventoryTemplate.Create()
 
 		Owned = {
 			Skins = {
-				SleepyBanana = true,
-				CoolBanana = true,
+				SimpleBanana = true,
 			},
 
 			BananaSkins = {
@@ -24,7 +23,7 @@ function InventoryTemplate.Create()
 		},
 
 		Equipped = {
-			Skins = "SleepyBanana",
+			Skins = "SimpleBanana",
 			BananaSkins = "GalaxyBanana",
 			RescueEffects = "",
 			VictoryPoses = "Dance01",

@@ -118,19 +118,20 @@ local function ValidateSettings(settings)
 
 	end
 
+
 	------------------------------------------------
-	-- CAMERA SHAKE
+	-- SHADOWS
 	------------------------------------------------
 
-	if type(settings.CameraShake) == "boolean" then
+	if type(settings.Shadows) == "boolean" then
 
-		validated.CameraShake =
-			settings.CameraShake
+		validated.Shadows =
+			settings.Shadows
 
 	else
 
-		validated.CameraShake =
-			DEFAULTS.CameraShake
+		validated.Shadows =
+			DEFAULTS.Shadows
 
 	end
 
@@ -202,18 +203,9 @@ function SettingsService:UpdateSettings(
 
 	profile.Settings =
 		validated
-
-	print(
-		"Settings updated for",
-		player.Name
-	)
-
-	print(
-		"FOV:",
-		profile.Settings.FOV
-	)
-
 end
+
+
 
 ------------------------------------------------
 -- INIT

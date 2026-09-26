@@ -48,6 +48,7 @@ function VictoryController:PlayCutScene(model, poseName, options)
 
 	local resetCameraAfter = options.ResetCamera ~= false
 	local targetFov = options.FOV or 70
+	local extraDuration = options.ExtraDuration or 0
 	-- Default the camera reset to true if not specified
     if resetCameraAfter == nil then
         resetCameraAfter = true
@@ -141,14 +142,16 @@ function VictoryController:PlayCutScene(model, poseName, options)
 	-- Wait for the character animation
 	humTrack.Stopped:Wait()
 
+	task.wait(GameConfig.Game.VictoryPoseExtraDuration or 2)
 
 	-- Return everything to normal
 	
 	
 	connection:Disconnect()
 	camRig:Destroy()
-	camStoppedConnection:Disconnect()
-	humStoppedConnection:Disconnect()
+
+	-- camStoppedConnection:Disconnect()
+	-- humStoppedConnection:Disconnect()
 
 -- Handle the final camera state based on the 'resetCameraAfter' parameter
     if resetCameraAfter then
@@ -337,12 +340,12 @@ local humanoid = clone:WaitForChild("Humanoid")
 	local pose = data.Pose or "Default"
 
 	-- local track = self:PlayAnimation(clone, pose)
-	local track = self:PlayCutScene(clone, pose, {ResetCamera = false, FOV = GameConfig.Game.VictoryCutSceneFOV or 110})
-	task.wait(GameConfig.Game.VictoryPoseDuration or 5)
+	self:PlayCutScene(clone, pose, {ResetCamera = false, FOV = GameConfig.Game.VictoryCutSceneFOV or 110})
+	-- task.wait(GameConfig.Game.VictoryPoseDuration or 5)
 
-	if track then
-		track:Stop()
-	end
+	-- if track then
+	-- 	track:Stop()
+	-- end
 
 	if clone then
 		clone:Destroy()

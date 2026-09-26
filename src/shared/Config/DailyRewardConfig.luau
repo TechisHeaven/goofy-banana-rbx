@@ -284,7 +284,7 @@ DailyRewardConfig.Rewards = {
 		},
 
 		PremiumReward = {
-			Skin = "SleepyBanana",
+			Skin = "SimpleBanana",
 		},
 	},
 

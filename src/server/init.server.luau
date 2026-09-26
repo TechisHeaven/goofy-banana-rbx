@@ -12,7 +12,7 @@ local LoadOrder = {
 	"FreezeManager",
 	"SpawnManager",
 	"RoundEventManager",
-	"VictoryManager",
+	-- "VictoryManager",
 	"RoundManager",
 	"CurrencyManager",
 	"CoinManager",

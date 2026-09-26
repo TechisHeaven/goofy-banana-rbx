@@ -13,8 +13,8 @@ return {
 		Currency = "Coins",
 	},
 	{
-		Id = "SleepyBanana",
-		Name = "Sleepy Banana",
+		Id = "SimpleBanana",
+		Name = "Simple Banana",
 		Image = "rbxassetid://135962056138033",
 		Rarity = "Common",
 		Price = 2000,

@@ -105,6 +105,18 @@ local RunningFOVValueLabel =
 
 
 ------------------------------------------------
+-- SHADOWS
+------------------------------------------------
+
+local ShadowsToggle =
+	Items.ShadowsEnableFrame.Controls.ToggleButton
+
+local ShadowsKnob =
+	ShadowsToggle.Knob
+
+
+
+------------------------------------------------
 -- ACTIONS
 ------------------------------------------------
 
@@ -296,6 +308,20 @@ function SettingsUI:SetMusicEnabled(enabled)
 
 end
 
+
+------------------------------------------------
+
+function SettingsUI:SetShadows(enabled)
+
+	UpdateToggle(
+		ShadowsToggle,
+		ShadowsKnob,
+		enabled
+	)
+
+end
+
+
 ------------------------------------------------
 
 function SettingsUI:SetFOV(value)
@@ -356,6 +382,16 @@ function SettingsUI:Refresh(settings)
 		)
 	end
 
+
+	------------------------------------------------
+	-- SHADOWS
+	------------------------------------------------
+
+	if settings.Shadows ~= nil then
+		self:SetShadows(
+			settings.Shadows
+		)
+	end
 
 
 end
@@ -487,6 +523,21 @@ function SettingsUI:Init()
 	end)
 
 
+
+	------------------------------------------------
+	-- SHADOWS TOGGLE
+	------------------------------------------------
+
+	ShadowsToggle.Activated:Connect(function()
+
+		if self.OnShadowsChanged then
+			self.OnShadowsChanged()
+		end
+
+	end)
+
+
+
 	------------------------------------------------
 	-- APPLY
 	------------------------------------------------
@@ -540,6 +591,7 @@ SettingsUI.OnApplyPressed = nil
 SettingsUI.OnCancelPressed = nil
 SettingsUI.OnResetPressed = nil
 
+SettingsUI.OnShadowsChanged = nil
 ------------------------------------------------
 
 return SettingsUI

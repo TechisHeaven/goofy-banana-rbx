@@ -21,7 +21,7 @@ local GamePacks = {
 
 			Skins = {
 				{
-					Id = "SleepyBanana",
+					Id = "SimpleBanana",
 					Image = "rbxassetid://136115997706635",
 				},
 				{

@@ -34,6 +34,21 @@ local AccessoryConfig = {
 			-0.2,
 			0
 		),
+	},
+	BananaHat = {
+		Model = "Hat",
+		AttachTo = "Head",
+		Attachment = "HatAttachment",
+		Behavior = "Static",
+		Offset = CFrame.new(
+			0,
+			-0.1,
+			-0.2
+		) * CFrame.Angles(
+					math.rad(0),
+					math.rad(0),
+					math.rad(-90)
+				),
 	}
 
 }

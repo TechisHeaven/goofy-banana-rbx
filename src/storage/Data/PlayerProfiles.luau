@@ -17,6 +17,7 @@ function PlayerProfiles:RegisterPlayer(player)
 			MusicEnabled = true,
 			FOV = 80,
 			RunningFOV = 100,
+			Shadows = true,
 		},
 		
 		RedeemedCodes = {},

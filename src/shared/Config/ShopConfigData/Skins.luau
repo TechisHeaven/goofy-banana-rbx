@@ -1,8 +1,8 @@
 local Skins = {
 
 	{
-		Id = "SleepyBanana",
-		Name = "Sleepy Banana",
+		Id = "SimpleBanana",
+		Name = "Simple Banana",
 		Image = "rbxassetid://101709420966439",
 		Rarity = "Common",
 		Price = 0,

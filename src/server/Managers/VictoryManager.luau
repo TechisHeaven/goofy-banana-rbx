@@ -70,7 +70,6 @@ function VictoryManager:Play(winnerPlayer, players)
 	)
 	for _, player in ipairs(players) do
 				if player and player.Parent == Players then
-					print(PlayVictoryRemote)
 					PlayVictoryRemote:FireClient(
 						player,
 						data

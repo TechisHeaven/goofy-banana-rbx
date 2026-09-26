@@ -30,6 +30,9 @@ local SettingsUI =
 local SoundService =
 	require(script.Parent.Parent.Services.SoundService)
 
+local Lighting = game:GetService("Lighting")
+local Bloom = Lighting:WaitForChild("Bloom")
+
 ----------------------------------------------------
 -- Settings State
 ----------------------------------------------------
@@ -88,6 +91,18 @@ end
 
 
 
+local function ApplyGraphicsSettings(settings)
+
+	------------------------------------------------
+	-- SHADOWS
+	------------------------------------------------
+
+	Lighting.GlobalShadows = settings.Shadows == true
+
+end
+
+
+
 function SettingsController:LoadFromServer()
 
 	local settings =
@@ -110,6 +125,7 @@ function SettingsController:LoadFromServer()
 
 	ApplyCameraSettings()
 	ApplyAudioSettings()
+	ApplyGraphicsSettings(AppliedSettings)
 
 
 end
@@ -208,6 +224,18 @@ end
 
 
 ----------------------------------------------------
+-- SHADOWS
+----------------------------------------------------
+
+function SettingsController:SetShadows(enabled)
+
+	PendingSettings.Shadows = enabled == true
+
+end
+
+
+
+----------------------------------------------------
 -- Check Changes
 ----------------------------------------------------
 
@@ -253,6 +281,7 @@ function SettingsController:Apply()
 
 	ApplyCameraSettings()
 	ApplyAudioSettings()
+	ApplyGraphicsSettings(AppliedSettings)
 
 	UpdateSettings:FireServer(
 		AppliedSettings
@@ -381,6 +410,25 @@ function SettingsController:Init()
 
 		SettingsUI:SetRunningFOV(
 			self:Get("RunningFOV")
+		)
+
+	end
+
+	------------------------------------------------
+	-- SHADOWS
+	------------------------------------------------
+
+	SettingsUI.OnShadowsChanged = function()
+
+		local current =
+			self:Get("Shadows")
+
+		self:SetShadows(
+			not current
+		)
+
+		SettingsUI:SetShadows(
+			self:Get("Shadows")
 		)
 
 	end

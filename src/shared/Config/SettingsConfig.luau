@@ -4,6 +4,7 @@ local SettingsConfig = {
 		MusicVolume = 1,
 		FOV = 80,
 		RunningFOV = 100,
+		Shadows = true,
 	},
 
 	Limits = {

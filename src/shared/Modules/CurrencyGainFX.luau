@@ -251,7 +251,6 @@ function CurrencyGainFX:Play(
 	target,
 	amount
 )
-	debug.profilebegin("is this currencygainfx play issue?")
 	if not container
 		or not target then
 
@@ -482,8 +481,6 @@ function CurrencyGainFX:Play(
 		)
 
 	end
-
-	debug.profileend()
 
 end
 

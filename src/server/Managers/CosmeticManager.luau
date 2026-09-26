@@ -1,38 +1,27 @@
-local Players =
-	game:GetService("Players")
+--!strict
 
-local ServerStorage =
-	game:GetService("ServerStorage")
-
-local ReplicatedStorage =
-	game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+local ServerStorage = game:GetService("ServerStorage")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 ------------------------------------------------
 -- MODULES
 ------------------------------------------------
 
-local ProfileManager =
-	require(
-		script.Parent.ProfileManager
-	)
-local AccessoryManager = require(script.Parent.AccessoryManager)
+local ProfileManager = require(
+	script.Parent.ProfileManager
+)
 
-	
-local SkinVisualConfig =
-	require(
-		ReplicatedStorage
-			.Shared
-			.Config
-			.SkinVisualConfig
-	)
+local AccessoryManager = require(
+	script.Parent.AccessoryManager
+)
 
-local BananaSkinVisualConfig =
-	require(
-		ReplicatedStorage
-			.Shared
-			.Config
-			.BananaSkinVisualConfig
-	)
+local SkinVisualConfig = require(
+	ReplicatedStorage
+		.Shared
+		.Config
+		.SkinVisualConfig
+)
 
 ------------------------------------------------
 -- FOLDERS
@@ -43,25 +32,15 @@ local Cosmetics =
 
 local SkinsFolder =
 	Cosmetics:WaitForChild("Skins")
-local BananaSkinsFolder =
-	Cosmetics:WaitForChild("BananaSkins")
+
 ------------------------------------------------
 -- MANAGER
 ------------------------------------------------
 
 local CosmeticManager = {}
-
+local OriginalTransparency = {}
 ------------------------------------------------
--- ORIGINAL CHARACTER DATA
---
--- This is runtime-only.
--- It is NOT saved to Profile.
-------------------------------------------------
-
-local OriginalCharacters = {}
-
-------------------------------------------------
--- PROFILE
+-- GET PROFILE
 ------------------------------------------------
 
 local function GetProfile(player)
@@ -135,294 +114,374 @@ function CosmeticManager:GetSkinFolder(
 
 end
 
+
 ------------------------------------------------
--- SAVE ORIGINAL CHARACTER APPEARANCE
+-- SAVE ORIGINAL TRANSPARENCY
 ------------------------------------------------
 
-function CosmeticManager:CaptureCharacter(
-	player,
-	character
+local function SaveOriginalTransparency(
+	characterPart
 )
 
-	------------------------------------------------
-	-- Don't capture the already modified character
-	------------------------------------------------
+	if OriginalTransparency[characterPart] == nil then
 
-	if OriginalCharacters[player] then
-
-		if OriginalCharacters[player].Character
-			== character then
-
-			return
-
-		end
+		OriginalTransparency[characterPart] =
+			characterPart.Transparency
 
 	end
 
-	------------------------------------------------
-	-- Snapshot
-	------------------------------------------------
+end
+------------------------------------------------
+-- PREPARE SKIN VISUAL
+------------------------------------------------
 
-	local snapshot = {
-		Character = character,
+local function PrepareSkinVisual(
+	visual
+)
 
-		Parts = {},
-
-		Decals = {},
-
-		Textures = {},
-
-		SurfaceAppearances = {},
-	}
-
-	------------------------------------------------
-	-- Capture ALL descendants
-	------------------------------------------------
-
-	for _, object in ipairs(
-		character:GetDescendants()
-	) do
-
-		------------------------------------------------
-		-- BaseParts
-		------------------------------------------------
-
-		if object:IsA("BasePart") then
-
-			snapshot.Parts[object] = {
-
-				Color =
-					object.Color,
-
-				Material =
-					object.Material,
-
-				Transparency =
-					object.Transparency,
-
-				Reflectance =
-					object.Reflectance,
-
-			}
-
-			------------------------------------------------
-			-- MeshPart
-			------------------------------------------------
-
-			if object:IsA("MeshPart") then
-
-				snapshot.Parts[object].TextureID =
-					object.TextureID
-
-			end
-
-		------------------------------------------------
-		-- Decals
-		------------------------------------------------
-
-		elseif object:IsA("Decal") then
-
-			snapshot.Decals[object] = {
-
-				Transparency =
-					object.Transparency,
-
-				Color3 =
-					object.Color3,
-
-			}
-
-		------------------------------------------------
-		-- Textures
-		------------------------------------------------
-
-		elseif object:IsA("Texture") then
-
-			snapshot.Textures[object] = {
-
-				Transparency =
-					object.Transparency,
-
-				Color3 =
-					object.Color3,
-
-			}
-
-		------------------------------------------------
-		-- SurfaceAppearance
-		------------------------------------------------
-
-		elseif object:IsA("SurfaceAppearance") then
-
-			snapshot.SurfaceAppearances[object] = {
-
-				ColorMap =
-					object.ColorMap,
-
-				MetalnessMap =
-					object.MetalnessMap,
-
-				NormalMap =
-					object.NormalMap,
-
-				RoughnessMap =
-					object.RoughnessMap,
-
-			}
-
-		end
-
-	end
-
-	OriginalCharacters[player] =
-		snapshot
+	visual.Anchored = false
+	visual.CanCollide = false
+	visual.CanTouch = false
+	visual.CanQuery = false
+	visual.Massless = true
 
 end
 
 ------------------------------------------------
--- RESTORE ORIGINAL CHARACTER
+-- FIND CHARACTER ATTACHMENT
 ------------------------------------------------
 
-function CosmeticManager:RestoreCharacter(
-	player
+local function GetCosmeticAttachment(
+	characterPart
 )
 
-	local snapshot =
-		OriginalCharacters[player]
+	if not characterPart then
+		return nil
+	end
 
-	if not snapshot then
+	local attachment =
+		characterPart:FindFirstChild(
+			"CosmeticVisual"
+		)
+
+	if not attachment then
+
+		warn(
+			"[CosmeticManager] Missing CosmeticVisual attachment:",
+			characterPart:GetFullName()
+		)
+
+		return nil
+
+	end
+
+	if not attachment:IsA("Attachment") then
+
+		warn(
+			"[CosmeticManager] CosmeticVisual must be an Attachment:",
+			characterPart:GetFullName()
+		)
+
+		return nil
+
+	end
+
+	return attachment
+
+end
+
+------------------------------------------------
+-- FIND SKIN VISUAL
+--
+-- Structure:
+--
+-- Skin
+-- └── Parts
+--     └── UpperTorso
+--         └── UpperTorso
+------------------------------------------------
+
+local function GetSkinVisual(
+	skinFolder,
+	partName,
+	visualName
+)
+
+	------------------------------------------------
+	-- HEAD
+	------------------------------------------------
+
+	if partName == "Head" then
+
+		local headFolder =
+			skinFolder:FindFirstChild(
+				"Head"
+			)
+
+		if not headFolder then
+
+			warn(
+				"[CosmeticManager] Missing Head folder:",
+				skinFolder:GetFullName()
+			)
+
+			return nil
+
+		end
+
+		return headFolder:FindFirstChild(
+			visualName
+		)
+
+	end
+
+	------------------------------------------------
+	-- BODY PARTS
+	------------------------------------------------
+
+	local partsFolder =
+		skinFolder:FindFirstChild(
+			"Parts"
+		)
+
+	if not partsFolder then
+
+		warn(
+			"[CosmeticManager] Missing Parts folder:",
+			skinFolder:GetFullName()
+		)
+
+		return nil
+
+	end
+
+	local partFolder =
+		partsFolder:FindFirstChild(
+			partName
+		)
+
+	if not partFolder then
+
+		warn(
+			"[CosmeticManager] Missing body part folder:",
+			partName,
+			"inside",
+			skinFolder.Name
+		)
+
+		return nil
+
+	end
+
+	local visual =
+		partFolder:FindFirstChild(
+			visualName
+		)
+
+	if not visual then
+
+		warn(
+			"[CosmeticManager] Missing skin visual:",
+			visualName,
+			"inside",
+			partFolder:GetFullName()
+		)
+
+		return nil
+
+	end
+
+	return visual
+
+end
+
+------------------------------------------------
+-- WELD SKIN VISUAL
+------------------------------------------------
+------------------------------------------------
+-- SET ORIGINAL PART VISIBILITY
+------------------------------------------------
+
+local function SetOriginalPartVisibility(
+	characterPart,
+	mode
+)
+	SaveOriginalTransparency(
+		characterPart
+	)
+
+	------------------------------------------------
+	-- Overlay
+	--
+	-- Keep the original body visible.
+	------------------------------------------------
+
+	if mode == "Overlay" then
+
+		characterPart.Transparency = 0
+
 		return
 	end
 
-	local character =
-		player.Character
+	------------------------------------------------
+	-- ReplaceVisual / default
+	--
+	-- Keep the real R15 part alive but hide it.
+	------------------------------------------------
+
+	characterPart.Transparency = 1
+
+end
+------------------------------------------------
+-- WELD SKIN VISUAL
+------------------------------------------------
+
+local function WeldSkinVisual(
+	character,
+	characterPart,
+	source,
+	offset,
+	mode
+)
+
+	if not source:IsA("BasePart") then
+
+		warn(
+			"[CosmeticManager] Skin visual must be BasePart:",
+			source:GetFullName()
+		)
+
+		return nil
+	end
+
+	local attachment =
+		GetCosmeticAttachment(
+			characterPart
+		)
+
+	if not attachment then
+		return nil
+	end
+
+	------------------------------------------------
+	-- Clone
+	------------------------------------------------
+
+	local visual =
+		source:Clone()
+
+	visual.Name = "SkinVisual"
+
+	visual:SetAttribute(
+		"CosmeticVisual",
+		true
+	)
+
+	visual:SetAttribute(
+		"CosmeticMode",
+		mode or "ReplaceVisual"
+	)
+
+	------------------------------------------------
+	-- Prepare
+	------------------------------------------------
+
+	PrepareSkinVisual(
+		visual
+	)
+
+	visual.Parent =
+		character
+
+	------------------------------------------------
+	-- DEFAULT MODE
+	------------------------------------------------
+
+	mode =
+		mode
+		or "ReplaceVisual"
+
+	------------------------------------------------
+	-- OFFSET
+	------------------------------------------------
+
+	offset =
+		offset
+		or CFrame.new()
+
+	------------------------------------------------
+	-- IMPORTANT
+	--
+	-- Attachment rotation is ignored.
+	-- Character part rotation controls the skin.
+	------------------------------------------------
+
+	local attachmentPosition =
+		attachment.Position
+
+	------------------------------------------------
+	-- POSITION VISUAL
+	------------------------------------------------
+
+	visual.CFrame =
+		characterPart.CFrame
+		* CFrame.new(
+			attachmentPosition
+		)
+		* offset
+
+	------------------------------------------------
+	-- WELD
+	------------------------------------------------
+
+	local weld =
+		Instance.new("Weld")
+
+	weld.Name =
+		"CosmeticVisualWeld"
+
+	weld.Part0 =
+		characterPart
+
+	weld.Part1 =
+		visual
+
+	weld.C0 =
+		CFrame.new(
+			attachmentPosition
+		)
+		* offset
+
+	weld.C1 =
+		CFrame.new()
+
+	weld.Parent =
+		visual
+
+	------------------------------------------------
+	-- ORIGINAL PART VISIBILITY
+	------------------------------------------------
+
+	SetOriginalPartVisibility(
+		characterPart,
+		mode
+	)
+
+	return visual
+
+end
+
+------------------------------------------------
+-- CLEAR SKIN VISUALS
+------------------------------------------------
+
+function CosmeticManager:ClearSkin(
+	character
+)
 
 	if not character then
 		return
 	end
-
-	------------------------------------------------
-	-- Make sure this snapshot belongs
-	-- to the current character
-	------------------------------------------------
-
-	if snapshot.Character ~= character then
-		return
-	end
-
-	------------------------------------------------
-	-- Restore Parts
-	------------------------------------------------
-
-	for object, properties in pairs(
-		snapshot.Parts
-	) do
-
-		if object
-			and object.Parent then
-
-			object.Color =
-				properties.Color
-
-			object.Material =
-				properties.Material
-
-			object.Transparency =
-				properties.Transparency
-
-			object.Reflectance =
-				properties.Reflectance
-
-			if object:IsA("MeshPart")
-				and properties.TextureID then
-
-				object.TextureID =
-					properties.TextureID
-
-			end
-
-		end
-
-	end
-
-	------------------------------------------------
-	-- Restore Decals
-	------------------------------------------------
-
-	for object, properties in pairs(
-		snapshot.Decals
-	) do
-
-		if object
-			and object.Parent then
-
-			object.Transparency =
-				properties.Transparency
-
-			object.Color3 =
-				properties.Color3
-
-		end
-
-	end
-
-	------------------------------------------------
-	-- Restore Textures
-	------------------------------------------------
-
-	for object, properties in pairs(
-		snapshot.Textures
-	) do
-
-		if object
-			and object.Parent then
-
-			object.Transparency =
-				properties.Transparency
-
-			object.Color3 =
-				properties.Color3
-
-		end
-
-	end
-
-	------------------------------------------------
-	-- Restore SurfaceAppearance
-	------------------------------------------------
-
-	for object, properties in pairs(
-		snapshot.SurfaceAppearances
-	) do
-
-		if object
-			and object.Parent then
-
-			object.ColorMap =
-				properties.ColorMap
-
-			object.MetalnessMap =
-				properties.MetalnessMap
-
-			object.NormalMap =
-				properties.NormalMap
-
-			object.RoughnessMap =
-				properties.RoughnessMap
-
-		end
-
-	end
-
-end
-
-------------------------------------------------
--- REMOVE ALL COSMETIC VISUALS
-------------------------------------------------
-
-function CosmeticManager:ClearCosmeticVisuals(
-	character
-)
 
 	for _, object in ipairs(
 		character:GetDescendants()
@@ -438,97 +497,73 @@ function CosmeticManager:ClearCosmeticVisuals(
 
 	end
 
-end
+	------------------------------------------------
+	-- Restore original body parts
+	------------------------------------------------
 
-------------------------------------------------
--- PREPARE COSMETIC PART
-------------------------------------------------
-
-local function PreparePart(part)
-
-	part.Anchored = false
-	part.CanCollide = false
-	part.CanTouch = false
-	part.CanQuery = false
-	part.Massless = true
-
-end
-
-------------------------------------------------
--- APPLY BODY COLOR
-------------------------------------------------
-
-function CosmeticManager:ApplyBodyColor(
-	character,
-	color
-)
-
-	if not color then
-		return
-	end
-
-	for _, object in ipairs(
-		character:GetChildren()
+	for part, transparency in pairs(
+		OriginalTransparency
 	) do
 
-		if object:IsA("BasePart")
-			and object.Name ~= "HumanoidRootPart" then
+		if part
+			and part.Parent == character
+		then
 
-			object.Color =
-				color
+			part.Transparency =
+				transparency
+
+		end
+
+	end
+
+	------------------------------------------------
+	-- Clear saved data
+	------------------------------------------------
+
+	for part in pairs(
+		OriginalTransparency
+	) do
+
+		if not part
+			or part.Parent == nil
+		then
+
+			OriginalTransparency[part] =
+				nil
 
 		end
 
 	end
 
 end
-------------------------------------------------
--- HIDE ORIGINAL BODY PART
-------------------------------------------------
-
-local function HideOriginalPart(part)
-
-	if not part then
-		return
-	end
-
-	part.Transparency = 1
-
-	for _, object in ipairs(part:GetChildren()) do
-
-		if object:IsA("Decal")
-			or object:IsA("Texture") then
-
-			object.Transparency = 1
-
-		end
-
-	end
-
-end
 
 ------------------------------------------------
--- APPLY COSMETIC BODY PART
+-- APPLY ONE VISUAL
 ------------------------------------------------
 
-function CosmeticManager:ApplyPart(
+function CosmeticManager:ApplyVisual(
 	player,
 	character,
 	partName,
-	cosmeticId,
-	folderName
+	data
 )
 
-	if not partName or not cosmeticId then
-		return
+	if not partName then
+		return nil
+	end
+
+	if not data then
+		return nil
 	end
 
 	------------------------------------------------
-	-- Character part
+	-- Get character part
 	------------------------------------------------
 
 	local characterPart =
-		character:FindFirstChild(partName)
+		character:FindFirstChild(
+			partName
+		)
 
 	if not characterPart then
 
@@ -537,97 +572,201 @@ function CosmeticManager:ApplyPart(
 			partName
 		)
 
-		return
+		return nil
+
 	end
 
-	------------------------------------------------
-	-- Skin
-	------------------------------------------------
-
-	local skinId =
-		self:GetEquippedSkin(player)
-
-	if not skinId then
-		return
-	end
-
-	local skinFolder =
-		self:GetSkinFolder(skinId)
-
-	if not skinFolder then
-		return
-	end
-
-	------------------------------------------------
-	-- Cosmetic folder
-	------------------------------------------------
-
-	local cosmeticFolder =
-		skinFolder:FindFirstChild(folderName)
-	if not cosmeticFolder then
+	if not characterPart:IsA("BasePart") then
 
 		warn(
-			"[CosmeticManager] Missing folder:",
-			folderName,
-			"inside",
-			skinId
-		)
-
-		return
-	end
-
-	------------------------------------------------
-	-- Source
-	------------------------------------------------
-
-	local source =
-		cosmeticFolder:FindFirstChild(cosmeticId)
-	if not source then
-
-		warn(
-			"[CosmeticManager] Missing cosmetic:",
-			cosmeticId,
-			"for",
+			"[CosmeticManager] Character part is not BasePart:",
 			partName
 		)
 
-		return
+		return nil
+
 	end
 
 	------------------------------------------------
-	-- Clone
+	-- Get equipped skin
+	------------------------------------------------
+
+	local skinId =
+		self:GetEquippedSkin(
+			player
+		)
+
+	if not skinId then
+		return nil
+	end
+
+	------------------------------------------------
+	-- Get skin folder
+	------------------------------------------------
+
+	local skinFolder =
+		self:GetSkinFolder(
+			skinId
+		)
+
+	if not skinFolder then
+
+		warn(
+			"[CosmeticManager] Missing skin folder:",
+			skinId
+		)
+
+		return nil
+
+	end
+
+	------------------------------------------------
+	-- Visual name
+	------------------------------------------------
+
+	local visualName =
+		data.Visual
+
+	if not visualName then
+
+		warn(
+			"[CosmeticManager] Missing Visual:",
+			partName,
+			skinId
+		)
+
+		return nil
+
+	end
+
+	------------------------------------------------
+	-- Find source
+	------------------------------------------------
+
+	local source =
+		GetSkinVisual(
+			skinFolder,
+			partName,
+			visualName
+		)
+
+	if not source then
+		return nil
+	end
+
+	------------------------------------------------
+	-- OFFSET
+	------------------------------------------------
+
+	local offset =
+		data.Offset
+		or CFrame.new()
+
+	------------------------------------------------
+	-- MODE
+	------------------------------------------------
+
+	local mode =
+		data.Mode
+		or "ReplaceVisual"
+
+	------------------------------------------------
+	-- WELD
 	------------------------------------------------
 
 	local visual =
-		source:Clone()
+		WeldSkinVisual(
+			character,
+			characterPart,
+			source,
+			offset,
+			mode
+		)
 
-	visual.Name =
-		"CosmeticVisual"
+	if visual then
 
-	visual:SetAttribute(
-		"CosmeticVisual",
-		true
+		print(
+			"[CosmeticManager] Applied",
+			skinId,
+			visualName,
+			"to",
+			partName
+		)
+
+	end
+
+	return visual
+
+end
+
+------------------------------------------------
+-- APPLY SKIN
+------------------------------------------------
+
+function CosmeticManager:ApplySkin(
+	player,
+	character,
+	skinId
+)
+
+	if not player then
+		return false
+	end
+
+	if not character then
+		return false
+	end
+
+	if not skinId then
+		return false
+	end
+
+	------------------------------------------------
+	-- Config
+	------------------------------------------------
+
+	local config =
+		self:GetSkinConfig(
+			skinId
+		)
+
+	if not config then
+
+		warn(
+			"[CosmeticManager] Missing skin config:",
+			skinId
+		)
+
+		return false
+
+	end
+
+	------------------------------------------------
+	-- Clear previous visuals
+	------------------------------------------------
+
+	self:ClearSkin(
+		character
 	)
 
-	visual.Parent =
-		characterPart
-
 	------------------------------------------------
-	-- Prepare all parts
+	-- Player appearance
 	------------------------------------------------
 
-	if visual:IsA("BasePart") then
-
-		PreparePart(visual)
-
-	else
+	if config.UsePlayerAppearance == false then
 
 		for _, object in ipairs(
-			visual:GetDescendants()
+			character:GetChildren()
 		) do
 
-			if object:IsA("BasePart") then
-				PreparePart(object)
+			if object:IsA("Accessory")
+				or object:IsA("Shirt")
+				or object:IsA("Pants")
+				or object:IsA("ShirtGraphic")
+			then
+
+				object:Destroy()
+
 			end
 
 		end
@@ -635,91 +774,46 @@ function CosmeticManager:ApplyPart(
 	end
 
 	------------------------------------------------
-	-- Find primary part
+	-- BODY VISUALS
 	------------------------------------------------
 
-	local primary
+	for partName, data in pairs(
+		config.Parts or {}
+	) do
 
-	if visual:IsA("BasePart") then
+		self:ApplyVisual(
+			player,
+			character,
+			partName,
+			data
+		)
 
-		primary = visual
+	end
 
-	elseif visual:IsA("Model") then
+	------------------------------------------------
+	-- ACCESSORIES
+	------------------------------------------------
 
-		primary =
-			visual.PrimaryPart
+	AccessoryManager:Clear(
+		character
+	)
 
-		if not primary then
+	for accessoryId, enabled in pairs(
+		config.Accessories or {}
+	) do
 
-			primary =
-				visual:FindFirstChildWhichIsA(
-					"BasePart",
-					true
-				)
+		if enabled then
+
+			AccessoryManager:Equip(
+				player,
+				accessoryId
+			)
 
 		end
 
 	end
 
-	------------------------------------------------
-	-- Invalid visual
-	------------------------------------------------
-
-	if not primary then
-
-		warn(
-			"[CosmeticManager] No BasePart in:",
-			cosmeticId
-		)
-
-		visual:Destroy()
-
-		return
-	end
-
-	------------------------------------------------
-	-- Align
-	------------------------------------------------
-
-	if visual:IsA("Model") then
-
-		visual:PivotTo(
-			characterPart.CFrame
-		)
-
-	else
-
-		visual.CFrame =
-			characterPart.CFrame
-
-	end
-
-	------------------------------------------------
-	-- Weld
-	------------------------------------------------
-
-	local weld =
-		Instance.new("WeldConstraint")
-
-	weld.Name =
-		"CosmeticWeld"
-
-	weld.Part0 =
-		characterPart
-
-	weld.Part1 =
-		primary
-
-	weld.Parent =
-		primary
-
-	------------------------------------------------
-	-- Hide original
-	------------------------------------------------
-
-	HideOriginalPart(
-		characterPart
-	)
+	return true
 
 end
 
@@ -735,502 +829,42 @@ function CosmeticManager:RefreshSkin(
 		player.Character
 
 	if not character then
-		return
-	end
-
-	local skinId = self:GetEquippedSkin(player)
-	------------------------------------------------
-	-- Remove previous cosmetic
-	------------------------------------------------
-
-	self:ClearCosmeticVisuals(
-		character
-	)
-	if not skinId then
-		AccessoryManager:Clear(character)
-		-- return
-	end
-	------------------------------------------------
-	-- Restore COMPLETE original character
-	------------------------------------------------
-
-	self:RestoreCharacter(
-		player
-	)
-
-	------------------------------------------------
-	-- Get equipped skin
-	------------------------------------------------
-
-	local skinId =
-		self:GetEquippedSkin(player)
-
-	------------------------------------------------
-	-- No skin equipped
-	------------------------------------------------
-
-	if not skinId then
-
-		print(
-			"[CosmeticManager] No skin equipped:",
-			player.Name
-		)
-
-		return
-
-	end
-
-	------------------------------------------------
-	-- Get config
-	------------------------------------------------
-
-	local config =
-		self:GetSkinConfig(skinId)
-
-	if not config then
-
-		warn(
-			"[CosmeticManager] Missing config:",
-			skinId
-		)
-
-		return
-
-	end
-
-	------------------------------------------------
-	-- Body Color
-	------------------------------------------------
-
-	if config.BodyColor then
-
-		self:ApplyBodyColor(
-			character,
-			config.BodyColor
-		)
-
-	end
-
-	------------------------------------------------
-    -- HEAD
-    ------------------------------------------------
-
-    if config.Head then
-
-        self:ApplyPart(
-            player,
-            character,
-            "Head",
-            config.Head,
-            "Head"
-        )
-
-    end
-	------------------------------------------------
-	-- IMPORTANT:
-	-- Remove accessories from previous skin
-	------------------------------------------------
-	AccessoryManager:Clear(character)
-	------------------------------------------------
-	-- ACCESSORIES
-	------------------------------------------------
-
-	for accessoryId, enabled in pairs(
-		config.Accessories or {}
-	) do
-		if enabled then
-
-
-			AccessoryManager:Equip(
-				player,
-				accessoryId
-			)
-
-		end
-
-	end
-
-    ------------------------------------------------
-    -- BODY PARTS
-    ------------------------------------------------
-
-    for partName, cosmeticId in pairs(
-        config.Parts or {}
-    ) do
-
-  
-        self:ApplyPart(
-            player,
-            character,
-            partName,
-            cosmeticId,
-            "Parts"
-        )
-
-    end
-
-end
-
-
-------------------------------------------------
--- BANANA SKINS
-------------------------------------------------
-
-function CosmeticManager:GetEquippedBananaSkin(player)
-
-	local profile =
-		GetProfile(player)
-
-	if not profile then
-		return nil
-	end
-
-	local inventory =
-		profile.Inventory
-
-	if not inventory then
-		return nil
-	end
-
-	local equipped =
-		inventory.Equipped
-
-	if not equipped then
-		return nil
-	end
-
-	return equipped.BananaSkins
-
-end
-
-
-------------------------------------------------
--- GET BANANA SKIN CONFIG
-------------------------------------------------
-
-function CosmeticManager:GetBananaSkinConfig(
-	skinId
-)
-
-	if not skinId then
-		return nil
-	end
-
-	return BananaSkinVisualConfig[skinId]
-
-end
-
-
-------------------------------------------------
--- GET BANANA SKIN MODEL
-------------------------------------------------
-
-function CosmeticManager:GetBananaSkinModel(
-	skinId
-)
-
-	local config =
-		self:GetBananaSkinConfig(
-			skinId
-		)
-
-	if not config then
-
-		warn(
-			"[CosmeticManager] Missing banana skin config:",
-			skinId
-		)
-
-		return nil
-	end
-
-	local skinFolder =
-		BananaSkinsFolder:FindFirstChild(
-			skinId
-		)
-
-	if not skinFolder then
-
-		warn(
-			"[CosmeticManager] Missing banana skin folder:",
-			skinId
-		)
-
-		return nil
-	end
-
-	local model =
-		skinFolder:FindFirstChild(
-			config.Model
-		)
-
-	if not model then
-
-		warn(
-			"[CosmeticManager] Missing banana skin model:",
-			config.Model,
-			"inside",
-			skinId
-		)
-
-		return nil
-	end
-
-	return model
-
-end
-
-
-------------------------------------------------
--- GET MAIN PART
-------------------------------------------------
-
-local function GetBananaMain(
-	visual
-)
-
-	if visual:IsA("BasePart") then
-		return visual
-	end
-
-	if not visual:IsA("Model") then
-		return nil
-	end
-
-	if visual.PrimaryPart then
-		return visual.PrimaryPart
-	end
-
-	local main =
-		visual:FindFirstChild(
-			"Main",
-			true
-		)
-
-	if main and main:IsA("BasePart") then
-		return main
-	end
-
-	return visual:FindFirstChildWhichIsA(
-		"BasePart",
-		true
-	)
-
-end
-
-
-------------------------------------------------
--- CLEAR BANANA SKIN
-------------------------------------------------
-
-function CosmeticManager:ClearBananaSkin(
-	bananaVisual
-)
-
-	if not bananaVisual then
-		return
-	end
-
-	for _, object in ipairs(
-		bananaVisual:GetDescendants()
-	) do
-
-		if object:GetAttribute(
-			"BananaSkinVisual"
-		) == true then
-
-			object:Destroy()
-
-		end
-
-	end
-
-end
-
-
-------------------------------------------------
--- REFRESH BANANA SKIN
-------------------------------------------------
-
-function CosmeticManager:RefreshBananaSkin(
-	player,
-	bananaVisual
-)
-
-	if not bananaVisual then
 		return false
 	end
 
-	------------------------------------------------
-	-- EQUIPPED SKIN
-	------------------------------------------------
-
 	local skinId =
-		self:GetEquippedBananaSkin(
+		self:GetEquippedSkin(
 			player
 		)
 
 	------------------------------------------------
-	-- CLEAR CURRENT
-	------------------------------------------------
-
-	self:ClearBananaSkin(
-		bananaVisual
-	)
-
-	------------------------------------------------
-	-- NO SKIN
+	-- No skin
 	------------------------------------------------
 
 	if not skinId then
+
+		self:ClearSkin(
+			character
+		)
+
 		return true
+
 	end
 
 	------------------------------------------------
-	-- SOURCE
+	-- Apply
 	------------------------------------------------
 
-	local source =
-		self:GetBananaSkinModel(
-			skinId
-		)
-
-	if not source then
-		return false
-	end
-
-	------------------------------------------------
-	-- BANANA MAIN
-	------------------------------------------------
-
-	local bananaMain =
-		GetBananaMain(
-			bananaVisual
-		)
-
-	if not bananaMain then
-
-		warn(
-			"[CosmeticManager] Banana has no Main part"
-		)
-
-		return false
-	end
-
-	------------------------------------------------
-	-- CLONE
-	------------------------------------------------
-
-	local visual =
-		source:Clone()
-
-	visual.Name =
-		"BananaSkinVisual"
-
-	visual:SetAttribute(
-		"BananaSkinVisual",
-		true
+	return self:ApplySkin(
+		player,
+		character,
+		skinId
 	)
-
-	visual.Parent =
-		bananaVisual
-
-	------------------------------------------------
-	-- PREPARE
-	------------------------------------------------
-
-	if visual:IsA("BasePart") then
-
-		PreparePart(
-			visual
-		)
-
-	else
-
-		for _, object in ipairs(
-			visual:GetDescendants()
-		) do
-
-			if object:IsA("BasePart") then
-				PreparePart(object)
-			end
-
-		end
-
-	end
-
-	------------------------------------------------
-	-- SKIN MAIN
-	------------------------------------------------
-
-	local skinMain =
-		GetBananaMain(
-			visual
-		)
-
-	if not skinMain then
-
-		warn(
-			"[CosmeticManager] Banana skin has no Main:",
-			skinId
-		)
-
-		visual:Destroy()
-
-		return false
-	end
-
-	------------------------------------------------
-	-- POSITION
-	------------------------------------------------
-
-	if visual:IsA("Model") then
-
-		visual:PivotTo(
-			bananaMain.CFrame
-		)
-
-	else
-
-		visual.CFrame =
-			bananaMain.CFrame
-
-	end
-
-	------------------------------------------------
-	-- WELD
-	------------------------------------------------
-
-	local weld =
-		Instance.new("WeldConstraint")
-
-	weld.Name =
-		"BananaSkinWeld"
-
-	weld.Part0 =
-		bananaMain
-
-	weld.Part1 =
-		skinMain
-
-	weld.Parent =
-		skinMain
-
-	------------------------------------------------
-	-- HIDE ORIGINAL BANANA
-	------------------------------------------------
-
-	if bananaMain ~= skinMain then
-		bananaMain.Transparency = 1
-	end
-
-	return true
 
 end
 
-
 ------------------------------------------------
--- UNIVERSAL REFRESH
+-- REFRESH
 ------------------------------------------------
 
 function CosmeticManager:Refresh(
@@ -1238,30 +872,11 @@ function CosmeticManager:Refresh(
 	category
 )
 
-	if not player then
-		return
-	end
-
 	if category == "Skins" then
 
 		self:RefreshSkin(
 			player
 		)
-
-	elseif category == "BananaSkins" then
-		
-		-- Later
-		-- self:RefreshBananaSkin(player)
-
-	elseif category == "RescueEffects" then
-
-		-- Later
-		-- self:RefreshRescueEffect(player)
-
-	elseif category == "VictoryPoses" then
-
-		-- Later
-		-- self:RefreshVictoryPose(player)
 
 	end
 
@@ -1277,10 +892,6 @@ function CosmeticManager:SetupPlayer(
 
 	player.CharacterAdded:Connect(
 		function(character)
-
-			------------------------------------------------
-			-- Wait for complete R15 character
-			------------------------------------------------
 
 			character:WaitForChild(
 				"Humanoid",
@@ -1302,24 +913,18 @@ function CosmeticManager:SetupPlayer(
 				5
 			)
 
+			------------------------------------------------
+			-- Give StarterCharacter time to finish
+			------------------------------------------------
+
 			task.wait(0.2)
 
 			------------------------------------------------
-			-- Capture DEFAULT CHARACTER
+			-- Apply saved skin
 			------------------------------------------------
 
-			self:CaptureCharacter(
-				player,
-				character
-			)
-
-			------------------------------------------------
-			-- Apply SAVED skin
-			------------------------------------------------
-
-			self:Refresh(
-				player,
-				"Skins"
+			self:RefreshSkin(
+				player
 			)
 
 		end
@@ -1334,14 +939,8 @@ function CosmeticManager:SetupPlayer(
 		task.defer(
 			function()
 
-				self:CaptureCharacter(
-					player,
-					player.Character
-				)
-
-				self:Refresh(
-					player,
-					"Skins"
+				self:RefreshSkin(
+					player
 				)
 
 			end
@@ -1352,27 +951,10 @@ function CosmeticManager:SetupPlayer(
 end
 
 ------------------------------------------------
--- PLAYER REMOVING
-------------------------------------------------
-
-Players.PlayerRemoving:Connect(
-	function(player)
-
-		OriginalCharacters[player] =
-			nil
-		
-	end
-)
-
-------------------------------------------------
 -- INIT
 ------------------------------------------------
 
 function CosmeticManager:Init()
-
-	-- print(
-	-- 	"CosmeticManager Initializing..."
-	-- )
 
 	for _, player in ipairs(
 		Players:GetPlayers()
